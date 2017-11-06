@@ -1,0 +1,90 @@
+﻿
+@import "./bower_components/bootstrap/scss/mixins";
+@import "./bower_components/bootstrap/scss/variables";
+@import "mixins";
+
+.modal {
+    display: table !important;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,.75); // rgba(255,255,255,0.9);
+    &.fade {
+        opacity: 1;
+        display: none;
+        @include transition(none);
+
+        &.in {
+            display: table !important;
+        }
+
+        .modal-dialog {
+            margin: 0 auto;
+            @include transform(none);
+            @include transition(none);
+        }
+    }
+
+    &.in {
+        .modal-dialog {
+            @include transform(none);
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        &.fade {
+
+            &.in {
+                display: block !important;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            .modal-dialog {
+                display: block !important;
+            }
+        }
+    }
+}
+
+.modal-dialog {
+    display: table-cell;
+    vertical-align: top; // middle
+    margin: 0;
+    padding: 30px 0;
+}
+
+.modal-content {
+    // max-width: 600px;
+    max-width: 1000px;
+    margin: 0 auto;
+    border-radius: 0;
+}
+
+.modal-header {
+    background: #90939b;
+    padding: 10px 15px;
+    color: white;
+}
+
+.modal-title {
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 100;
+    line-height: 20px;
+}
+
+@include media-breakpoint-down(sm) {
+    .modal {
+        background: white;
+    }
+
+    .modal-dialog {
+        padding: 0;
+        min-width: 100vw;
+        min-height: 100vh;
+    }
+
+    .modal-content {
+        border: 0;
+    }
+}

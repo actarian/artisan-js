@@ -1,0 +1,13 @@
+<span ng-messages="getMessages()" role="alert">
+<span ng-message="required" class="label-error animated flash">obbligatorio</span>
+<span ng-message="minlength" class="label-error animated flash" ng-if="type == 'password'">almeno 6 caratteri</span>
+<span ng-message="email" class="label-error animated flash" ng-if="type == 'email'">valore non corretto</span>
+<span ng-message="date" class="label-error animated flash" ng-if="type == 'date'">formato non corretto</span>
+<span ng-message="min" class="label-error animated flash" ng-if="type == 'date'">intervallo non corretto</span>
+<span ng-message="max" class="label-error animated flash" ng-if="type == 'date'">intervallo non corretto</span>
+<span ng-message="maxsize" class="label-error animated flash" ng-if="type == 'file'">dimensione massima superata</span>
+<span ng-message="accept" class="label-error animated flash" ng-if="type == 'file'">estensione non consentita</span>
+<span ng-message="positive" class="label-error animated flash" ng-if="validate == 'number' || validate == 'range'">solo valori positivi</span>
+<span ng-message="number" class="label-error animated flash" ng-if="validate == 'number' || validate == 'range'">solo valori numerici</span>
+<span ng-message="match" class="label-error animated flash" ng-if="match">non corrispondente</span>
+</span>

@@ -1,0 +1,9 @@
+<div class="form-group form-group-{{type}}" ng-class="getClasses()">
+    <label for="{{field}}" class="form-label">
+        <span ng-bind="title"></span><sup ng-if="required">✽</sup>
+    </label>
+    <select name="{{field}}" class="form-control" ng-model="ngModel" ng-options="{{getOptions()}}" ng-required="required" ng-disabled="disabled" ng-readonly="readonly" ng-change="onChange()" ng-focus="focus = true" ng-blur="focus = false">
+        <option value="" disabled selected hidden>{{placeholder}}</option>
+    </select>
+    <control-messages></control-messages>
+</div>

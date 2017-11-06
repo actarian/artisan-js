@@ -1,0 +1,13 @@
+<input type="hidden" name="{{field}}" ng-model="ngModel" ng-required="required" />
+<div class="form-check form-group form-group-{{type}}" ng-class="getClasses()">
+    <label for="{{field}}" class="form-label">
+        <span ng-bind-html="placeholder"></span><sup ng-if="required">✽</sup>
+    </label>
+    <control-messages></control-messages>
+    <div class="input-group" ng-repeat="item in source">
+        <label class="form-check-label">
+            <input type="radio" class="form-check-input" ng-model="$parent.ngModel" name="input-{{field}}" ng-value="item.id" />
+            {{item.name}}
+        </label>
+    </div>
+</div>

@@ -1,0 +1,7 @@
+<ul class="nav padding-bottom-lg-20" ng-if="state.isError">
+    <li class="nav-item" ng-repeat="item in state.errors track by $index">
+        <div class="alert alert-danger" role="alert">
+            <b ng-bind="'Error ' + item.status"></b> <span ng-bind="item.message"></span>
+        </div>
+    </li>
+</ul>

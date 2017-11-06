@@ -1,0 +1,275 @@
+﻿
+@import "./bower_components/bootstrap/scss/variables";
+@import "./bower_components/bootstrap/scss/mixins";
+
+@import "colors";
+@import "filters";
+@import "transitions";
+
+$btn-defaults: ( 
+    padding-vertical: 4px, 
+    padding-horizontal: 10px, 
+    border-width: 2px,
+    border-radius: 3px,
+    box-shadow: none,
+    box-hover-shadow: 0 8px 16px -5px rgba(0,0,0,0.3),
+    sizes: (xs: 0.7, sm: 0.85, md: 1, lg: 1.5, xl: 2)
+) !default;
+
+@mixin btn {
+    display: inline-block;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    
+    @if map-has-key($btn-defaults, 'box-shadow') {
+        @include box-shadow(map-get($btn-defaults, 'box-shadow'));
+    }
+
+    @include btn-size(md);
+
+    &.disabled,
+    &:disabled {
+        pointer-events: none;
+        cursor: default;
+        @include opacity(.5);
+        @include box-shadow(none);
+    }
+
+    @include transition();
+
+    &,
+    &:active,
+    &.active {
+        &:focus,
+        &.focus {
+            outline: none;
+            outline-offset: 0;
+        }
+    }
+
+    &:hover, &:focus, &.focus {
+        text-decoration: none;
+    }
+
+    &:active,
+    &.active {
+        background-image: none;
+        outline: 0;
+    }
+ 
+    &:hover {
+        @if map-has-key($btn-defaults, 'box-hover-shadow') {
+            @include box-shadow(map-get($btn-defaults, 'box-hover-shadow'));
+        }
+    }    
+}
+
+@mixin btn-bordered {
+    @if map-has-key($btn-defaults, 'border-radius') {
+        border-radius: map-get($btn-defaults, 'border-radius');
+    }
+    @if map-has-key($btn-defaults, 'border-width') {
+        border-width: map-get($btn-defaults, 'border-width');
+        border-style: solid;
+    }
+}
+
+@mixin btn-size($size: md) {
+    $padding-vertical: map-get($btn-defaults, 'padding-vertical');    
+    $padding-horizontal: map-get($btn-defaults, 'padding-horizontal');
+    $sizes: map-get($btn-defaults, 'sizes');
+    $mult: map-get($sizes, $size);    
+    // @warn "mult #{$size} #{$mult}";    
+    font-size: 1rem * $mult;    
+    line-height: 1rem * $mult * $line-height-base;
+    padding: $padding-vertical * $mult $padding-horizontal * $mult;
+}
+
+@mixin buttons() {
+    // Future-proof disabling of clicks on `<a>` elements
+    a.btn.disabled,
+    fieldset[disabled] a.btn {
+        pointer-events: none;
+    }
+
+    $sizes: map-get($btn-defaults, 'sizes');
+    @each $size, $value in $sizes {    
+        .btn-#{$size} {
+            @include btn-size($size);
+        }
+    }
+
+    .btn-block {
+        display: block;
+        width: 100%;
+    }
+
+    .btn-block + .btn-block {
+        margin-top: $btn-block-spacing-y;
+    }
+
+    input[type="submit"],
+    input[type="reset"],
+    input[type="button"] {
+        &.btn-block {
+            width: 100%;
+        }
+    }
+}
+
+/*
+.btn-link {
+  font-weight: normal;
+  color: $link-color;
+  border-radius: 0;
+
+  &,
+  &:active,
+  &.active,
+  &:disabled {
+    background-color: transparent;
+    @include box-shadow(none);
+  }
+  &,
+  &:focus,
+  &:active {
+    border-color: transparent;
+  }
+  @include hover {
+    border-color: transparent;
+  }
+  @include hover-focus {
+    color: $link-hover-color;
+    text-decoration: $link-hover-decoration;
+    background-color: transparent;
+  }
+  &:disabled {
+    @include hover-focus {
+      color: $btn-link-disabled-color;
+      text-decoration: none;
+    }
+  }
+}
+*/
+
+/*
+@mixin btn-color($color, $background, $border) {
+  $active-background: darken($background, 10%);
+  $active-border: darken($border, 12%);
+
+  color: $color;
+  background-color: $background;
+  border-color: $border;
+  @include box-shadow($btn-box-shadow);
+
+  @include hover {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+  }
+
+  &:focus,
+  &.focus {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+  }
+
+  &:active,
+  &.active,
+  .open > &.dropdown-toggle {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+    // Remove the gradient for the pressed/active state
+    background-image: none;
+    @include box-shadow($btn-active-box-shadow);
+
+    &:hover,
+    &:focus,
+    &.focus {
+      color: $color;
+      background-color: darken($background, 17%);
+          border-color: darken($border, 25%);
+    }
+  }
+
+  &.disabled,
+  &:disabled {
+    &:focus,
+    &.focus {
+      background-color: $background;
+          border-color: $border;
+    }
+    @include hover {
+      background-color: $background;
+          border-color: $border;
+    }
+  }
+}
+*/
+
+/*
+@mixin btn-outline-color($color) {
+    color: $color;
+    background-image: none;
+    background-color: transparent;
+    border-color: $color;
+
+    @include hover {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+    }
+
+    &:focus,
+    &.focus {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+    }
+
+    &:active,
+    &.active,
+    .open > &.dropdown-toggle {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+
+        &:hover,
+        &:focus,
+        &.focus {
+            color: #fff;
+            background-color: darken($color, 17%);
+            border-color: darken($color, 25%);
+        }
+    }
+
+    &.disabled,
+    &:disabled {
+        &:focus,
+        &.focus {
+            border-color: lighten($color, 20%);
+        }
+
+        @include hover {
+            border-color: lighten($color, 20%);
+        }
+    }
+}
+*/
+
+@mixin user-select($value: none) {
+    -moz-user-select: $value;
+    -khtml-user-select: $value;
+    -webkit-user-select: $value;
+    -o-user-select: $value;
+    -ms-user-select: $value;
+    user-select: $value;
+}

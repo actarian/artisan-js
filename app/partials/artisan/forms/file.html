@@ -1,0 +1,9 @@
+<div class="form-group form-group-{{type}}" ng-class="getClasses()">
+    <label for="{{field}}" class="form-label">
+        <span ng-bind="title"></span><sup ng-if="required">✽</sup>
+        <span ng-bind="ngModel.name"></span>
+    </label>
+    <input type="{{getType()}}" name="{{field}}" class="form-control" file-model="ngModel" ng-model="ngModel" validate="file" ng-model-options="options" placeholder="{{placeholder}}" ng-required="required" on-busy="onBusy()" on-complete="onComplete()" accept="{{accept}}"
+        maxsize="{{maxsize}}" ng-focus="focus = true" ng-blur="focus = false">
+    <control-messages></control-messages>
+</div>

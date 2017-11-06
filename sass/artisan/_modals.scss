@@ -1,0 +1,154 @@
+@import '../variables';
+@import '../mixins';
+$zModalBackdrop: 2000;
+$zModal: 2001;
+$modal-md: 1200px;
+.modal-open {
+    overflow: hidden;
+    .modal {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+}
+
+.modal {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    outline: 0;
+    z-index: $zModal;
+    background: rgba(0, 0, 0, .55);
+    @include transition(all 350ms ease-in-out);
+    @include transitionfix();
+    &-dialog {
+        display: block;
+        position: relative;
+        width: 100%;
+        max-width: $modal-md;
+        margin: 0;
+        padding: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, .5);
+        @include transform(scale(1.1, 1.1));
+        @include transition(all 350ms 350ms ease-in-out);
+        @include transitionfix();
+        .modal.fade.in & {
+            @include transform(scale(1, 1));
+        }
+    }
+    &-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background-color: $modal-content-bg;
+        background-clip: padding-box;
+        outline: 0;
+    }
+    &-backdrop {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: $zModalBackdrop;
+        background-color: $modal-backdrop-bg;
+        // Fade for backdrop
+        &.fade {
+            opacity: 0;
+        }
+        &.show {
+            opacity: $modal-backdrop-opacity;
+        }
+    }
+    &-header {
+        display: flex;
+        align-items: center; // vertically center it
+        justify-content: space-between; // Put modal header elements (title and dismiss) on opposite ends
+        border-bottom: $modal-header-border-width solid $modal-header-border-color;
+        padding: 20px 15px;
+        background: $purple;
+        color: white;
+    }
+    &-title {
+        margin-bottom: 0;
+        text-transform: uppercase;
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 22px;
+    }
+    &-body {
+        position: relative;
+        flex: 1 1 auto;
+    }
+    &-footer {
+        display: flex;
+        align-items: center; // vertically center
+        justify-content: flex-end; // Right align buttons with flex property because text-align doesn't work on flex items
+        padding: $modal-inner-padding;
+        border-top: $modal-footer-border-width solid $modal-footer-border-color;
+        // Easily place margin between footer elements
+        > :not(:first-child) {
+            margin-left: .25rem;
+        }
+        > :not(:last-child) {
+            margin-right: .25rem;
+        }
+    }
+    &-scrollbar-measure {
+        position: absolute;
+        top: -9999px;
+        width: 50px;
+        height: 50px;
+        overflow: scroll;
+    }
+    &-hidden {
+        .modal & {
+            display: none;
+        }
+    }
+    &-visible {
+        display: none;
+        .modal & {
+            display: block;
+        }
+    }
+    &.fade {
+        opacity: 0;
+        &.in {
+            opacity: 1;
+        }
+    }
+    form {
+        margin: 0;
+    }
+    @include media-breakpoint-down(sm) {
+        align-items: flex-start;
+        justify-content: center;
+        .modal-dialog {
+            overflow: visible;
+            border-radius: 0;
+            min-height: 100vh;
+            box-shadow: none;
+        }
+    }
+    @include media-breakpoint-up(md) {
+        .section-booking .left,
+        .section-cart .left {
+            min-height: calc(100vh - 40px);
+        }
+        &-sm {
+            .modal-dialog {
+                max-width: 520px;
+            }
+        }
+    }
+}

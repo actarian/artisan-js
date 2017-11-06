@@ -1,0 +1,85 @@
+[{
+    "inputFiles": [
+        "bower_components/angular/angular.js",
+        "bower_components/angular-route/angular-route.js",
+        "bower_components/angular-messages/angular-messages.js",
+        "bower_components/json-formatter/dist/json-formatter.js"
+    ],
+    "outputFileName": "docs/js/vendors.js",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "app/artisan/artisan.module.js",
+        "app/artisan/api/web.service.js",
+        "app/artisan/canvas/painter.service.js",
+        "app/artisan/events/events.factory.js",
+        "app/artisan/extensions/ngclick.directive.js",
+        "app/artisan/filters/filters.js",
+        "app/artisan/forms/control.directive.js",
+        "app/artisan/forms/validate.directive.js",
+        "app/artisan/hash/hash.model.js",
+        "app/artisan/header/header.directive.js",
+        "app/artisan/modals/modal.directive.js",
+        "app/artisan/modals/modal.provider.js",
+        "app/artisan/nav/nav.directives.js",
+        "app/artisan/nav/nav.factory.js",
+        "app/artisan/promise/promise.factory.js",
+        "app/artisan/router/router.service.js",
+        "app/artisan/silent/silent.factory.js",
+        "app/artisan/state/state.model.js",
+        "app/artisan/storage/storage.service.js",
+        "app/artisan/utils/utils.service.js"
+    ],
+    "outputFileName": "docs/js/artisan.js",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "app/app.module.js",
+        "app/app.api.js",
+        "app/app.config.js",
+        "app/app.routes.js",
+        "app/app.run.js",
+        "app/controllers/root.controller.js"
+    ],
+    "outputFileName": "docs/js/app.js",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "bower_components/json-formatter/dist/json-formatter.css",
+        "bower_components/dat.gui/build/dat.gui.css"
+    ],
+    "outputFileName": "docs/css/vendors.css",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "docs/css/bootstrap.css"
+    ],
+    "outputFileName": "docs/css/bootstrap.css",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "docs/css/artisan.css"
+    ],
+    "outputFileName": "docs/css/artisan.css",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "docs/css/app.css"
+    ],
+    "outputFileName": "docs/css/app.css",
+    "minify": {
+        "enabled": true
+    }
+}]

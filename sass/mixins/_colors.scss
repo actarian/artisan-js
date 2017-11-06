@@ -1,0 +1,434 @@
+﻿// $palette-debug: true;
+$statusColors: ( 
+    blue: #1684FB,
+    red: #F21500, 
+    yellow: #ffe200, 
+    orange: #FF6435,  
+    light-orange: #FF9700,
+    green: #4BAF4F,
+    light-green: #8BC24A,
+    purple: #7A70E4,
+    azur: #53E2DD,
+    light-blue: #03A9F4, 
+) !default;
+$colors: ( 
+    background: #fff, 
+    foreground: #24292e, // #01091c, 
+    primary: #03a9f4, // #01c0f6, 
+    danger: #F21500, // #eb5046,
+    warning: #FF9700, // #f1d05d,
+    success: #4BAF4F, // #28b280 
+) !default;
+$forecolors: ( 
+    background: #01091c, 
+    foreground: #fff, 
+    primary: #fff, 
+    danger: #fff,
+    warning: #fff,
+    success: #fff, 
+) !default;
+$variations: ( 
+    light: #efefef, 
+    dark: #11192c, 
+) !default;
+$palette-debug: false !default;
+
+$border: #606570;
+
+// =#{$colors} */
+// =#{$variations} */
+
+@function variation($key: 'dark') {
+    @return map-get($variations, $key);
+}
+
+@function color-mix($col: '#fff', $brightness: 0%) {
+    @if $brightness > 0 {
+        $col: mix($col, variation('light'), 100% - $brightness);
+    }
+
+    @if $brightness < 0 {
+        $col: mix($col, variation('dark'), 100% + $brightness);
+    }
+
+    @return $col;
+}
+
+@function color-darken($col: '#fff', $amount: 0%) {
+    @return color-mix($col, -$amount);
+}
+
+@function color-lighten($col: '#fff', $amount: 0%) {
+    @return color-mix($col, $amount);
+}
+
+@function color-mix($col: '#fff', $brightness: 0%) {
+    @if $brightness > 0 {
+        $col: mix($col, variation('light'), 100% - $brightness);
+    }
+
+    @if $brightness < 0 {
+        $col: mix($col, variation('dark'), 100% + $brightness);
+    }
+
+    @return $col;
+}
+
+@function color($key: 'primary', $brightness: 0%) {
+    $col: map-get($colors, $key);
+    $col: color-mix($col, $brightness);
+    @return $col;
+}
+
+@function statusColor($key: 'red', $brightness: 0%) {
+    $col: map-get($statusColors, $key);
+    $col: color-mix($col, $brightness);
+    @return $col;
+}
+
+@function dark($key: 'primary', $i: 1) {
+    $col: map-get($colors, $key);
+    @return mix($col, variation('dark'), 100% - $i * 10%);
+}
+
+@function light($key: 'primary', $i: 1) {
+    $col: map-get($colors, $key);
+    @return mix($col, variation('light'), 100% - $i * 10%);
+}
+
+@function contrast-old($col1: #ffffff) {
+    $col2: #ffffff;
+    $lum1: round((red($col1) * 299) + (green($col1) * 587) + (blue($col1) * 114) / 1000);
+    $lum2: round((red($col2) * 299) + (green($col2) * 587) + (blue($col2) * 114) / 1000);
+    @if abs($lum1) < abs($lum2 / 2) {
+        @return color('background');
+    }
+    @else {
+        @return color('foreground');
+    }
+}
+
+@function contrast($color, $dark: variation('dark'), $light: variation('light')) {
+    @if $color == null {
+        @return null;
+    }
+    @else {
+        $color-brightness: brightness($color);
+        $dark-text-brightness: brightness($dark);
+        $light-text-brightness: brightness($light);
+        @return if(abs($color-brightness - $light-text-brightness) > abs($color-brightness - $dark-text-brightness), $light, $dark);
+    }
+}
+
+@function best($color, $colors) {
+    @if $color == null {
+        @return null;
+    }
+    @else {
+        $best: null; $abs: 0;
+        $color-brightness: brightness($color);
+        @each $property, $col in $colors {
+            $col-brightness: brightness($col);        
+            @if abs($color-brightness - $col-brightness) > $abs {
+                $best: $col;
+                $abs: abs($color-brightness - $col-brightness);
+            }
+        }
+        /*
+        @each $property, $col in $variations {
+            $col-brightness: brightness($col);        
+            @if abs($color-brightness - $col-brightness) > $abs {
+                $best: $col;
+                $abs: abs($color-brightness - $col-brightness);
+            }
+        }
+        */
+        @return $best;
+    }
+}
+
+@function brightness($color) {
+    @if type-of($color) == color {
+        @return (red($color) * 0.299 + green($color) * 0.587 + blue($color) * 0.114) / 255 * 100%;
+    }
+    @else {
+        @return unquote("brightness(#{$color})");
+    }
+}
+
+@mixin palette-color($key: 'background', $negative: false, $brightness: 0%) {
+    $col: color($key);
+
+    @if $brightness > 0 {
+        $col: mix($col, variation('light'), 100% - $brightness);
+    }
+
+    @if $brightness < 0 {
+        $col: mix($col, variation('dark'), 100% + $brightness);
+    }
+
+    @if $negative {
+        background: $col;
+        color: contrast($col);
+        border-color: contrast($col);
+    }
+    @else {
+        background: contrast($col);
+        color: $col;
+        border-color: $col;
+    }
+}
+
+@mixin paletteStyle($col1: #fff, $col2: #000) {
+    background: $col1;
+    color: $col2;
+    border-color: $col2;
+}
+
+/*
+@function pow($number, $exp) {
+    $value: 1;
+
+    @if $exp > 0 {
+        @for $i from 1 through $exp {
+            $value: $value * $number;
+        }
+    }
+    @else if $exp < 0 {
+        @for $i from 1 through -$exp {
+            $value: $value / $number;
+        }
+    }
+
+    @return $value;
+}
+*/
+
+@function pow($number, $exponent) {
+    $value: 1;
+
+    @if $exponent > 0 {
+        $mult: $exponent / floor($exponent);
+
+        @for $i from 1 through $exponent {
+            @if $i <= $exponent {
+                @if $i == 1 {
+                    $value: $value * $number;
+                }
+                @else {
+                    $value: $value * $number * $mult;
+                }
+            }
+            @else {
+                $value: $value * $mult;
+            }
+            /*
+            @else {
+                $next: $value * $number;
+                $value: $value + ($next - $value) * $mult;
+            }
+            */
+            /*
+            @if $i > 1 {
+                $value2: $value2 * $number * $mult;
+            }
+            @else {
+                $value2: $value2 * $number;
+            }
+            */
+        }
+        /* 
+        $rest: $exponent - floor($exponent);       
+        @if $rest > 0 {
+            $value: $value * ($number * $rest);
+        }
+        */
+    }
+
+    @return $value;
+}
+
+@function luminosity($col: #fff) {
+    $components: (red($col), green($col), blue($col));
+    $factors: (0.2126, 0.7152, 0.0722);
+    $lum: 0;
+    /*
+    $lumens: (0, 0, 0);
+    @each $component in $components {
+        $i: index($components, $component);
+        @warn "index '#{$i}'";   
+        $pow: $component / 255;     
+        @if ($pow <= 0.03928) {
+            $pow: $pow / 12.92;
+            $pow: set-nth($lumens, $i, $pow); // append($lumens, $pow); // 
+        }
+        @else {
+            $pow: pow((($pow + 0.055) / 1.055), 2.4);
+            $pow: set-nth($lumens, $i, $pow); // append($lumens, $pow);
+        }
+    }   
+    */
+    @for $i from 1 through length($components) {
+        $pow: nth($components, $i) / 255;
+
+        @if ($pow <= 0.03928) {
+            $lum: $lum + ($pow / 12.92) * nth($factors, $i);
+        }
+        @else {
+            $lum: $lum + pow((($pow + 0.055) / 1.055), 2.4) * nth($factors, $i); // (pow((($pow + 0.055) / 1.055), 2.4));
+        }
+    }
+
+    @return $lum;
+    // @return (0.2126 * nth($lumens, 1)) + (0.7152 * nth($lumens, 2)) + (0.0722 * nth($lumens, 3));
+}
+
+@function magnitude($col1: #fff, $col2: #000) {
+    $lum1: luminosity($col1);
+    $lum2: luminosity($col2);
+
+    @if ($lum1 > $lum2) {
+        @return ($lum1 + 0.05) / ($lum2 + 0.05);
+    }
+    @else {
+        @return ($lum2 + 0.05) / ($lum1 + 0.05);
+    }
+}
+
+@mixin readibility($col1: #fff, $col2: #000) {
+    @if $palette-debug {
+        $minimums: ( low for title: 3, low: 4.5, high for titles: 4.5, high: 7 );
+        $magnitude: magnitude($col1, $col2);
+        $key: '';
+        @each $property, $minimum in $minimums {
+            @if $magnitude >= $minimum {
+                $key: $property;
+            }
+        }
+        @if $key == '' {
+            $key: 'don\'t use';
+        }
+        // $key: pow(2,2.4);
+        position: relative;
+        &:after {
+            content: '#{$key}';
+            display: block;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 400;
+            line-height: 16px;
+            border-radius: 10px;
+            background: #00f;
+            color: #fff;
+        }
+    }
+}
+
+@function fore($key, $col) {    
+    // @return contrast($col);
+    @return map-get($forecolors, $key);
+}
+
+@mixin palette($steps: 10) {
+    $increment: (100 / $steps);
+
+    @each $property, $col in $colors {
+        .#{$property} {
+            $col1: $col;
+            $col2: fore($property, $col);
+            @include paletteStyle($col1, $col2);
+            @include readibility($col1, $col2);
+
+            &.negative {
+                // $col1: contrast($col);
+                $col1: best($col, $colors);
+                $col2: $col;
+                @include paletteStyle($col1, $col2);
+                @include readibility($col1, $col2);
+            }
+
+            @for $i from 1 through $steps {
+                $ratio: 100 - $i * $increment;
+                $dark: mix($col, variation('dark'), $ratio);
+
+                &.dark-#{$i * $increment} {
+                    $col1: $dark;
+                    $col2: contrast($dark);
+                    @include paletteStyle($col1, $col2);
+                    @include readibility($col1, $col2);
+
+                    &.negative {
+                        // $col1: contrast($dark);
+                        $col1: best($dark, $colors);
+                        $col2: $dark;
+                        @include paletteStyle($col1, $col2);
+                        @include readibility($col1, $col2);
+                    }
+                }
+
+                $light: mix($col, variation('light'), $ratio);
+
+                &.light-#{$i * $increment} {
+                    $col1: $light;
+                    $col2: contrast($light);
+                    @include paletteStyle($col1, $col2);
+                    @include readibility($col1, $col2);
+
+                    &.negative {
+                        // $col1: contrast($light);
+                        $col1: best($light, $colors);
+                        $col2: $light;
+                        @include paletteStyle($col1, $col2);
+                        @include readibility($col1, $col2);
+                    }
+                }
+            }
+        }
+        .text-#{$property} {
+            $col1: transparent;
+            $col2: $col;
+            @include paletteStyle($col1, $col2!important);
+            @include readibility($col1, $col2);
+
+            @for $i from 1 through $steps {
+                $ratio: 100 - $i * $increment;
+
+                $dark: mix($col, variation('dark'), $ratio);
+                &.dark-#{$i * $increment} {                    
+                    $col1: transparent;
+                    $col2: $dark;
+                    @include paletteStyle($col1, $col2!important);
+                    @include readibility($col1, $col2);                    
+                }
+
+                $light: mix($col, variation('light'), $ratio);
+                &.light-#{$i * $increment} {
+                    $col1: transparent;
+                    $col2: $light;
+                    @include paletteStyle($col1, $col2!important);
+                    @include readibility($col1, $col2);
+                }
+            }
+        }
+        .border-#{$property} {
+            border: 1px solid $col;
+
+            @for $i from 1 through $steps {
+                $ratio: 100 - $i * $increment;
+
+                $dark: mix($col, variation('dark'), $ratio);
+                &.dark-#{$i * $increment} {                    
+                    border-color: $dark;           
+                }
+
+                $light: mix($col, variation('light'), $ratio);
+                &.light-#{$i * $increment} {
+                    border-color: $light;           
+                }
+            }
+        }
+    }
+}

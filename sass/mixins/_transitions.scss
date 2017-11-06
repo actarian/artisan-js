@@ -1,0 +1,57 @@
+﻿
+@import "./bower_components/bootstrap/scss/variables";
+
+@mixin transitionfix() {
+    -moz-backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
+    -ms-transform: translate3d(0, 0, 0);
+    -o-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+}
+
+@mixin transition($properties: all, $duration: 250ms, $delay: 0ms, $effect: ease-in-out) {
+    -moz-transition-property: $properties;
+    -o-transition-property: $properties;
+    -webkit-transition-property: $properties;
+    transition-property: $properties;
+    -moz-transition-duration: $duration;
+    -o-transition-duration: $duration;
+    -webkit-transition-duration: $duration;
+    transition-duration: $duration;
+    -moz-transition-delay: $delay;
+    -o-transition-delay: $delay;
+    -webkit-transition-delay: $delay;
+    transition-delay: $delay;
+    -moz-transition-timing-function: $effect;
+    -o-transition-timing-function: $effect;
+    -webkit-transition-timing-function: $effect;
+    transition-timing-function: $effect;
+    -webkit-transform-style: preserve-3d;
+    /* Chrome, Safari, Opera */
+    transform-style: preserve-3d;
+}
+
+@mixin transition-transform($properties: all, $duration: 250ms, $delay: 0ms, $effect: ease-in-out) {
+    -moz-transition-property: -moz-transform, $properties;
+    -o-transition-property: -o-transform, $properties;
+    -webkit-transition-property: -webkit-transform, $properties;
+    transition-property: transform, $properties;
+    -moz-transition-duration: $duration;
+    -o-transition-duration: $duration;
+    -webkit-transition-duration: $duration;
+    transition-duration: $duration;
+    -moz-transition-delay: $delay;
+    -o-transition-delay: $delay;
+    -webkit-transition-delay: $delay;
+    transition-delay: $delay;
+    -moz-transition-timing-function: $effect;
+    -o-transition-timing-function: $effect;
+    -webkit-transition-timing-function: $effect;
+    transition-timing-function: $effect;
+    -webkit-transform-style: preserve-3d;
+    /* Chrome, Safari, Opera */
+    transform-style: preserve-3d;
+}

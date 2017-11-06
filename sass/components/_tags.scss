@@ -1,0 +1,142 @@
+﻿
+@import "custom";
+@import "./bower_components/bootstrap/scss/variables";
+@import "mixins";
+
+.tag {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px; // 5px 10px;
+    margin: 0; // 0 2px;
+}
+
+.tag-pill {
+    padding: 3px 5px 5px 5px; // 5px 8px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+    font-weight: 900;
+    line-height: 10px;
+    vertical-align: middle;
+    color: black;
+    background: #eee;
+    border-radius: 3px;
+    font-weight: 400;
+
+    td > & {
+        min-width: 100%;
+    }
+
+    .tag-icon {
+        position: absolute;
+    }
+
+    &.tag-icon-right {
+        padding-right: 14px;
+
+        .tag-icon {            
+            right: 10px;
+        }
+    }
+}
+
+.tag-link {
+    border: 1px solid #bbb;
+    padding: 3px 5px 5px 5px; // 3px 6px;
+    line-height: 10px;
+    vertical-align: middle;
+    color: black;
+    background: #fff;
+    border-radius: 0;
+    font-weight: 400;
+    white-space: nowrap;
+    // font-size: 11px;
+    i {
+        font-size: 7px;
+        vertical-align: middle;
+    }
+
+    @include transition();
+
+    &:hover { //, tr[ng-click]:hover & {
+        background-color: color('foreground');
+        color: white;
+        border-color: color('foreground');
+    }
+}
+
+.tag-dashboard {
+    color: black;
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 0;
+    padding: 5px 11px;
+    vertical-align: top;
+}
+
+/*
+.tag + .tag {
+    margin-left: 5px;
+}
+*/
+
+/*
+.tag-pill + .tag-pill {
+    position: relative;
+    padding-left: 10px;
+    &:after {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 4px 0 4px 4px;
+        border-color: transparent transparent transparent #fff;
+        top: 50%;
+        left: 3px;
+        margin-top: -4px;
+    }
+}
+*/
+
+
+$tag-light: #d0d3db;
+$tag-normal: #b0b3bb;
+$tag-active: #90939b;
+
+
+.tag-pill-flag {
+    background: $tag-normal;
+    color: white;
+
+    &.active {
+        background: $tag-active;
+        color: white;
+    }
+
+}
+
+.tag-pill-flag + .tag-pill-flag {
+    margin-left: 5px;
+}
+
+.tag-date {
+    border-radius: 3px;
+    vertical-align: middle;
+    padding: 3px 5px 5px 5px;
+    line-height: 10px;
+    font-weight: 400;
+    background: #f8f8f8;
+    color: black;
+}
+
+a {
+    &.tag {
+        &:focus, &:active {
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    }
+}

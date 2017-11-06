@@ -1,0 +1,10 @@
+﻿
+@import "./bower_components/bootstrap/scss/variables";
+
+@mixin clearfix() {
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}

@@ -1,0 +1,40 @@
+﻿
+@mixin _assert-ascending($map, $map-name) {
+    $prev-key: null;
+    $prev-num: null;
+
+    @each $key, $num in $map {
+        @if $prev-num == null {
+            // Do nothing
+        }
+        @else if not comparable($prev-num, $num) {
+            @warn "Potentially invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} whose unit makes it incomparable to #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+        }
+        @else if $prev-num >= $num {
+            @warn "Invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} which isn't greater than #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+        }
+
+        $prev-key: $key;
+        $prev-num: $num;
+    }
+}
+
+// VARIABLES
+$grid-use-flex: false !default;
+$grid-container-widths: ( sm: 576px, md: 720px, lg: 940px, xl: 1140px ) !default;
+@include _assert-ascending($grid-container-widths, "$grid-container-widths");
+$grid-breakpoints: ( xs: 0, sm: 544px, md: 768px, lg: 992px, xl: 1200px ) !default;
+@include _assert-ascending($grid-breakpoints, "$grid-breakpoints");
+$grid-columns: 12 !default;
+$grid-gutter: 30px !default;
+
+@import "mixins/colors";
+
+$brand-primary: color('primary');
+$brand-danger: color('danger');
+$brand-warning: color('warning');
+$brand-success: color('success');
+
+$font-family-sans-serif: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-serif:      Georgia, "Times New Roman", Times, serif !default;
+$font-family-monospace:  Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;

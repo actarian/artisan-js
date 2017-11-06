@@ -1,0 +1,9 @@
+﻿
+@import "./bower_components/bootstrap/scss/mixins";
+@import "./bower_components/bootstrap/scss/variables";
+@import "mixins";
+
+.chart-container {
+    width: 100%;
+    // height: 240px;
+}

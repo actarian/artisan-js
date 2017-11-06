@@ -1,0 +1,189 @@
+$white: #fff !default;
+$black: #000 !default;
+$red: #d9534f !default;
+$orange: #f0ad4e !default;
+$yellow: #ffd500 !default;
+$green: #5cb85c !default;
+$blue: #0023FF !default;
+$teal: #5bc0de !default;
+$pink: #ff5b77 !default;
+$purple: #613d7c !default;
+$idle: #999;
+$placeholder: #ccc;
+$warning: $red;
+$success: $blue;
+.form-group {
+    position: relative;
+    padding-top: 20px;
+    // margin-bottom: 2rem;
+    border: 1px solid #eee;
+    border-radius: .25rem;
+    overflow: hidden;
+    // box-shadow: 0 10px 10px -3px rgba(0, 0, 0, 0.15);
+}
+
+.form-label {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 60px;
+    top: 0;
+    margin: 0 0 0 0;
+    overflow: hidden;
+    z-index: 10;
+    pointer-events: none;
+    &:before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 2px;
+        position: absolute;
+        bottom: 0px;
+        background: $idle;
+    }
+    &:after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 4px;
+        position: absolute;
+        bottom: 0px;
+        background: $warning;
+        transform: translateX(-100%);
+        transition: all 250ms ease-in-out;
+    }
+    span {
+        display: block;
+        position: relative;
+        width: 100%;
+        height: 20px;
+        padding: 0 .75rem;
+        font-size: .6rem;
+        letter-spacing: .075rem;
+        line-height: 20px;
+        text-transform: uppercase;
+        background: #ffffff;
+        transform: translateY(10px);
+        transition: all 250ms ease-in-out;
+    }
+    sup {
+        display: none;
+    }
+    .control-empty>& {
+        span {
+            transform: translateY(28px);
+        }
+    }
+    .control-focus>& {
+        span {
+            transform: translateY(10px);
+        }
+        &:after {
+            transform: translateX(0);
+        }
+    }
+    .control-success>& {
+        &:before {
+            background: $success;
+        }
+        &:after {
+            background: $success;
+        }
+    }
+    .control-error>& {
+        &:before {
+            background: $warning;
+        }
+        &:after {
+            background: $warning;
+        }
+    }
+}
+
+.form-control {
+    height: 40px;
+    border-radius: 0;
+    border: 0;
+    outline: 0;
+    margin: 0;
+    &::-webkit-input-placeholder {
+        /* Chrome/Opera/Safari */
+        color: $placeholder;
+    }
+    &::-moz-placeholder {
+        /* Firefox 19+ */
+        color: $placeholder;
+    }
+    &:-ms-input-placeholder {
+        /* IE 10+ */
+        color: $placeholder;
+    }
+    &:-moz-placeholder {
+        /* Firefox 18- */
+        color: $placeholder;
+    }
+    &.control-empty {}
+    &.control-focus {}
+    &.control-success {}
+    &.control-error {}
+}
+
+control-messages {
+    display: block;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    background: $warning;
+    color: #fff;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 250ms ease-in-out;
+    .control-error>& {
+        max-height: 100px;
+    }
+    &>span {
+        padding: 0 .75rem;
+        font-size: .6rem;
+        letter-spacing: .075rem;
+        line-height: 20px;
+    }
+}
+
+.btn {
+    cursor: pointer;
+    -webkit-appearance: none;
+    outline: none;
+    box-shadow: none;
+    &:focus {
+        -webkit-appearance: none;
+        outline: none;
+        box-shadow: none;
+    }
+    &.busy {
+        position: relative;
+        z-index: 10;
+        background: $blue;
+        border-color: $blue;
+    }
+    &.error {
+        background: $red;
+        border-color: $red;
+    }
+    &.success {
+        background: $green;
+        border-color: $green;
+    }
+}
+
+.input-group-addon {
+    position: relative;
+    cursor: pointer;
+    background: transparent;
+    [class^='icon-'] {
+        font-size: 15px;
+        line-height: 20px;
+        color: $blue;
+    }
+}

@@ -1,0 +1,19 @@
+<section class="container" ng-controller="FormCtrl">
+    <form name="form" role="form" novalidate autocomplete="off" ng-submit="form.$valid && submit()" ng-keyup="$event.keyCode == 13 && form.$valid && submit()">
+        <div form="form" control="select" source="data.languages" filter="notIn : $parent.model.languages : 'id'" ng-model="model.languages[model.languages.length]" title="Languages" placeholder="select a language"></div>
+        <span ng-repeat="item in model.languages track by $index">
+                <span class="badge badge-default" ng-click="onRemoveLanguage(item)"><span ng-bind="item.name"></span> <i class="icon-remove"></i></span>
+        </span>
+        <div form="form" control="email" ng-model="model.email" title="Email" placeholder="email" required="true"></div>
+        <div form="form" control="password" ng-model="model.password" title="Password" placeholder="password" required="true" min="6"></div>
+        <button type="submit" class="btn btn-primary animated infinite" ng-class="state.classes({ busy: 'bounce', error: 'shake', success: 'pulse' })" ng-bind="state.labels({ ready: 'action 1', busy: 'sending...', 'error': 'error', success: 'success' })" ng-disabled="state2.isBusy">action 1</button>
+        <button type="button" class="btn btn-outline-primary animated infinite" ng-click="submit2()" ng-class="state2.classes({ busy: 'bounce', error: 'shake', success: 'pulse' })" ng-bind="state2.labels({ ready: 'action 2', busy: 'sending...', 'error': 'error', success: 'success' })"
+            ng-disabled="state.isBusy">action 2</button>
+    </form>
+    <div class="well mb-2">
+        <json-formatter json="model"></json-formatter>
+    </div>
+    <div class="well mb-2">
+        <json-formatter json="state"></json-formatter>
+    </div>
+</section>

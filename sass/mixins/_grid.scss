@@ -1,0 +1,198 @@
+﻿
+@import "./bower_components/bootstrap/scss/variables";
+@import "./bower_components/bootstrap/scss/mixins/breakpoints";
+@import "clearfix";
+
+@mixin _assert-ascending($map, $map-name) {
+    $prev-key: null;
+    $prev-num: null;
+
+    @each $key, $num in $map {
+        @if $prev-num == null {
+            // Do nothing
+        }
+        @else if not comparable($prev-num, $num) {
+            @warn "Potentially invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} whose unit makes it incomparable to #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+        }
+        @else if $prev-num >= $num {
+            @warn "Invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} which isn't greater than #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+        }
+
+        $prev-key: $key;
+        $prev-num: $num;
+    }
+}
+
+
+$grid-use-flex: false !default;
+$grid-container-widths: ( sm: 576px, md: 720px, lg: 940px, xl: 1140px ) !default;
+@include _assert-ascending($grid-container-widths, "$grid-container-widths");
+$grid-breakpoints: ( xs: 0, sm: 544px, md: 768px, lg: 992px, xl: 1200px ) !default;
+@include _assert-ascending($grid-breakpoints, "$grid-breakpoints");
+$grid-columns: 12 !default;
+$grid-gutter: 30px !default;
+
+@mixin container($gutter: $grid-gutter) {
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: $gutter / 2;
+    padding-right: $gutter / 2;
+    @if not $grid-use-flex {
+        @include clearfix();
+    }
+}
+
+@mixin container-widths($widths: $grid-container-widths, $breakpoints: $grid-breakpoints) {
+    @each $breakpoint, $width in $widths {
+        @include media-breakpoint-up($breakpoint, $breakpoints) {
+            max-width: $width;
+        }
+    }
+}
+
+@mixin row($gutter: $grid-gutter) {
+    @if $grid-use-flex {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    @else {
+        @include clearfix();
+    }
+    margin-left: $gutter / -2;
+    margin-right: $gutter / -2;
+}
+
+@mixin col-ready($size, $columns: $grid-columns, $gutter: $grid-gutter) {
+    position: relative;
+    min-height: 1px; // Prevent collapsing
+    padding-right: ($gutter / 2);
+    padding-left: ($gutter / 2);
+    // Prevent columns from becoming too narrow when at smaller grid tiers by
+    // always setting `width: 100%;`. This works because we use `flex` values
+    // later on to override this initial width.
+    @if $grid-use-flex {
+        width: 100%;
+    }
+}
+
+@mixin col($size, $columns: $grid-columns, $gutter: $grid-gutter) {
+    @if $grid-use-flex {
+        flex: 0 0 percentage($size / $columns);
+        // Add a `max-width` to ensure content within each column does not blow out
+        // the width of the column. Applies to IE10+ and Firefox. Chrome and Safari
+        // do not appear to require this.
+        max-width: percentage($size / $columns);
+    }
+    @else {
+        float: left;
+        width: percentage($size / $columns);
+    }
+}
+
+@mixin col-offset($size, $columns: $grid-columns) {
+    margin-left: percentage($size / $columns);
+}
+
+@mixin col-push($size, $columns: $grid-columns) {
+    left: if($size > 0, percentage($size / $columns), auto);
+}
+
+@mixin col-pull($size, $columns: $grid-columns) {
+    right: if($size > 0, percentage($size / $columns), auto);
+}
+
+@mixin col-modifier($type, $size, $columns) {
+    // Work around the lack of dynamic mixin @include support (https://github.com/sass/sass/issues/626)
+    @if $type == push {
+        @include col-push($size, $columns);
+    }
+    @else if $type == pull {
+        @include col-pull($size, $columns);
+    }
+    @else if $type == offset {
+        @include col-offset($size, $columns);
+    }
+}
+
+@mixin columns($columns: $grid-columns, $gutter: $grid-gutter, $breakpoints: $grid-breakpoints) {
+    
+    .grid-#{$columns}.container-fluid {
+        @include container($gutter);
+    }
+
+    .grid-#{$columns}.container {
+        @include container($gutter);
+        @include container-widths();
+    }
+
+    .grid-#{$columns}.row {
+        @include row($gutter);
+    }
+
+    // Common properties for all breakpoints
+    %column {
+        position: relative;
+        // Prevent columns from collapsing when empty
+        min-height: 1px;
+        // Inner gutter via padding
+        padding-right: ($gutter / 2);
+        padding-left: ($gutter / 2);
+        @if $grid-use-flex {
+            width: 100%;
+        }
+    }
+
+    $counter: 0;
+
+    @each $breakpoint in map-keys($breakpoints) {
+        $counter: ($counter + 1);
+        @for $i from 1 through $columns {
+            .grid-#{$columns}.col-#{$breakpoint}-#{$i} {
+                position: relative;
+                // Prevent columns from collapsing when empty
+                min-height: 1px;
+                // Inner gutter via padding
+                padding-right: ($gutter / 2);
+                padding-left: ($gutter / 2);
+                @if $grid-use-flex {
+                    width: 100%;
+                }
+                // @extend %column;
+            }
+        }
+        @include media-breakpoint-up($breakpoint, $breakpoints) {
+            // Provide basic `.col-{bp}` classes for equal-width flexbox columns
+            @if $grid-use-flex {
+                .grid-#{$columns}.col-#{$breakpoint} {
+                    position: relative;
+                    flex-basis: 0;
+                    flex-grow: 1;
+                    max-width: 100%;
+                    min-height: 1px;
+                    padding-right: ($gutter / 2);
+                    padding-left: ($gutter / 2);
+                }
+            }
+            @for $i from 1 through $columns {
+                .grid-#{$columns}.col-#{$breakpoint}-#{$i} {
+                    @include col($i, $columns, $gutter);
+                }
+            }
+            @each $modifier in (pull, push) {
+                @for $i from 0 through $columns {
+                    .grid-#{$columns}.#{$modifier}-#{$breakpoint}-#{$i} {
+                        @include col-modifier($modifier, $i, $columns)
+                    }
+                }
+            }
+            // `$columns - 1` because offsetting by the width of an entire row isn't possible
+            @for $i from 0 through ($columns - 1) {
+                @if $counter != 1 or $i != 0 { // Avoid emitting useless .offset-xs-0
+                    .grid-#{$columns}.offset-#{$breakpoint}-#{$i} {
+                        @include col-modifier(offset, $i, $columns)
+                    }
+                }
+            }
+        }
+    }
+}

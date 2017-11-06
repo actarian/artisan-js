@@ -1,0 +1,7 @@
+<div class="modals" ng-class="{ visible: modals.length }">
+</div>
+<div class="modal fade {{modal.customClass ? modal.customClass : ''}}" ng-repeat="modal in modals" ng-class="{ in: modal.active }" ng-if="$last">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" modal-view="modal"></div>
+    </div>
+</div>

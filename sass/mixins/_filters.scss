@@ -1,0 +1,12 @@
+﻿
+@import "./bower_components/bootstrap/scss/variables";
+
+@mixin opacity($opacity) {
+    opacity: $opacity;
+    $opacity-ie: $opacity * 100;
+    filter: alpha(opacity=$opacity-ie);
+}
+
+@mixin box-shadow($shadow: 0 2px 4px rgba(0, 0, 0, 0.25)) {
+    box-shadow: $shadow;
+}

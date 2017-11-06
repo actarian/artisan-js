@@ -1,0 +1,223 @@
+﻿
+@import "mixins";
+
+$steps: 10;
+$size: 100 !default;
+$unit: 1px !default;
+
+@mixin paddings($breakpoints: $grid-breakpoints) {
+    @each $breakpoint in map-keys($breakpoints) {
+        @include media-breakpoint-up($breakpoint, $breakpoints) {
+            @for $i from 1 through $steps {
+                .padding-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding: $unit * $i * $size / $steps;
+                }
+
+                .padding-top-bottom-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding-top: $unit * $i * $size / $steps;
+                    padding-bottom: $unit * $i * $size / $steps;
+                }
+
+                .padding-top-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding-top: $unit * $i * $size / $steps;
+                }
+
+                .padding-bottom-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding-bottom: $unit * $i * $size / $steps;
+                }
+
+                .padding-left-right-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding-left: $unit * $i * $size / $steps;
+                    padding-right: $unit * $i * $size / $steps;
+                }
+
+                .padding-left-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding-left: $unit * $i * $size / $steps;
+                }
+
+                .padding-right-#{$breakpoint}-#{$i * $size / $steps} {
+                    padding-right: $unit * $i * $size / $steps;
+                }
+            }
+        }
+    }
+}
+
+@mixin margins($breakpoints: $grid-breakpoints) {
+    @each $breakpoint in map-keys($breakpoints) {
+        @include media-breakpoint-up($breakpoint, $breakpoints) {
+            @for $i from 1 through $steps {
+                .margin-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin: $unit * $i * $size / $steps;
+                }
+
+                .margin-top-bottom-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin-top: $unit * $i * $size / $steps;
+                    margin-bottom: $unit * $i * $size / $steps;
+                }
+
+                .margin-top-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin-top: $unit * $i * $size / $steps;
+                }
+
+                .margin-bottom-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin-bottom: $unit * $i * $size / $steps;
+                }
+
+                .margin-left-right-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin-left: $unit * $i * $size / $steps;
+                    margin-right: $unit * $i * $size / $steps;
+                }
+
+                .margin-left-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin-left: $unit * $i * $size / $steps;
+                }
+
+                .margin-right-#{$breakpoint}-#{$i * $size / $steps} {
+                    margin-right: $unit * $i * $size / $steps;
+                }
+            }
+        }
+    }
+}
+
+.loading {
+    position: relative;
+    height: 40px;
+    
+    @include transition();
+
+    &:after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 50%;
+        background: url(/img/loading.svg);
+        background-size: contain;
+        background-repeat: no-repeat;
+        width: 27px;
+        height: 27px;
+        @include transform(translateX(-50%));
+    }
+}
+
+.overlayed {
+    position: relative;
+
+    .overlayed-link {
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+
+    cursor: pointer;
+
+    @include box-shadow(none);
+    @include transition();
+
+    &:hover {
+        @include box-shadow(0 15px 30px -5px rgba(0,0,0,0.3));
+    }
+}
+
+.article {
+    display: block;
+    // background: #f2f3f4;
+    padding: 20px;
+
+    $border-color: color('primary');
+
+    &.rounded {
+        border: 1px solid $border-color;
+        // @include linear-gradient(120deg, #f2f3f4, #c2c3c4);
+        border-radius: 3px;
+        margin-bottom: 20px;
+    }
+    /*
+    @include media-breakpoint-between(sm, md) {
+
+    }
+    */
+}
+
+.navbar {
+    margin-bottom: 15px;
+
+    @media screen {
+        @media (min-width: 544px) {
+            border-radius: 0;
+        }
+    }
+}
+
+.highlight {
+    padding: 1rem;
+    margin: 1rem -15px;
+    background-color: color('background', 0.1%);
+
+    @media screen {
+        @media (min-width: 544px) {
+            padding: 1.5rem;
+            margin-right: 0;
+            margin-left: 0;
+        }
+    }
+}
+
+.spacer {
+    height: 20px;
+}
+
+.maxw-xs, .maxw-sm, .maxw-md, .maxw-lg {    
+    padding-top: 20px;
+}
+
+.maxw-xs {
+    max-width: 240px;
+}
+
+.maxw-sm {
+    max-width: 480px;
+}
+
+.maxw-md {
+    max-width: 960px;
+}
+
+.maxw-lg {
+    max-width: 1140px;
+}
+
+.minh-xs {
+    min-height: 100px;
+}
+
+.minh-sm {
+    min-height: 200px;
+}
+
+.minh-md {
+    min-height: 300px;
+}
+
+.minh-lg {
+    min-height: 400px;
+}
+
+[unselectable] {
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+    user-select: none;
+}
+
+.container-activity + .container-activity {
+    border-top: 1px solid #ddd;
+}
+
+
+@include paddings();
+@include margins();

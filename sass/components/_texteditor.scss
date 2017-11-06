@@ -1,0 +1,92 @@
+﻿
+@import "./bower_components/bootstrap/scss/mixins";
+@import "./bower_components/bootstrap/scss/variables";
+@import "mixins";
+
+.ta-toolbar {
+    margin-left: 0;
+    border-radius: 5px 5px 0 0;
+    background: color('primary'); // #bfc1c5;
+    > .btn, > .btn-group, > .input-group {
+        margin-left: 4px;
+    }
+
+    .btn-default {
+        padding: 0;
+        color: white;
+        font-size: 0; // 20px;
+        border: 2px solid rgba(255,255,255,0.4);
+        margin: 4px;
+        line-height: 0;
+        padding: 6px;
+        text-align: center;
+        vertical-align: middle;
+        border-radius: 3px;
+
+        i {
+            font-size: 18px;
+        }
+
+        &.active {
+            border-color: white;
+        }
+    }
+
+    .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .btn-group > .btn:first-child {
+        margin-left: 0;
+    }
+    
+    visibility: hidden;
+    position: absolute;
+    max-width: 100%;
+    top: 0;
+    left: 0;
+    @include transition-transform();
+}
+
+.ta-root {
+    position: relative;
+
+    .popover {
+        font-size: 13px;
+    }
+
+    &.focussed {
+        > .ta-scroll-window.form-control {
+            border-color: color('primary');
+            outline: 0;
+            @include box-shadow(none);
+        }
+
+        .ta-toolbar {
+            visibility: visible;
+            @include transform(translateY(-100%));
+        }
+    }
+}
+
+.ta-editor.ta-html,
+.ta-scroll-window.form-control {
+    min-height: 22px * 3;
+    font-size: 14px;
+}
+
+.ta-scroll-window {
+    > .ta-bind {
+        min-height: 22px * 3;
+        padding: 1px 6px;
+    }
+}
+
+$form-disabled: #eceeef;
+
+.ta-readonly {
+    background-color: $form-disabled;    
+    pointer-events: none;
+    cursor: auto;
+}

@@ -1,0 +1,158 @@
+﻿
+@import "./bower_components/bootstrap/scss/mixins";
+@import "./bower_components/bootstrap/scss/variables";
+@import "mixins";
+
+$pagination-color: #e0e3eb;
+$pagination-border: #d0d3db;
+$pagination-active: #b0b3bb;
+$pagination-current: #90939b;
+
+.pagination-group {
+
+    nav {
+        text-align: center;
+    }
+
+    .pagination {
+        margin: 0 auto;
+        list-style: none;
+
+        & > li {
+            display: inline-block;
+
+            & > button,
+            & > a,
+            & > span {
+                border: 1px solid transparent;
+                border-left-width: 0;
+                text-decoration: none;
+                padding: 4px 14px;
+                font-size: 11px;
+                background-color: transparent;
+                outline: 0;
+                display: block;                
+                line-height: 13px;
+                vertical-align: middle;
+
+                & > span {
+                    display: inline;
+                }
+
+                @include transition ();
+
+                &:hover {
+                    background-color: $pagination-color;
+                    border-color: $pagination-color;
+                    outline: 0;
+                }
+                
+                &.active, &.active:focus, &.active:active {
+                    background-color: $pagination-color;
+                    border-color: $pagination-color;
+                    outline: 0;
+                }
+
+                &.current, &.current:focus, &.current:active {
+                    background-color: $pagination-current;
+                    border-color: $pagination-current;
+                    outline: 0;
+
+                    span {
+                        color: white;
+                    }                    
+                }
+                                
+            }
+
+            & > span {
+                pointer-events: none;
+            }
+
+            &.spacer {
+                display: none;
+            }
+        }
+    }
+
+    .dot {
+        i {
+            display: none;
+        }
+    }
+
+    padding: 20px 0;
+
+    @include media-breakpoint-up(lg) {
+        margin: 15px auto 0 auto;
+        padding: 0;
+
+        nav {
+            display: table;
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        .pagination {
+            display: table-row;
+
+            & > li {
+                display: table-cell;
+
+                &:first-child > a,
+                &:first-child > button,
+                &:first-child > span {
+                    border-left-width: 1px;
+                    border-radius: 16px 0 0 16px;
+                }
+
+                &:last-child > a,
+                &:last-child > button,
+                &:last-child > span {
+                    border-radius: 0 16px 16px 0;
+                }
+            }
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        .pagination {
+            & > li {
+                & > button,
+                & > a {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    padding: 0;
+                    border: none;
+                    background-color: $pagination-color;
+                    margin: 2px;
+                    border: 1px solid $pagination-border;
+                    outline: 0;
+
+                    &:hover, &:focus, &:active {
+                        background-color: $pagination-color;
+                        border-color: $pagination-border;
+                    }
+
+                    &.active {
+                        background-color: $pagination-color;
+                        border-color: $pagination-active;
+                    }
+                }
+
+                & > span {
+                    border: none;
+                    padding: 0;
+                    margin: 2px;
+                    outline: 0;
+                    pointer-events: none;
+                }
+
+                & > .dot {
+                    font-size: 0;
+                }
+            }
+        }
+    }
+}

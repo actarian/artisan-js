@@ -1,0 +1,13 @@
+<div class="form-group form-group-{{type}}" ng-class="getClasses()">
+    <label for="{{field}}" class="form-label" ng-if="title != 'untitled'">
+        <span ng-bind="title"></span><sup ng-if="required">✽</sup>
+    </label>
+    <div class="input-group">
+        <input type="{{getType()}}" name="{{field}}" class="{{class || 'form-control'}}" ng-model="ngModel" ng-model-options="options" placeholder="{{placeholder}}" ng-minlength="minLength" ng-maxlength="maxLength" min="{{min}}" max="{{max}}" ng-required="required"
+            ng-disabled="disabled" ng-readonly="readonly" ng-change="onChange" ng-focus="focus = true" ng-blur="focus = false">
+        <span class="input-group-addon" ng-if="type == 'password' && ngModel">
+            <span class="icon-eye" ng-click="toggleVisibility()"></span>
+        </span>
+    </div>
+    <control-messages></control-messages>
+</div>

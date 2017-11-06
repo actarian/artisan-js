@@ -1,0 +1,55 @@
+﻿
+@import "custom";
+@import "./bower_components/bootstrap/scss/variables";
+@import "mixins";
+
+@mixin header-printable() {
+    nav {
+        &.foreground {
+            background: transparent;
+            color: black;
+        }
+    }
+}
+
+@mixin printable() {
+
+    .hidden-print {
+        display: none !important;
+    }
+
+    .visible-print-inline-block {
+        display: inline-block !important;
+    }
+
+    .atable-default {
+        td, th {
+            white-space: normal;
+            text-overflow: clip;
+            overflow: visible;
+
+            > span {
+                white-space: normal;
+                text-overflow: clip;
+                overflow: visible;
+            }
+        }
+    }
+}
+
+header.printable {
+    @include header-printable();
+}
+
+.printable {
+    @include printable();
+}
+
+@media print {
+
+    header {
+        @include header-printable();
+    }
+
+    @include printable();
+}

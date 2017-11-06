@@ -1,0 +1,464 @@
+﻿
+a {
+    color: color('primary');
+    text-decoration: none;
+
+    @include transition();
+
+    &:hover {
+        color: color-darken($brand-primary, 20%);
+    }
+
+    &:focus, &:active {
+        outline: none;
+        outline-offset: 0;
+        color: inherit;
+    }
+}
+
+.btn.disabled, .btn:disabled {
+    @include opacity(.40);
+    // color: inherit; // #ddd;
+    // border-color: inherit; //#ddd;
+}
+
+$btn-defaults: ( padding-vertical: 4px, padding-horizontal: 10px, border-width: 2px, border-radius: 3px, box-shadow: none, box-hover-shadow: 0 8px 16px -5px rgba(0,0,0,0.3), sizes: (xs: 0.7, sm: 0.85, md: 1, lg: 1.5, xl: 2) ) !default;
+
+@import "mixins";
+
+@mixin btn-color($col1: '#fff', $col2: contrast($col1), $col3: $col1) {
+    $col2: white;
+
+    $background: $col1;
+    $color: $col2;
+    $border: $col3;
+
+    background-color: $background;
+    color: $color;
+    border-color: $border;
+
+    $background: color-lighten($col1, 15%);
+    $color: $col2;
+    $border: color-lighten($col3, 15%);
+    
+    /*
+    &:active, &:focus, &:active:focus {
+        background-color: inherit;
+        color: inherit;
+        border-color: inherit;
+    }
+    */
+
+    &:hover, &.active, &.active:active, &.active:focus, &.focus, tr[ng-click]:hover & {
+        background-color: $background;
+        color: white;
+        border-color: $border;
+    }
+    
+    &.active:hover {
+        background-color: color-darken($background, 15%);
+        color: white; 
+        border-color: color-darken($border, 15%);
+    }
+}
+
+@mixin btn-outline-color($col1: '#fff', $col2: contrast($col1), $col3: $col1) {
+    $background: transparent;
+    $color: $col1;
+    $border: rgba($col3, 0.25);
+
+    background-color: $background;
+    color: $color;
+    border-color: $border;
+
+    $background: color-lighten($col1, 15%);
+    $color: $col2;
+    $border: color-lighten($col3, 15%);
+    
+    /*
+    &:active, &:focus, &:active:focus {
+        background-color: inherit;
+        color: inherit;
+        border-color: inherit;
+    }
+    */
+
+    &:hover, &.active, &.active:active, &.active:focus, &.focus, tr[ng-click]:hover & {
+        background-color: $background;
+        color: white; // $color;
+        border-color: $border;
+    }
+    
+    &.active:hover {
+        background-color: color-darken($background, 15%);
+        color: white; 
+        border-color: color-darken($border, 15%);
+    }
+}
+
+.btn {
+    @include btn();
+    // font-size: inherit;
+}
+
+// DO BUTTON COLORS
+.btn-default {
+    $background: transparent;
+    $color: color('foreground');
+    $border: transparent;
+
+    background-color: $background;
+    color: $color;
+    border-color: $border;
+
+    $color: color-lighten($color, 15%);
+
+    &:hover, &:active, &.active, &:active:focus, &.active:focus {
+        background-color: $background;
+        color: $color;
+        border-color: $border;
+    }
+
+    @include btn-bordered();
+}
+
+@each $property, $color in $colors {
+    .btn-#{$property} {
+        @include btn-color(color($property, -0.1));
+        @include btn-bordered();
+        font-size: 18px;
+        text-transform: uppercase;
+        font-weight: 600;
+        vertical-align: middle;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .btn-outline-#{$property} {
+        @include btn-outline-color(color($property, -0.1));
+        @include btn-bordered();
+        font-size: 18px;
+        text-transform: uppercase;
+        font-weight: 600;
+        vertical-align: middle;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+}
+
+@include buttons();
+
+.border-radius {
+    border-radius: 5px;
+}
+
+[ng-click], [link-to] {
+    cursor: pointer;
+    // @include transition();
+}
+
+[state], .btn-icon {
+    padding-right: 40px;
+
+    i {
+        display: inline-block;
+        position: absolute;
+        right: 10px;
+        font-size: 20px;
+        top: 50%;
+        margin-top: -11px;
+    }
+}
+
+[state] {
+    position: relative;
+
+    &.busy,
+    &.erroring,
+    &.successing {
+        padding-right: 40px;
+
+        i {
+            display: none;
+        }
+
+        @include transition-transform();
+
+        &:after {
+            content: '';
+            font-family: 'Project';
+            display: block;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 27px;
+            height: 27px;
+            top: 50%;
+            margin-top: -11px;
+            background: transparent;
+
+            @include transition-transform();
+        }
+    }
+
+    &.error,
+    &.success {
+        @include transition-transform();
+
+        &:after {
+            @include transition-transform();
+        }
+    }
+
+    &.busy {
+        &:after {
+            /*
+            content: '';
+            background: color('warning');
+            width: 8px;
+            height: 8px;
+            top: 50%;
+            margin-top: -4px;
+            margin-right: 10px;
+            border-radius: 4px;
+            */
+            content: 'R';
+            background: transparent;
+            color: mix(white, color('primary'));
+            -moz-animation: busy 1s infinite;
+            -o-animation: busy 1s infinite;
+            -webkit-animation: busy 1s infinite;
+            animation: busy 1s infinite;
+        }
+    }
+
+    &.successing {
+        &:after {
+            content: 'I';
+            background: transparent;
+            color: mix(white, color('primary'));
+            -moz-animation: successing 1s forwards;
+            -o-animation: successing 1s forwards;
+            -webkit-animation: successing 1s forwards;
+            animation: successing 1s infinite;
+        }
+    }
+
+    &.erroring {
+        &:after {
+            content: 'J';
+            background: transparent;
+            color: mix(white, color('primary'));
+            -moz-animation: erroring 1s forwards;
+            -o-animation: erroring 1s forwards;
+            -webkit-animation: erroring 1s forwards;
+            animation: erroring 1s infinite;
+        }
+    }
+}
+
+@-webkit-keyframes busy {
+    0%, 20%, 50%, 80%, 100% {
+        -webkit-transform: translateY(0);
+    }
+
+    40% {
+        -webkit-transform: translateY(-30px);
+    }
+
+    60% {
+        -webkit-transform: translateY(-15px);
+    }
+}
+
+@-moz-keyframes busy {
+    0%, 20%, 50%, 80%, 100% {
+        -moz-transform: translateY(0);
+    }
+
+    40% {
+        -moz-transform: translateY(-30px);
+    }
+
+    60% {
+        -moz-transform: translateY(-15px);
+    }
+}
+
+@-o-keyframes busy {
+    0%, 20%, 50%, 80%, 100% {
+        -o-transform: translateY(0);
+    }
+
+    40% {
+        -o-transform: translateY(-30px);
+    }
+
+    60% {
+        -o-transform: translateY(-15px);
+    }
+}
+
+@keyframes busy {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-30px);
+    }
+
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+@-webkit-keyframes successing {
+    0% {
+        -webkit-transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: scale(1, 1);
+    }
+}
+
+@-moz-keyframes successing {
+    0% {
+        -moz-transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        -moz-transform: scale(1, 1);
+    }
+}
+
+@-o-keyframes successing {
+    0% {
+        -o-transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        -o-transform: scale(1, 1);
+    }
+}
+
+@keyframes successing {
+    0% {
+        transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1, 1);
+    }
+}
+
+@-webkit-keyframes erroring {
+    0% {
+        -webkit-transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: scale(1, 1);
+    }
+}
+
+@-moz-keyframes erroring {
+    0% {
+        -moz-transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        -moz-transform: scale(1, 1);
+    }
+}
+
+@-o-keyframes erroring {
+    0% {
+        -o-transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        -o-transform: scale(1, 1);
+    }
+}
+
+@keyframes erroring {
+    0% {
+        transform: scale(1.3, 1.3);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1, 1);
+    }
+}
+
+.btn-block-md-down {
+    @include media-breakpoint-down(md) {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+}
+
+.a-link {
+    @include btn-color(color('primary', -0.1));
+    @include btn-bordered();
+    font-size: inherit;
+    font-weight: 400;
+    padding: 0 2px;
+    border-radius: 3px;
+    text-decoration: none !important;
+}
+
+.btn-dashboard {
+    width: auto;
+    height: auto;
+    border-bottom: 0;
+    border-radius: 0;
+    font-size: 15px;
+    vertical-align: middle;
+    border: 0;
+    margin: 0;
+    line-height: 40px;
+    padding: 0 8px;
+    text-transform: uppercase;
+
+    span {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        font-weight: 400;
+    }
+
+    i {
+        font-size: 26px;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+
+    /*
+    background: #14191e; // #24292e;
+    color: white;
+    */
+
+    background-color: #14191e; // #24292e;
+    border-color: #24292e;
+    color: #fff;
+    
+    &:hover, &.active, &:active, &:focus {
+        background-color: #f8f8f8;
+        border-color: #f8f8f8;
+        color: #24292e;
+    }
+
+}
