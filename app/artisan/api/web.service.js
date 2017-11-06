@@ -8,7 +8,7 @@
     app.service('WebApi', ['$http', '$promise', '$timeout', function($http, $promise, $timeout) {
 
         var lang = 'en'; // get from config
-        var prefix = '/api';
+        var prefix = 'api';
 
         function $httpPromise(url, data, method) {
             return $promise(function(promise) {
