@@ -13,34 +13,6 @@ $templateCache.put("artisan/errors/errors","<ul class=\"nav padding-bottom-lg-20
     "    </li>\n" +
     "</ul>")
 
-$templateCache.put("artisan/header/header","<nav class=\"navbar\">\n" +
-    "    <a class=\"navbar-brand\" href=\"#\" ng-href=\"\">\n" +
-    "        <img class=\"hidden-print\" width=\"34\" src=\"/img/logo_websolute.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
-    "        <img class=\"visible-print-inline-block\" width=\"34\" src=\"/img/logo_websolute_positive.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
-    "    </a>\n" +
-    "    <ul class=\"nav navbar-nav hidden-xs-down\" ng-transclude=\"header\"></ul>\n" +
-    "</nav>")
-
-$templateCache.put("artisan/modals/modal","<div class=\"modal-header\">\n" +
-    "    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Chiudi\" ng-click=\"modal.reject()\">\n" +
-    "                <span aria-hidden=\"true\">&times;</span>\n" +
-    "            </button>\n" +
-    "    <h4 class=\"modal-title\" ng-bind=\"modal.title\"></h4>\n" +
-    "</div>\n" +
-    "<div class=\"modal-body\">\n" +
-    "</div>\n" +
-    "<div class=\"modal-footer\">\n" +
-    "    <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\" ng-click=\"modal.reject()\">Close</button>\n" +
-    "</div>")
-
-$templateCache.put("artisan/modals/modals","<div class=\"modals\" ng-class=\"{ visible: modals.length }\">\n" +
-    "</div>\n" +
-    "<div class=\"modal fade {{modal.customClass ? modal.customClass : ''}}\" ng-repeat=\"modal in modals\" ng-class=\"{ in: modal.active }\" ng-if=\"$last\">\n" +
-    "    <div class=\"modal-dialog\" role=\"document\">\n" +
-    "        <div class=\"modal-content\" modal-view=\"modal\"></div>\n" +
-    "    </div>\n" +
-    "</div>")
-
 $templateCache.put("artisan/forms/checkbox","<input type=\"hidden\" name=\"{{field}}\" ng-model=\"ngModel\" ng-required=\"required\" />\n" +
     "<div class=\"form-check form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\">\n" +
@@ -115,6 +87,34 @@ $templateCache.put("artisan/forms/text","<div class=\"form-group form-group-{{ty
     "        </span>\n" +
     "    </div>\n" +
     "    <control-messages></control-messages>\n" +
+    "</div>")
+
+$templateCache.put("artisan/header/header","<nav class=\"navbar\">\n" +
+    "    <a class=\"navbar-brand\" href=\"#\" ng-href=\"\">\n" +
+    "        <img class=\"hidden-print\" width=\"34\" src=\"img/logo_websolute.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
+    "        <img class=\"visible-print-inline-block\" width=\"34\" src=\"img/logo_websolute_positive.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
+    "    </a>\n" +
+    "    <ul class=\"nav navbar-nav hidden-xs-down\" ng-transclude=\"header\"></ul>\n" +
+    "</nav>")
+
+$templateCache.put("artisan/modals/modal","<div class=\"modal-header\">\n" +
+    "    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Chiudi\" ng-click=\"modal.reject()\">\n" +
+    "                <span aria-hidden=\"true\">&times;</span>\n" +
+    "            </button>\n" +
+    "    <h4 class=\"modal-title\" ng-bind=\"modal.title\"></h4>\n" +
+    "</div>\n" +
+    "<div class=\"modal-body\">\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\" ng-click=\"modal.reject()\">Close</button>\n" +
+    "</div>")
+
+$templateCache.put("artisan/modals/modals","<div class=\"modals\" ng-class=\"{ visible: modals.length }\">\n" +
+    "</div>\n" +
+    "<div class=\"modal fade {{modal.customClass ? modal.customClass : ''}}\" ng-repeat=\"modal in modals\" ng-class=\"{ in: modal.active }\" ng-if=\"$last\">\n" +
+    "    <div class=\"modal-dialog\" role=\"document\">\n" +
+    "        <div class=\"modal-content\" modal-view=\"modal\"></div>\n" +
+    "    </div>\n" +
     "</div>")
 
 $templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.link}}\" ng-bind=\"item.name\"></a>\n" +
