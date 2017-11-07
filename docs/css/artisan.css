@@ -661,26 +661,44 @@ a:focus {
   outline: none; }
 
 .nav > .nav-item > .nav {
-  overflow: hidden;
-  max-height: 0;
   transition: all ease-in-out 500ms; }
 
 .nav > .nav-item.immediate > .nav {
   transition: none; }
 
-.nav > .nav-item.closing > .nav, .nav > .nav-item.closed > .nav {
-  max-height: 0; }
-
-.nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
-  max-height: 600px; }
-
 @media (max-width: 767px) {
   .nav {
-    flex-direction: column; } }
+    flex-direction: column; }
+    .nav > .nav-item {
+      /*
+            &.closing,
+            &.closed {
+                &>.nav {
+                    // 
+                }
+            }
+            */ }
+      .nav > .nav-item > .nav {
+        overflow: hidden;
+        max-height: 0; }
+      .nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
+        max-height: 600px; }
+      .nav > .nav-item.opened > .nav {
+        max-height: 600px;
+        overflow: visible; } }
 
 @media (min-width: 768px) {
   .nav .nav {
-    position: absolute; } }
+    position: absolute; }
+  .nav > .nav-item > .nav {
+    visibility: hidden;
+    pointer-events: none; }
+  .nav > .nav-item.closing > .nav, .nav > .nav-item.closed > .nav {
+    opacity: 0; }
+  .nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
+    visibility: visible;
+    pointer-events: all;
+    opacity: 1; } }
 
 .nav-link {
   display: block;

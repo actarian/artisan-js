@@ -198,7 +198,8 @@ body {
   padding: 40px;
   font-size: 16px;
   font-family: 'Poppins';
-  color: #0000ff; }
+  background: #f8f8ff;
+  color: #0000fe; }
 
 .container-form {
   max-width: 720px;
