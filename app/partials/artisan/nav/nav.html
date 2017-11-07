@@ -1,3 +1,3 @@
-<ul class="nav nav-{{item.$nav.level}} flex-column" ng-if="item.items">
+<ul class="nav nav-{{item.$nav.level}}" ng-if="item.items">
     <li class="nav-item" ng-class="item.$nav.state" nav-item="item" ng-repeat="item in item.items track by $index"></li>
 </ul>

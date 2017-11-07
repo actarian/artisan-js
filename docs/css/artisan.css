@@ -660,19 +660,27 @@ a:focus {
   cursor: pointer;
   outline: none; }
 
-.nav {
-  display: block;
-  width: 100%; }
-  .nav > .nav-item > .nav {
-    overflow: hidden;
-    max-height: 0;
-    transition: all ease-in-out 500ms; }
-  .nav > .nav-item.immediate > .nav {
-    transition: none; }
-  .nav > .nav-item.closing > .nav, .nav > .nav-item.closed > .nav {
-    max-height: 0; }
-  .nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
-    max-height: 600px; }
+.nav > .nav-item > .nav {
+  overflow: hidden;
+  max-height: 0;
+  transition: all ease-in-out 500ms; }
+
+.nav > .nav-item.immediate > .nav {
+  transition: none; }
+
+.nav > .nav-item.closing > .nav, .nav > .nav-item.closed > .nav {
+  max-height: 0; }
+
+.nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
+  max-height: 600px; }
+
+@media (max-width: 767px) {
+  .nav {
+    flex-direction: column; } }
+
+@media (min-width: 768px) {
+  .nav .nav {
+    position: absolute; } }
 
 .nav-link {
   display: block;

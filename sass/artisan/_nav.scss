@@ -1,3 +1,4 @@
+@import "../../bower_components/bootstrap/scss/mixins";
 a,
 a:hover,
 a:active,
@@ -16,8 +17,6 @@ a:focus {
 }
 
 .nav {
-    display: block;
-    width: 100%;
     &>.nav-item {
         &>.nav {
             overflow: hidden;
@@ -40,6 +39,14 @@ a:focus {
             &>.nav {
                 max-height: 600px;
             }
+        }
+    }
+    @include media-breakpoint-down(sm) {
+        flex-direction: column;
+    }
+    @include media-breakpoint-up(md) {
+        .nav {
+            position: absolute;
         }
     }
 }
