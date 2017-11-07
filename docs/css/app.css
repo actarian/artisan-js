@@ -197,14 +197,8 @@ body {
 body {
   padding: 40px;
   font-size: 16px;
-  font-family: 'Poppins'; }
-
-section {
-  padding: 80px; }
-
-[ng-click] {
-  cursor: pointer;
-  outline: none; }
+  font-family: 'Poppins';
+  color: #0000ff; }
 
 .container-form {
   max-width: 720px;
@@ -249,7 +243,7 @@ section {
     width: 640px;
     height: 640px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 255, 0.25);
     visibility: hidden;
     opacity: 1;
     transform: translateX(-50%) translateY(-50%) scale(0.01); }

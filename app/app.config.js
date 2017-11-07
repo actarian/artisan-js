@@ -35,20 +35,19 @@
     */
 
     // --- route ---
-    /*
     app.config(['$routeProvider', function($routeProvider) {
 
         $routeProvider.when('/', {
             templateUrl: function() {
-                return 'views/nav.html';
+                return 'views/home.html';
             },
-            controller: 'NavCtrl',
+            controller: 'HomeCtrl',
 
-        }).when('/forms', {
+        }).when('/contact-us', {
             templateUrl: function() {
-                return 'views/form';
+                return 'views/contact-us.html';
             },
-            controller: 'FormCtrl',
+            controller: 'ContactUsCtrl',
             // resolve: {
             //    user: ['Users', function(Users) {
             //        return Users.isAuthorizedOrGoTo('/home');
@@ -60,7 +59,6 @@
         $routeProvider.otherwise('/');
 
     }]);
-    */
 
     /*
     // --- api ---

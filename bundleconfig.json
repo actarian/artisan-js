@@ -43,6 +43,8 @@
         "app/app.config.js",
         "app/app.routes.js",
         "app/app.run.js",
+        "app/controllers/contact-us.controller.js",
+        "app/controllers/home.controller.js",
         "app/controllers/root.controller.js"
     ],
     "outputFileName": "docs/js/app.js",

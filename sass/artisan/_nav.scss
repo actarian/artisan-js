@@ -5,8 +5,14 @@ a:visited,
 a:focus {
     color: inherit;
     text-decoration: none;
+    cursor: pointer;
     outline: none;
     transition: all ease-in-out 350ms;
+}
+
+[ng-click] {
+    cursor: pointer;
+    outline: none;
 }
 
 .nav {
@@ -53,13 +59,13 @@ a:focus {
     .nav-link {
         font-weight: 900;
         background: transparent;
-        color: #111111;
+        color: #0000ff;
     }
     .nav-link:hover,
     .nav-link:active,
     .active>.nav-link {
-        background: transparent;
-        color: #00ff00;
+        background: #0000ff;
+        color: #ffffff;
     }
 }
 
@@ -74,7 +80,7 @@ a:focus {
     .nav-link:active,
     .active>.nav-link {
         background: #eeeeff;
-        color: #00ff00;
+        color: #0000ff;
     }
 }
 
@@ -88,8 +94,8 @@ a:focus {
     .nav-link:hover,
     .nav-link:active,
     .active>.nav-link {
-        background: transparent;
-        color: #00ff00;
+        background: #0000ff;
+        color: #ffffff;
     }
 }
 

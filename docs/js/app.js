@@ -89,20 +89,19 @@
     */
 
     // --- route ---
-    /*
     app.config(['$routeProvider', function($routeProvider) {
 
         $routeProvider.when('/', {
             templateUrl: function() {
-                return 'views/nav.html';
+                return 'views/home.html';
             },
-            controller: 'NavCtrl',
+            controller: 'HomeCtrl',
 
-        }).when('/forms', {
+        }).when('/contact-us', {
             templateUrl: function() {
-                return 'views/form';
+                return 'views/contact-us.html';
             },
-            controller: 'FormCtrl',
+            controller: 'ContactUsCtrl',
             // resolve: {
             //    user: ['Users', function(Users) {
             //        return Users.isAuthorizedOrGoTo('/home');
@@ -114,7 +113,6 @@
         $routeProvider.otherwise('/');
 
     }]);
-    */
 
     /*
     // --- api ---
@@ -193,6 +191,38 @@
 
     var app = angular.module('app');
 
+    app.controller('ContactUsCtrl', ['$scope', 'State', function($scope, State) {
+
+        var state = new State();
+        var state2 = new State();
+
+        $scope.state = state;
+        $scope.state2 = state2;
+
+    }]);
+
+}());
+/* global angular */
+
+(function() {
+    "use strict";
+
+    var app = angular.module('app');
+
+    app.controller('HomeCtrl', ['$scope', function($scope) {
+
+
+
+    }]);
+
+}());
+/* global angular */
+
+(function() {
+    "use strict";
+
+    var app = angular.module('app');
+
     app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', function($scope, $timeout, $promise, Nav, Api) {
 
         var nav = new Nav({
@@ -217,7 +247,7 @@
 
         function onNav(item) {
             console.log('RootCtrl.onNav', item.$nav.level, item.$nav.link);
-            Nav.silent(item.$nav.link);
+            Nav.path(item.$nav.link);
             return false; // returning false disable default link behaviour;
         }
 

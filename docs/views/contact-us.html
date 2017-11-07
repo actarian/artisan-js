@@ -1,8 +1,12 @@
-<section class="container" ng-controller="FormCtrl">
+<h1>Contact Us</h1>
+<section>
     <form name="form" role="form" novalidate autocomplete="off" ng-submit="form.$valid && submit()" ng-keyup="$event.keyCode == 13 && form.$valid && submit()">
         <div form="form" control="select" source="data.languages" filter="notIn : $parent.model.languages : 'id'" ng-model="model.languages[model.languages.length]" title="Languages" placeholder="select a language"></div>
         <span ng-repeat="item in model.languages track by $index">
-                <span class="badge badge-default" ng-click="onRemoveLanguage(item)"><span ng-bind="item.name"></span> <i class="icon-remove"></i></span>
+            <span class="badge badge-default" ng-click="onRemoveLanguage(item)">
+                <span ng-bind="item.name"></span>
+        <i class="icon-remove"></i>
+        </span>
         </span>
         <div form="form" control="email" ng-model="model.email" title="Email" placeholder="email" required="true"></div>
         <div form="form" control="password" ng-model="model.password" title="Password" placeholder="password" required="true" min="6"></div>

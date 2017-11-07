@@ -192,8 +192,8 @@ Scrollbar
 .form-group {
   position: relative;
   padding-top: 20px;
-  border: 1px solid #eee;
-  border-radius: .25rem;
+  border: 1px solid #0000ff;
+  border-radius: 6px;
   overflow: hidden; }
 
 .form-label {
@@ -652,8 +652,13 @@ a:visited,
 a:focus {
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
   outline: none;
   transition: all ease-in-out 350ms; }
+
+[ng-click] {
+  cursor: pointer;
+  outline: none; }
 
 .nav {
   display: block;
@@ -682,12 +687,12 @@ a:focus {
   .nav-0 .nav-link {
     font-weight: 900;
     background: transparent;
-    color: #111111; }
+    color: #0000ff; }
   .nav-0 .nav-link:hover,
   .nav-0 .nav-link:active,
   .nav-0 .active > .nav-link {
-    background: transparent;
-    color: #00ff00; }
+    background: #0000ff;
+    color: #ffffff; }
 
 .nav-1 .nav-link {
   font-weight: 600;
@@ -699,7 +704,7 @@ a:focus {
 .nav-1 .nav-link:active,
 .nav-1 .active > .nav-link {
   background: #eeeeff;
-  color: #00ff00; }
+  color: #0000ff; }
 
 .nav-2 .nav-link {
   font-weight: 200;
@@ -710,7 +715,7 @@ a:focus {
 .nav-2 .nav-link:hover,
 .nav-2 .nav-link:active,
 .nav-2 .active > .nav-link {
-  background: transparent;
-  color: #00ff00; }
+  background: #0000ff;
+  color: #ffffff; }
 
 /* --- end nav --- */

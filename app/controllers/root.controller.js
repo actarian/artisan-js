@@ -29,7 +29,7 @@
 
         function onNav(item) {
             console.log('RootCtrl.onNav', item.$nav.level, item.$nav.link);
-            Nav.silent(item.$nav.link);
+            Nav.path(item.$nav.link);
             return false; // returning false disable default link behaviour;
         }
 
