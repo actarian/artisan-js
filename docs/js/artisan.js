@@ -790,302 +790,324 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Events', [function() {
+	app.factory('Events', [function () {
 
-        function Event(e, element) {
-            var documentNode = (document.documentElement || document.body.parentNode || document.body);
-            var scroll = {
-                x: window.pageXOffset || documentNode.scrollLeft,
-                y: window.pageYOffset || documentNode.scrollTop
-            };
-            if (e.type === 'resize') {
-                var view = {
-                    w: this.getWidth(),
-                    h: this.getHeight(),
-                };
-                this.view = view;
-            }
-            var node = getNode(element);
-            var offset = {
-                x: node.offsetLeft,
-                y: node.offsetTop,
-            };
-            var rect = node.getBoundingClientRect();
-            var page = this.getPage(e);
-            if (page) {
-                var relative = {
-                    x: page.x - scroll.x - rect.left,
-                    y: page.y - scroll.y - rect.top,
-                };
-                var absolute = {
-                    x: page.x - scroll.x,
-                    y: page.y - scroll.y,
-                };
-                this.relative = relative;
-                this.absolute = absolute;
-            }
-            if (this.type === 'resize') {
-                console.log(this.type);
-            }
-            this.originalEvent = e;
-            this.element = element;
-            this.node = node;
-            this.offset = offset;
-            this.rect = rect;
-            // console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
-            // console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
-        }
-        Event.prototype = {
-            getPage: getPage,
-            getWidth: getWidth,
-            getHeight: getHeight,
-        };
+		function Event(e, element) {
+			var documentNode = (document.documentElement || document.body.parentNode || document.body);
+			var scroll = {
+				x: window.pageXOffset || documentNode.scrollLeft,
+				y: window.pageYOffset || documentNode.scrollTop
+			};
+			if (e.type === 'resize') {
+				var view = {
+					w: this.getWidth(),
+					h: this.getHeight(),
+				};
+				this.view = view;
+			}
+			var node = getNode(element);
+			var offset = {
+				x: node.offsetLeft,
+				y: node.offsetTop,
+			};
+			var rect = node.getBoundingClientRect();
+			var page = this.getPage(e);
+			if (page) {
+				var relative = {
+					x: page.x - scroll.x - rect.left,
+					y: page.y - scroll.y - rect.top,
+				};
+				var absolute = {
+					x: page.x - scroll.x,
+					y: page.y - scroll.y,
+				};
+				this.relative = relative;
+				this.absolute = absolute;
+			}
+			if (this.type === 'resize') {
+				console.log(this.type);
+			}
+			this.originalEvent = e;
+			this.element = element;
+			this.node = node;
+			this.offset = offset;
+			this.rect = rect;
+			// console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
+			// console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
+		}
+		Event.prototype = {
+			getPage: getPage,
+			getWidth: getWidth,
+			getHeight: getHeight,
+		};
 
-        function getWidth() {
-            if (self.innerWidth) {
-                return self.innerWidth;
-            }
-            if (document.documentElement && document.documentElement.clientWidth) {
-                return document.documentElement.clientWidth;
-            }
-            if (document.body) {
-                return document.body.clientWidth;
-            }
-        }
+		function getWidth() {
+			if (self.innerWidth) {
+				return self.innerWidth;
+			}
+			if (document.documentElement && document.documentElement.clientWidth) {
+				return document.documentElement.clientWidth;
+			}
+			if (document.body) {
+				return document.body.clientWidth;
+			}
+		}
 
-        function getHeight() {
-            if (self.innerHeight) {
-                return self.innerHeight;
-            }
-            if (document.documentElement && document.documentElement.clientHeight) {
-                return document.documentElement.clientHeight;
-            }
-            if (document.body) {
-                return document.body.clientHeight;
-            }
-        }
+		function getHeight() {
+			if (self.innerHeight) {
+				return self.innerHeight;
+			}
+			if (document.documentElement && document.documentElement.clientHeight) {
+				return document.documentElement.clientHeight;
+			}
+			if (document.body) {
+				return document.body.clientHeight;
+			}
+		}
 
-        function getPage(e) {
-            var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
-            var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
-            var page = null;
-            if (touchEvents.indexOf(e.type) !== -1) {
-                var t = null;
-                var event = e.originalEvent ? e.originalEvent : e;
-                var touches = event.touches.length ? event.touches : event.changedTouches;
-                if (touches && touches.length) {
-                    t = touches[0];
-                }
-                if (t) {
-                    page = {
-                        x: t.pageX,
-                        y: t.pageY,
-                    };
-                }
-            } else if (standardEvents.indexOf(e.type) !== -1) {
-                page = {
-                    x: e.pageX,
-                    y: e.pageY,
-                };
-            }
-            this.type = e.type;
-            return page;
-        }
+		function getPage(e) {
+			var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
+			var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+			var page = null;
+			if (touchEvents.indexOf(e.type) !== -1) {
+				var t = null;
+				var event = e.originalEvent ? e.originalEvent : e;
+				var touches = event.touches.length ? event.touches : event.changedTouches;
+				if (touches && touches.length) {
+					t = touches[0];
+				}
+				if (t) {
+					page = {
+						x: t.pageX,
+						y: t.pageY,
+					};
+				}
+			} else if (standardEvents.indexOf(e.type) !== -1) {
+				page = {
+					x: e.pageX,
+					y: e.pageY,
+				};
+			}
+			this.type = e.type;
+			return page;
+		}
 
-        function Events(element) {
-            this.element = element;
-            this.listeners = {};
-            this.standardEvents = {
-                click: {
-                    key: 'click',
-                    callback: onClick
-                },
-                down: {
-                    key: 'mousedown',
-                    callback: onMouseDown
-                },
-                move: {
-                    key: 'mousemove',
-                    callback: onMouseMove
-                },
-                up: {
-                    key: 'mouseup',
-                    callback: onMouseUp
-                },
-                resize: {
-                    key: 'resize',
-                    callback: onResize
-                },
-            };
-            this.touchEvents = {
-                down: {
-                    key: 'touchstart',
-                    callback: onTouchStart
-                },
-                move: {
-                    key: 'touchmove',
-                    callback: onTouchMove
-                },
-                up: {
-                    key: 'touchend',
-                    callback: onTouchEnd
-                },
-            };
+		function Events(element) {
+			this.element = element;
+			this.listeners = {};
+			this.standardEvents = {
+				click: {
+					key: 'click',
+					callback: onClick
+				},
+				down: {
+					key: 'mousedown',
+					callback: onMouseDown
+				},
+				move: {
+					key: 'mousemove',
+					callback: onMouseMove
+				},
+				up: {
+					key: 'mouseup',
+					callback: onMouseUp
+				},
+				resize: {
+					key: 'resize',
+					callback: onResize
+				},
+			};
+			this.touchEvents = {
+				down: {
+					key: 'touchstart',
+					callback: onTouchStart
+				},
+				move: {
+					key: 'touchmove',
+					callback: onTouchMove
+				},
+				up: {
+					key: 'touchend',
+					callback: onTouchEnd
+				},
+			};
 
-            var scope = this;
+			var events = this;
 
-            function onClick(e) {
-                // console.log('onClick', e, scope);
-                var event = new Event(e, scope.element);
-                scope.listeners.click.apply(this, [event]);
-            }
+			function onClick(e) {
+				// console.log('onClick', e, events);
+				var event = new Event(e, events.element);
+				events.listeners.click.apply(this, [event]);
+			}
 
-            function onMouseDown(e) {
-                // console.log('onMouseDown', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.down.apply(this, [event]);
-                scope.removeTouchEvents();
-            }
+			function onMouseDown(e) {
+				// console.log('onMouseDown', e);
+				var event = new Event(e, events.element);
+				events.listeners.down.apply(this, [event]);
+				events.removeTouchEvents();
+			}
 
-            function onMouseMove(e) {
-                // console.log('onMouseMove', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.move.apply(this, [event]);
-            }
+			function onMouseMove(e) {
+				// console.log('onMouseMove', e);
+				var event = new Event(e, events.element);
+				events.listeners.move.apply(this, [event]);
+			}
 
-            function onMouseUp(e) {
-                // console.log('onMouseUp', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.up.apply(this, [event]);
-            }
+			function onMouseUp(e) {
+				// console.log('onMouseUp', e);
+				var event = new Event(e, events.element);
+				events.listeners.up.apply(this, [event]);
+			}
 
-            function onResize(e) {
-                console.log('onResize', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.resize.apply(this, [event]);
-            }
+			function onResize(e) {
+				console.log('onResize', e);
+				var event = new Event(e, events.element);
+				events.listeners.resize.apply(this, [event]);
+			}
 
-            function onTouchStart(e) {
-                // console.log('onTouchStart', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.down.apply(this, [event]);
-                scope.removeStandardEvents();
-            }
+			function onTouchStart(e) {
+				// console.log('onTouchStart', e);
+				var event = new Event(e, events.element);
+				events.listeners.down.apply(this, [event]);
+				events.removeStandardEvents();
+			}
 
-            function onTouchMove(e) {
-                // console.log('onTouchMove', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.move.apply(this, [event]);
-            }
+			function onTouchMove(e) {
+				// console.log('onTouchMove', e);
+				var event = new Event(e, events.element);
+				events.listeners.move.apply(this, [event]);
+			}
 
-            function onTouchEnd(e) {
-                // console.log('onTouchEnd', e);
-                var event = new Event(e, scope.element);
-                scope.listeners.up.apply(this, [event]);
-            }
-        }
-        Events.prototype = {
-            add: onAdd,
-            remove: onRemove,
-            removeStandardEvents: removeStandardEvents,
-            removeTouchEvents: removeTouchEvents,
-        };
-        return Events;
+			function onTouchEnd(e) {
+				// console.log('onTouchEnd', e);
+				var event = new Event(e, events.element);
+				events.listeners.up.apply(this, [event]);
+			}
+		}
+		Events.prototype = {
+			add: add,
+			remove: remove,
+			removeStandardEvents: removeStandardEvents,
+			removeTouchEvents: removeTouchEvents,
+		};
+		return Events;
 
-        function getNode(element) {
-            return element.length ? element[0] : element; // (element.length && (element[0] instanceOf Node || element[0] instanceOf HTMLElement)) ? element[0] : element;
-        }
+		function getNode(element) {
+			return element.length ? element[0] : element; // (element.length && (element[0] instanceOf Node || element[0] instanceOf HTMLElement)) ? element[0] : element;
+		}
 
-        function getElement(element) {
-            return element.length ? element : angular.element(element); // (element.length && (element[0] instanceOf Node || element[0] instanceOf HTMLElement)) ? element : angular.element(element);
-        }
+		function getElement(element) {
+			return element.length ? element : angular.element(element); // (element.length && (element[0] instanceOf Node || element[0] instanceOf HTMLElement)) ? element : angular.element(element);
+		}
 
-        function onAdd(listeners) {
-            var scope = this,
-                standard = this.standardEvents,
-                touch = this.touchEvents;
-            var element = getElement(this.element),
-                windowElement = angular.element(window);
+		function add(listeners, scope) {
+			var events = this,
+				standard = this.standardEvents,
+				touch = this.touchEvents;
+			var element = getElement(this.element),
+				windowElement = angular.element(window);
 
-            angular.forEach(listeners, function(callback, key) {
-                if (scope.listeners[key]) {
-                    var listener = {};
-                    listener[key] = scope.listeners[key];
-                    onRemove(listener);
-                }
-                scope.listeners[key] = callback;
-                if (standard[key]) {
-                    if (key === 'resize') {
-                        windowElement.on(standard[key].key, standard[key].callback);
-                    } else {
-                        element.on(standard[key].key, standard[key].callback);
-                    }
-                }
-                if (touch[key]) {
-                    element.on(touch[key].key, touch[key].callback);
-                }
-            });
-            return scope;
-        }
+			angular.forEach(listeners, function (callback, key) {
+				if (events.listeners[key]) {
+					var listener = {};
+					listener[key] = events.listeners[key];
+					remove(listener);
+				}
+				events.listeners[key] = callback;
+				if (standard[key]) {
+					if (key === 'resize') {
+						windowElement.on(standard[key].key, standard[key].callback);
+					} else {
+						element.on(standard[key].key, standard[key].callback);
+					}
+				}
+				if (touch[key]) {
+					element.on(touch[key].key, touch[key].callback);
+				}
+			});
 
-        function onRemove(listeners) {
-            var scope = this,
-                standard = this.standardEvents,
-                touch = this.touchEvents;
-            var element = getElement(this.element),
-                windowElement = angular.element(window);
-            angular.forEach(listeners, function(callback, key) {
-                if (standard[key]) {
-                    if (key === 'resize') {
-                        windowElement.off(standard[key].key, standard[key].callback);
-                    } else {
-                        element.off(standard[key].key, standard[key].callback);
-                    }
-                }
-                if (touch[key]) {
-                    element.off(touch[key].key, touch[key].callback);
-                }
-                scope.listeners[key] = null;
-            });
-            return scope;
-        }
+			if (scope) {
+				scope.$on('$destroy', function () {
+					events.remove(listeners);
+				});
+			}
 
-        function removeStandardEvents() {
-            var scope = this,
-                standard = scope.standardEvents,
-                touch = scope.touchEvents;
-            var element = getElement(scope.element);
-            element.off('mousedown', standard.down.callback);
-            element.off('mousemove', standard.move.callback);
-            element.off('mouseup', standard.up.callback);
-        }
+			return events;
+		}
 
-        function removeTouchEvents() {
-            var scope = this,
-                standard = scope.standardEvents,
-                touch = scope.touchEvents;
-            var element = getElement(scope.element);
-            element.off('touchstart', touch.down.callback);
-            element.off('touchmove', touch.move.callback);
-            element.off('touchend', touch.up.callback);
-        }
+		function remove(listeners) {
+			var events = this,
+				standard = this.standardEvents,
+				touch = this.touchEvents;
+			var element = getElement(this.element),
+				windowElement = angular.element(window);
+			angular.forEach(listeners, function (callback, key) {
+				if (standard[key]) {
+					if (key === 'resize') {
+						windowElement.off(standard[key].key, standard[key].callback);
+					} else {
+						element.off(standard[key].key, standard[key].callback);
+					}
+				}
+				if (touch[key]) {
+					element.off(touch[key].key, touch[key].callback);
+				}
+				events.listeners[key] = null;
+			});
+			return events;
+		}
+
+		function removeStandardEvents() {
+			var events = this,
+				standard = events.standardEvents,
+				touch = events.touchEvents;
+			var element = getElement(events.element);
+			element.off('mousedown', standard.down.callback);
+			element.off('mousemove', standard.move.callback);
+			element.off('mouseup', standard.up.callback);
+		}
+
+		function removeTouchEvents() {
+			var events = this,
+				standard = events.standardEvents,
+				touch = events.touchEvents;
+			var element = getElement(events.element);
+			element.off('touchstart', touch.down.callback);
+			element.off('touchmove', touch.move.callback);
+			element.off('touchend', touch.up.callback);
+		}
 
     }]);
 
 }());
+
 /* global angular, app, Autolinker */
+(function () {
 
-(function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
+
+	app.filter('notIn', ['$filter', function ($filter) {
+		return function (array, filters, element) {
+			if (filters) {
+				return $filter("filter")(array, function (item) {
+					for (var i = 0; i < filters.length; i++) {
+						if (filters[i][element] === item[element]) return false;
+					}
+					return true;
+				});
+			}
+		};
+    }]);
 
 }());
+
 /* global angular */
 
 (function() {
@@ -1747,9 +1769,12 @@
 /* global angular */
 (function () {
 	"use strict";
+
 	var app = angular.module('artisan');
+
 	// micro interactions
-	function miTap(Events) {
+
+	function tap(Events) {
 		return {
 			restrict: 'A',
 			priority: 0,
@@ -1757,37 +1782,38 @@
 		};
 
 		function link(scope, element, attributes, model) {
-			if (attributes.href === '#' && !attributes.ngClick) {
+			if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
 				return;
 			}
-			element.addClass('miTap');
-			var material = document.createElement('mi-tap');
-			element[0].appendChild(material);
 
-			function onClick(e) {
-				element.removeClass('animate');
+			element.addClass('interaction-tap');
+			var node = document.createElement('interaction');
+			element[0].appendChild(node);
+
+			function onDown(e) {
+				element.removeClass('interaction-animate');
 				void element.offsetWidth;
-				// material.style.animationPlayState = "paused";
-				material.style.left = e.relative.x + 'px';
-				material.style.top = e.relative.y + 'px';
+				// node.style.animationPlayState = "paused";
+				node.style.left = e.relative.x + 'px';
+				node.style.top = e.relative.y + 'px';
 				setTimeout(function () {
-					element.addClass('animate');
+					element.addClass('interaction-animate');
 					setTimeout(function () {
-						element.removeClass('animate');
+						element.removeClass('interaction-animate');
 					}, 1000);
 				}, 10);
+
+				console.log('tap.onDown', node, node.parentElement);
 			}
-			var listeners = {
-				click: onClick,
+			var listeners = { // down, move, up, click
+				down: onDown,
 			};
-			var events = new Events(element).add(listeners);
-			scope.$on('$destroy', function () {
-				events.remove(listeners);
-			});
+			var events = new Events(element).add(listeners, scope); // passing scope to add remove listeners automatically on $destroy
 		}
 	}
-	app.directive('href', ['Events', miTap]);
-	app.directive('ngClick', ['Events', miTap]);
+	app.directive('href', ['Events', tap]);
+	app.directive('ngClick', ['Events', tap]);
+
 }());
 
 /* global angular */
@@ -1967,194 +1993,195 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('nav', ['$parse', 'Nav', function($parse, Nav) {
-        return {
-            restrict: 'A',
-            templateUrl: function(element, attributes) {
-                return attributes.template || 'artisan/nav/nav';
-            },
-            scope: {
-                items: '=nav',
-            },
-            link: function(scope, element, attributes, model) {
-                scope.$watch('items', function(value) {
-                    // console.log(value instanceof Nav, value);
-                    if (value) {
-                        if (angular.isArray(value)) {
-                            var onLink = $parse(attributes.onLink)(scope.$parent);
-                            var onNav = $parse(attributes.onNav)(scope.$parent);
-                            var nav = new Nav({
-                                onLink: onLink,
-                                onNav: onNav
-                            });
-                            nav.setItems(value);
-                            scope.item = nav;
+	app.directive('nav', ['$parse', 'Nav', function ($parse, Nav) {
+		return {
+			restrict: 'A',
+			templateUrl: function (element, attributes) {
+				return attributes.template || 'artisan/nav/nav';
+			},
+			scope: {
+				items: '=nav',
+			},
+			link: function (scope, element, attributes, model) {
+				scope.$watch('items', function (value) {
+					// console.log(value instanceof Nav, value);
+					if (value) {
+						if (angular.isArray(value)) {
+							var onLink = $parse(attributes.onLink)(scope.$parent);
+							var onNav = $parse(attributes.onNav)(scope.$parent);
+							var nav = new Nav({
+								onLink: onLink,
+								onNav: onNav
+							});
+							nav.setItems(value);
+							scope.item = nav;
 
-                        } else if (value instanceof Nav) {
-                            scope.item = value;
-                        }
-                    }
-                });
-            }
-        };
+						} else if (value instanceof Nav) {
+							scope.item = value;
+						}
+					}
+				});
+			}
+		};
     }]);
 
-    app.directive('navItem', ['$timeout', function($timeout) {
-        return {
-            restrict: 'A',
-            templateUrl: function(element, attributes) {
-                return attributes.template || 'artisan/nav/nav-item';
-            },
-            scope: {
-                item: '=navItem',
-            },
-            link: function(scope, element, attributes, model) {
-                var navItem = angular.element(element[0].querySelector('.nav-link'));
+	app.directive('navItem', ['$timeout', function ($timeout) {
+		return {
+			restrict: 'A',
+			templateUrl: function (element, attributes) {
+				return attributes.template || 'artisan/nav/nav-item';
+			},
+			scope: {
+				item: '=navItem',
+			},
+			link: function (scope, element, attributes, model) {
+				var navItem = angular.element(element[0].querySelector('.nav-link'));
 
-                var output;
+				var output;
 
-                function itemOpen(item, immediate) {
-                    var state = item.$nav.state;
-                    state.active = true;
+				function itemOpen(item, immediate) {
+					var state = item.$nav.state;
+					state.active = true;
 
-                    $timeout(function() {
-                        state.immediate = immediate;
-                        state.closed = state.closing = false;
-                        state.opening = true;
-                        $timeout(function() {
-                            state.opening = false;
-                            state.opened = true;
-                        });
-                    });
-                }
+					$timeout(function () {
+						state.immediate = immediate;
+						state.closed = state.closing = false;
+						state.opening = true;
+						$timeout(function () {
+							state.opening = false;
+							state.opened = true;
+						});
+					});
+				}
 
-                function itemClose(item, immediate) {
-                    var state = item.$nav.state;
-                    state.active = false;
-                    $timeout(function() {
-                        state.immediate = immediate;
-                        state.opened = state.opening = false;
-                        state.closing = true;
-                        $timeout(function() {
-                            state.closing = false;
-                            state.closed = true;
-                        });
-                    });
-                    if (item.items) {
-                        angular.forEach(item.items, function(o) {
-                            itemClose(o, true);
-                        });
-                    }
-                }
+				function itemClose(item, immediate) {
+					var state = item.$nav.state;
+					state.active = false;
+					$timeout(function () {
+						state.immediate = immediate;
+						state.opened = state.opening = false;
+						state.closing = true;
+						$timeout(function () {
+							state.closing = false;
+							state.closed = true;
+						});
+					});
+					if (item.items) {
+						angular.forEach(item.items, function (o) {
+							itemClose(o, true);
+						});
+					}
+				}
 
-                function itemToggle(item) {
-                    // console.log('itemToggle', item);
-                    var state = item.$nav.state;
-                    state.active = item.items ? !state.active : true;
-                    if (state.active) {
-                        if (item.$nav.parent) {
-                            angular.forEach(item.$nav.parent.items, function(o) {
-                                if (o !== item) {
-                                    itemClose(o, true);
-                                }
-                            });
-                        }
-                        itemOpen(item);
-                    } else {
-                        itemClose(item);
-                    }
-                    // console.log(state);
-                }
+				function itemToggle(item) {
+					// console.log('itemToggle', item);
+					var state = item.$nav.state;
+					state.active = item.items ? !state.active : true;
+					if (state.active) {
+						if (item.$nav.parent) {
+							angular.forEach(item.$nav.parent.items, function (o) {
+								if (o !== item) {
+									itemClose(o, true);
+								}
+							});
+						}
+						itemOpen(item);
+					} else {
+						itemClose(item);
+					}
+					// console.log(state);
+				}
 
-                function onTap(e) {
-                    var item = scope.item;
-                    // console.log('Item.onTap', item);
-                    var state = item.$nav.state;
-                    if (state.active) {
-                        output = false;
-                        trigger();
-                    } else if (item.$nav.onNav) {
-                        var promise = item.$nav.onNav(item, item.$nav);
-                        if (promise && typeof promise.then === 'function') {
-                            promise.then(function(resolved) {
-                                // go on
-                                trigger();
-                            }, function(rejected) {
-                                // do nothing
-                            });
-                            output = false;
-                        } else {
-                            output = promise;
-                            trigger();
-                        }
-                    }
+				function onTap(e) {
+					var item = scope.item;
+					// console.log('Item.onTap', item);
+					var state = item.$nav.state;
+					if (state.active) {
+						output = false;
+						trigger();
+					} else if (item.$nav.onNav) {
+						var promise = item.$nav.onNav(item, item.$nav);
+						if (promise && typeof promise.then === 'function') {
+							promise.then(function (resolved) {
+								// go on
+								trigger();
+							}, function (rejected) {
+								// do nothing
+							});
+							output = false;
+						} else {
+							output = promise;
+							trigger();
+						}
+					}
 
-                    function trigger() {
-                        $timeout(function() {
-                            itemToggle(item);
-                        });
-                    }
-                }
+					function trigger() {
+						$timeout(function () {
+							itemToggle(item);
+						});
+					}
+				}
 
-                function onTouchStart(e) {
-                    // console.log('Item.onTouchStart', e);
-                    onTap(e);
-                    navItem
-                        .off('mousedown', onMouseDown);
-                    // return r || prevent(e);
-                }
+				function onTouchStart(e) {
+					// console.log('Item.onTouchStart', e);
+					onTap(e);
+					navItem
+						.off('mousedown', onMouseDown);
+					// return r || prevent(e);
+				}
 
-                function onMouseDown(e) {
-                    // console.log('Item.onMouseDown', e);
-                    onTap(e);
-                    navItem
-                        .off('touchstart', onTouchStart);
-                    // return r || prevent(e);
-                }
+				function onMouseDown(e) {
+					// console.log('Item.onMouseDown', e);
+					onTap(e);
+					navItem
+						.off('touchstart', onTouchStart);
+					// return r || prevent(e);
+				}
 
-                function onClick(e) {
-                    // console.log('Item.onClick', e);
-                    return prevent(e);
-                }
+				function onClick(e) {
+					// console.log('Item.onClick', e);
+					return prevent(e);
+				}
 
-                function prevent(e) {
-                    if (output === false) {
-                        // console.log('Item.prevent', e);
-                        e.preventDefault();
-                        // e.stopPropagation();
-                        return false;
-                    }
-                }
+				function prevent(e) {
+					if (output === false) {
+						// console.log('Item.prevent', e);
+						e.preventDefault();
+						// e.stopPropagation();
+						return false;
+					}
+				}
 
-                function addListeners() {
-                    navItem
-                        .on('touchstart', onTouchStart)
-                        .on('mousedown', onMouseDown)
-                        .on('click', onClick);
-                }
+				function addListeners() {
+					navItem
+						.on('touchstart', onTouchStart)
+						.on('mousedown', onMouseDown)
+						.on('click', onClick);
+				}
 
-                function removeListeners() {
-                    navItem
-                        .off('touchstart', onTouchStart)
-                        .off('mousedown', onMouseDown)
-                        .off('click', onClick);
-                }
+				function removeListeners() {
+					navItem
+						.off('touchstart', onTouchStart)
+						.off('mousedown', onMouseDown)
+						.off('click', onClick);
+				}
 
-                addListeners();
+				addListeners();
 
-                scope.$on('$destroy', function() {
-                    removeListeners();
-                });
-            }
-        };
+				scope.$on('$destroy', function () {
+					removeListeners();
+				});
+			}
+		};
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
