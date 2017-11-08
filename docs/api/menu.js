@@ -1,6 +1,6 @@
 [{
     "id": 10,
-    "url": "/home",
+    "url": "/",
     "name": "Home"
 }, {
     "id": 20,

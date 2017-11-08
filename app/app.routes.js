@@ -5,26 +5,59 @@
 
     var app = angular.module('app');
 
-    /*
-    app.config(['$locationProvider', function($locationProvider) {
+    app.config(['$routeProvider', function($routeProvider) {
 
-        // HTML5 MODE url writing method (false: #/anchor/use, true: /html5/url/use)
-        $locationProvider.html5Mode(false);
-        // $locationProvider.hashPrefix(''); // default '!' hashbang
+        $routeProvider.when('/', {
+            templateUrl: function() {
+                return 'views/home.html';
+            },
+            controller: 'HomeCtrl',
 
-    }]);
+        }).when('/contact-us', {
+            templateUrl: function() {
+                return 'views/contact-us.html';
+            },
+            controller: 'ContactUsCtrl',
+            // resolve: {
+            //    user: ['Users', function(Users) {
+            //        return Users.isAuthorizedOrGoTo('/home');
+            //    }]
+            // },
 
-    app.config(['$modalProvider', function($modalProvider) {
+        }).when('/works/:slug', {
+            templateUrl: function() {
+                return 'views/slug.html';
+            },
+            controller: 'SlugCtrl',
 
-        $modalProvider.when('authModal', {
-            title: 'Authenticate',
-            templateUrl: 'views/auth-modal.html',
-            controller: 'RootCtrl',
-            customClass: 'modal-sm',
+        }).when('/works/visuals/:slug', {
+            templateUrl: function() {
+                return 'views/slug.html';
+            },
+            controller: 'SlugCtrl',
+
+        }).when('/works/production/:slug', {
+            templateUrl: function() {
+                return 'views/slug.html';
+            },
+            controller: 'SlugCtrl',
+
+        }).when('/experiences/:slug', {
+            templateUrl: function() {
+                return 'views/slug.html';
+            },
+            controller: 'SlugCtrl',
+
+        }).when('/:slug', {
+            templateUrl: function() {
+                return 'views/slug.html';
+            },
+            controller: 'SlugCtrl',
 
         });
 
+        $routeProvider.otherwise('/');
+
     }]);
-    */
 
 }());

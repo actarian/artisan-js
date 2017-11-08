@@ -729,25 +729,26 @@ a:focus {
     .nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
       visibility: visible;
       pointer-events: all;
-      opacity: 1; } }
+      opacity: 1;
+      transform: translateY(10px); } }
 
 .nav-link {
   display: block;
-  padding: 10px 10px;
+  padding: 8px 20px;
   text-align: center;
   white-space: nowrap; }
 
 .nav-0 {
-  border: 1px solid #0000ff;
+  border: 1px solid #0000fe;
   border-radius: 6px; }
   .nav-0 .nav-link {
     font-weight: 900;
     background: transparent;
-    color: #0000ff; }
+    color: #0000fe; }
   .nav-0 .nav-link:hover,
   .nav-0 .nav-link:active,
   .nav-0 .active > .nav-link {
-    background: #0000ff;
+    background: #0000fe;
     color: #ffffff; }
   @media (max-width: 767px) {
     .nav-0 > .nav-item + .nav-item {
@@ -757,28 +758,36 @@ a:focus {
   font-weight: 600;
   font-size: 0.9rem;
   background: #eeeeff;
-  color: #0000ff; }
+  color: #0000fe; }
 
 .nav-1 .nav-link:hover,
 .nav-1 .nav-link:active,
 .nav-1 .active > .nav-link {
   background: #eeeeff;
-  color: #0000ff; }
+  color: #0000fe; }
 
 @media (min-width: 768px) {
   .nav-1 {
+    border: 1px solid #0000fe;
+    box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.2);
     margin-top: 1px; } }
 
 .nav-2 .nav-link {
   font-weight: 200;
   font-size: 0.9rem;
   background: transparent;
-  color: #0000ff; }
+  color: #0000fe; }
 
 .nav-2 .nav-link:hover,
 .nav-2 .nav-link:active,
 .nav-2 .active > .nav-link {
-  background: #0000ff;
+  background: #0000fe;
   color: #ffffff; }
+
+@media (min-width: 768px) {
+  .nav-2 {
+    border: 1px solid #0000fe;
+    box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    margin-top: 1px; } }
 
 /* --- end nav --- */

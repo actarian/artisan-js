@@ -1,4 +1,4 @@
-<a class="nav-link" href="#" ng-href="{{item.$nav.link}}" ng-bind="item.name"></a>
+<a class="nav-link" href="#" ng-href="{{item.$nav.link}}"><span ng-bind="item.name"></span></a>
 <ul class="nav nav-{{item.$nav.level}}" ng-if="item.items">
     <li class="nav-item" ng-class="item.$nav.state" nav-item="item" ng-repeat="item in item.items track by $index"></li>
 </ul>

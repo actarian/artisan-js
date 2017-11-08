@@ -8,6 +8,7 @@ var fs = require('fs'),
     cssmin = require('gulp-cssmin'),
     html2js = require('gulp-html2js'),
     livereload = require('gulp-livereload'),
+    plumber = require('gulp-plumber'),
     rename = require('gulp-rename'),
     sass = require('gulp-sass'),
     sourcemaps = require('gulp-sourcemaps'),
@@ -20,6 +21,7 @@ gulp.task('compile:sass', function() {
     var tasks = getCompilers('.scss').map(function(compile) {
         console.log(compile.inputFile);
         return gulp.src(compile.inputFile, { base: '.' })
+            .pipe(plumber())
             .pipe(sass().on('compile:sass.error', function(error) {
                 console.log('compile:sass.error', error);
             }))
@@ -35,6 +37,7 @@ gulp.task('compile', ['compile:sass']);
 gulp.task('bundle:css', function() {
     var tasks = getBundles('.css').map(function(bundle) {
         return gulp.src(bundle.inputFiles, { base: '.' })
+            .pipe(plumber())
             .pipe(concat(bundle.outputFileName))
             .pipe(gulp.dest('.'))
             .pipe(gulpif(bundle.minify && bundle.minify.enabled, cssmin()))
@@ -46,6 +49,7 @@ gulp.task('bundle:css', function() {
 gulp.task('bundle:js', function() {
     var tasks = getBundles('.js').map(function(bundle) {
         return gulp.src(bundle.inputFiles, { base: '.' })
+            .pipe(plumber())
             .pipe(concat(bundle.outputFileName))
             .pipe(gulp.dest('.'))
             .pipe(sourcemaps.init())
@@ -60,6 +64,7 @@ gulp.task('bundle:partials', function() {
     return gulp.src('./app/partials/**/*.html', {
             base: '.'
         })
+        .pipe(plumber())
         .pipe(rename(function(path) {
             path.dirname = path.dirname.split('app/partials/').join('');
             // path.basename += "-partial";
@@ -103,9 +108,12 @@ gulp.task('watch', function(done) {
     function log(e) {
         console.log(e.type, e.path);
     }
+    gulp.watch('./sass/**/*.scss', ['compile:sass']).on('change', log);
+    /*
     getCompilers('.scss').forEach(function(compiler) {
         gulp.watch(compiler.inputFile, ['compile:sass']).on('change', log);
     });
+    */
     getBundles('.css').forEach(function(bundle) {
         gulp.watch(bundle.inputFiles, ['bundle:css']).on('change', log);
     });
