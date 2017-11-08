@@ -323,6 +323,32 @@ control-messages {
     line-height: 20px;
     color: #0275d8; }
 
+.mi-tap {
+  position: relative;
+  overflow: hidden;
+  /*
+    &.navbar-toggler-right {
+        position: absolute;
+    }
+    */ }
+  .mi-tap > mi-tap {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 640px;
+    height: 640px;
+    border-radius: 50%;
+    background: rgba(0, 0, 255, 0.25);
+    visibility: hidden;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-50%) scale(0.01); }
+  .mi-tap.animate > mi-tap {
+    visibility: visible;
+    transform: translateX(-50%) translateY(-50%) scale(1);
+    opacity: 0;
+    transition: all 1000ms ease-in-out; }
+
 /*
 @function pow($number, $exp) {
     $value: 1;
@@ -688,28 +714,31 @@ a:focus {
         overflow: visible; } }
 
 @media (min-width: 768px) {
-  .nav .nav {
-    position: absolute; }
-  .nav > .nav-item > .nav {
-    visibility: hidden;
-    pointer-events: none; }
-  .nav > .nav-item.closing > .nav, .nav > .nav-item.closed > .nav {
-    opacity: 0; }
-  .nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
-    visibility: visible;
-    pointer-events: all;
-    opacity: 1; } }
+  .nav {
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px; }
+    .nav .nav {
+      position: absolute; }
+    .nav > .nav-item > .nav {
+      visibility: hidden;
+      pointer-events: none; }
+    .nav > .nav-item.closing > .nav, .nav > .nav-item.closed > .nav {
+      opacity: 0; }
+    .nav > .nav-item.opening > .nav, .nav > .nav-item.opened > .nav {
+      visibility: visible;
+      pointer-events: all;
+      opacity: 1; } }
 
 .nav-link {
   display: block;
   padding: 10px 10px;
-  text-align: center; }
+  text-align: center;
+  white-space: nowrap; }
 
 .nav-0 {
   border: 1px solid #0000ff;
   border-radius: 6px; }
-  .nav-0 > .nav-item + .nav-item {
-    border-top: 1px solid #aaaaff; }
   .nav-0 .nav-link {
     font-weight: 900;
     background: transparent;
@@ -719,6 +748,9 @@ a:focus {
   .nav-0 .active > .nav-link {
     background: #0000ff;
     color: #ffffff; }
+  @media (max-width: 767px) {
+    .nav-0 > .nav-item + .nav-item {
+      border-top: 1px solid #aaaaff; } }
 
 .nav-1 .nav-link {
   font-weight: 600;
@@ -731,6 +763,10 @@ a:focus {
 .nav-1 .active > .nav-link {
   background: #eeeeff;
   color: #0000ff; }
+
+@media (min-width: 768px) {
+  .nav-1 {
+    margin-top: 1px; } }
 
 .nav-2 .nav-link {
   font-weight: 200;
