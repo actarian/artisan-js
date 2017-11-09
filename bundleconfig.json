@@ -12,25 +12,31 @@
 }, {
     "inputFiles": [
         "app/artisan/artisan.module.js",
-        "app/artisan/api/web.service.js",
-        "app/artisan/canvas/painter.service.js",
-        "app/artisan/core/doc.model.js",
-        "app/artisan/events/events.factory.js",
-        "app/artisan/filters/filters.js",
-        "app/artisan/forms/control.directive.js",
-        "app/artisan/forms/validate.directive.js",
-        "app/artisan/hash/hash.model.js",
-        "app/artisan/interactions/tap.directive.js",
-        "app/artisan/modals/modal.directive.js",
-        "app/artisan/modals/modal.provider.js",
-        "app/artisan/nav/nav.directives.js",
-        "app/artisan/nav/nav.factory.js",
-        "app/artisan/promise/promise.factory.js",
-        "app/artisan/router/router.service.js",
-        "app/artisan/silent/silent.factory.js",
-        "app/artisan/state/state.model.js",
-        "app/artisan/storage/storage.service.js",
-        "app/artisan/utils/utils.service.js"
+
+        "app/artisan/core/filters/filters.js",
+        "app/artisan/core/hash/hash.factory.js",
+        "app/artisan/core/promise/promise.factory.js",
+        "app/artisan/core/utils/utils.service.js",
+
+        "app/artisan/models/doc.factory.js",
+        "app/artisan/models/view.factory.js",
+
+        "app/artisan/net/api/web.service.js",
+        "app/artisan/net/router/router.service.js",
+        "app/artisan/net/silent/silent.factory.js",
+        "app/artisan/net/storage/storage.service.js",
+
+        "app/artisan/ui/components/canvas/painter.service.js",
+        "app/artisan/ui/components/forms/control.directive.js",
+        "app/artisan/ui/components/forms/validate.directive.js",
+        "app/artisan/ui/components/modals/modal.directive.js",
+        "app/artisan/ui/components/modals/modal.provider.js",
+        "app/artisan/ui/components/nav/nav.directives.js",
+        "app/artisan/ui/components/nav/nav.factory.js",
+
+        "app/artisan/ui/events/events.factory.js",
+        "app/artisan/ui/interactions/tap.directive.js",
+        "app/artisan/ui/state/state.factory.js"
     ],
     "outputFileName": "docs/js/artisan.js",
     "minify": {

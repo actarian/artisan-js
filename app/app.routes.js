@@ -9,7 +9,7 @@
 
         $routeProvider.when('/', {
             templateUrl: function() {
-                return 'views/home.html';
+                return 'views/slug.html';
             },
             controller: 'HomeCtrl',
 

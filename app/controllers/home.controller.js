@@ -5,10 +5,19 @@
 
     var app = angular.module('app');
 
-    app.controller('HomeCtrl', ['$scope', function($scope) {
+    app.controller('HomeCtrl', ['$scope', 'State', 'View', function($scope, State, View) {
+        var state = new State();
 
+        View.current().then(function(view) {
+            $scope.view = view;
+            state.ready();
 
+        }, function(error) {
+            state.error(error);
 
+        });
+
+        $scope.state = state;
     }]);
 
 }());

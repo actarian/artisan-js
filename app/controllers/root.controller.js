@@ -13,7 +13,7 @@
                 onNav: onNav,
             });
 
-            Api.menu().then(function(items) {
+            Api.navs.main().then(function(items) {
                 nav.setItems(items);
 
             }, function(error) {

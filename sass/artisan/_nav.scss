@@ -17,6 +17,11 @@ a:focus {
     outline: none;
 }
 
+[nav] {
+    max-width: 800px;
+    margin: auto;
+}
+
 .nav {
     &>.nav-item {
         &>.nav {

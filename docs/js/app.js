@@ -17,8 +17,19 @@
         function(WebApi, $promise) {
 
             var service = {
-                menu: function() {
-                    return WebApi.get('/menu.js'); // promise
+                navs: {
+                    main: function() {
+                        return WebApi.get('/navs/main.js'); // promise
+                    },
+                },
+                docs: {
+                    id: function(id) {
+                        return WebApi.get('/docs/' + id + '.js'); // promise
+                    },
+                    url: function(url) {
+                        url = url.split('/').join('-');
+                        return WebApi.get('/docs/' + url + '.js'); // promise
+                    },
                 },
             };
 
@@ -100,7 +111,7 @@
 
         $routeProvider.when('/', {
             templateUrl: function() {
-                return 'views/home.html';
+                return 'views/slug.html';
             },
             controller: 'HomeCtrl',
 
@@ -171,11 +182,18 @@
 
     var app = angular.module('app');
 
-    app.controller('ContactUsCtrl', ['$scope', 'State', function($scope, State) {
-
+    app.controller('ContactUsCtrl', ['$scope', 'State', 'View', function($scope, State, View) {
         var state = new State();
         var state2 = new State();
-        var view = {};
+
+        View.current().then(function(view) {
+            $scope.view = view;
+            state.ready();
+
+        }, function(error) {
+            state.error(error);
+
+        });
 
         $scope.state = state;
         $scope.state2 = state2;
@@ -190,10 +208,19 @@
 
     var app = angular.module('app');
 
-    app.controller('HomeCtrl', ['$scope', function($scope) {
+    app.controller('HomeCtrl', ['$scope', 'State', 'View', function($scope, State, View) {
+        var state = new State();
 
+        View.current().then(function(view) {
+            $scope.view = view;
+            state.ready();
 
+        }, function(error) {
+            state.error(error);
 
+        });
+
+        $scope.state = state;
     }]);
 
 }());
@@ -212,7 +239,7 @@
                 onNav: onNav,
             });
 
-            Api.menu().then(function(items) {
+            Api.navs.main().then(function(items) {
                 nav.setItems(items);
 
             }, function(error) {
@@ -260,23 +287,19 @@
 
     var app = angular.module('app');
 
-    app.controller('SlugCtrl', ['$scope', 'State', 'Api', 'Doc',
-        function($scope, State, Api, Doc) {
-            var state = new State();
-            var view = {};
+    app.controller('SlugCtrl', ['$scope', 'State', 'View', function($scope, State, View) {
+        var state = new State();
 
-            Doc.current().then(function(doc) {
-                view.doc = doc;
-                state.ready();
-
-            }, function(error) {
-                state.error(error);
-
-            });
-
-            $scope.state = state;
+        View.current().then(function(view) {
             $scope.view = view;
-        }
-    ]);
+            state.ready();
+
+        }, function(error) {
+            state.error(error);
+
+        });
+
+        $scope.state = state;
+    }]);
 
 }());

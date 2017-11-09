@@ -687,6 +687,10 @@ a:focus {
   cursor: pointer;
   outline: none; }
 
+[nav] {
+  max-width: 800px;
+  margin: auto; }
+
 .nav > .nav-item > .nav {
   transition: all ease-in-out 500ms; }
 

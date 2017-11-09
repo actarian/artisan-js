@@ -9,8 +9,19 @@
         function(WebApi, $promise) {
 
             var service = {
-                menu: function() {
-                    return WebApi.get('/menu.js'); // promise
+                navs: {
+                    main: function() {
+                        return WebApi.get('/navs/main.js'); // promise
+                    },
+                },
+                docs: {
+                    id: function(id) {
+                        return WebApi.get('/docs/' + id + '.js'); // promise
+                    },
+                    url: function(url) {
+                        url = url.split('/').join('-');
+                        return WebApi.get('/docs/' + url + '.js'); // promise
+                    },
                 },
             };
 
