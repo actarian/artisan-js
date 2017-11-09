@@ -9,10 +9,11 @@
 
         var state = new State();
         var state2 = new State();
+        var view = {};
 
         $scope.state = state;
         $scope.state2 = state2;
-
+        $scope.view = view;
     }]);
 
 }());

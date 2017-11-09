@@ -117,7 +117,7 @@ $templateCache.put("artisan/modals/modals","<div class=\"modals\" ng-class=\"{ v
     "    </div>\n" +
     "</div>")
 
-$templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.link}}\" ng-bind=\"item.name\"></a>\n" +
+$templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.link}}\"><span ng-bind=\"item.name\"></span></a>\n" +
     "<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
     "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
     "</ul>")

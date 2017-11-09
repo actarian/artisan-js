@@ -40,6 +40,7 @@
                 }
             },
             error: function error(error) {
+                console.log('State.error', error);
                 var state = this;
                 state.isBusy = false;
                 state.isError = true;

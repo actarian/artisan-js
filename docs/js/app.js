@@ -13,42 +13,20 @@
 
     var app = angular.module('app');
 
-    app.service('Api', ['WebApi', '$promise', '$location', '$routeParams', 'environment', function(WebApi, $promise, $location, $routeParams, environment) {
+    app.service('Api', ['WebApi', '$promise',
+        function(WebApi, $promise) {
 
-        var webapi = WebApi;
+            var service = {
+                menu: function() {
+                    return WebApi.get('/menu.js'); // promise
+                },
+            };
 
-        var service = {
-            menu: function() {
-                return webapi.get('/menu.js'); // promise
-            },
-            doc: function() {
-                return $promise(function(promise) {
-                    service.menu().then(function(response) {
-                        var doc = null;
-                        var currentUrl = $location.path();
-                        angular.forEach(response.data, function(item) {
-                            console.log(item.url, $routeParams.slug);
-                            if (item.url === currentUrl) {
-                                doc = angular.extend({
-                                    language: environment.language,
-                                    url: currentUrl,
-                                    params: $routeParams,
-                                }, item);
-                            }
-                        });
-                        promise.resolve(doc);
-                    }, function(error) {
-                        promise.reject(error);
-                    });
-                });
-            }
-        };
+            angular.extend(this, service);
 
-        angular.extend(this, service);
-
-        // var args = Array.prototype.slice.call(arguments);
-
-    }]);
+            // var args = Array.prototype.slice.call(arguments);
+        }
+    ]);
 
     /*
     app.provider('$api', [function $apiProvider() {
@@ -102,6 +80,7 @@
     function getEnvironment() {
         var environment = {
             language: 'en',
+            api: 'api',
         };
         if (window.environment) {
             angular.extend(environment, window.environment);
@@ -196,10 +175,11 @@
 
         var state = new State();
         var state2 = new State();
+        var view = {};
 
         $scope.state = state;
         $scope.state2 = state2;
-
+        $scope.view = view;
     }]);
 
 }());
@@ -232,9 +212,8 @@
                 onNav: onNav,
             });
 
-            Api.menu().then(function(response) {
-                // $scope.items = response.data;
-                nav.setItems(response.data);
+            Api.menu().then(function(items) {
+                nav.setItems(items);
 
             }, function(error) {
                 console.log('RootCtrl.error', error);
@@ -281,15 +260,23 @@
 
     var app = angular.module('app');
 
-    app.controller('SlugCtrl', ['$scope', 'Api', function($scope, Api) {
+    app.controller('SlugCtrl', ['$scope', 'State', 'Api', 'Doc',
+        function($scope, State, Api, Doc) {
+            var state = new State();
+            var view = {};
 
-        Api.doc().then(function(doc) {
-            $scope.doc = doc;
+            Doc.current().then(function(doc) {
+                view.doc = doc;
+                state.ready();
 
-        }, function(error) {
+            }, function(error) {
+                state.error(error);
 
-        });
+            });
 
-    }]);
+            $scope.state = state;
+            $scope.view = view;
+        }
+    ]);
 
 }());

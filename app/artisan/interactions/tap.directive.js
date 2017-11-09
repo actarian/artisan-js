@@ -14,6 +14,9 @@
         };
 
         function link(scope, element, attributes, model) {
+            if (attributes.ngBind) {
+                return;
+            }
             if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
                 return;
             }
@@ -35,7 +38,7 @@
                     }, 1000);
                 }, 10);
 
-                console.log('tap.onDown', node, node.parentElement);
+                // console.log('tap.onDown', node, node.parentElement);
             }
             var listeners = { // down, move, up, click
                 down: onDown,

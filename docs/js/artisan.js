@@ -13,66 +13,61 @@
 
     var app = angular.module('artisan');
 
-    app.service('WebApi', ['$http', '$promise', '$timeout', function($http, $promise, $timeout) {
+    app.service('WebApi', ['$http', '$promise', '$timeout', 'environment',
+        function($http, $promise, $timeout, environment) {
 
-        var lang = 'en'; // get from config
-        var prefix = 'api';
+            function $httpPromise(method, url, data) {
+                return $promise(function(promise) {
 
-        function $httpPromise(url, data, method) {
-            return $promise(function(promise) {
-                url = prefix + url;
-                url += (url.split('?')[1] ? '&' : '?') + 'lang=' + lang;
-                data = data || null;
-                method = method || 'get';
-                $http[method](url, data).then(function(response) {
-                    promise.resolve(response);
-                }, function(e, status) {
-                    var error = e && e.data ? {
-                        message: e.data.message,
-                        messageDetail: e.data.messageDetail,
-                        status: e.status,
-                    } : e;
-                    promise.reject(error);
+                    $http[method](environment.api + url, data).then(function(response) {
+                        promise.resolve(response.data);
+
+                    }, function(e, status) {
+                        var error = (e && e.data) ? e.data : {};
+                        error.status = e.status;
+                        promise.reject(error);
+
+                    });
                 });
-            });
+            }
+
+            function $get(url) {
+                return $httpPromise('get', url);
+            }
+
+            function $post(url, data) {
+                return $httpPromise('post', url, data);
+            }
+
+            function $put(url, data) {
+                return $httpPromise('put', url, data);
+            }
+
+            function $patch(url, data) {
+                return $httpPromise('patch', url, data);
+            }
+
+            function $delete(url) {
+                return $httpPromise('delete', url);
+            }
+
+            function $fake(data) {
+                var deferred = $q.defer();
+                $timeout(function() {
+                    deferred.resolve({ data: data });
+                }, 1000);
+                return deferred.promise;
+            }
+
+            this.get = $get;
+            this.post = $post;
+            this.put = $put;
+            this.patch = $patch;
+            this.delete = $delete;
+            this.fake = $fake;
+
         }
-
-        function $get(url) {
-            return $httpPromise(url, null, 'get');
-        }
-
-        function $post(url, data) {
-            return $httpPromise(url, data, 'post');
-        }
-
-        function $put(url, model) {
-            return $httpPromise(url, data, 'put');
-        }
-
-        function $patch(url, model) {
-            return $httpPromise(url, data, 'patch');
-        }
-
-        function $delete(url) {
-            return $httpPromise(url, null, 'delete');
-        }
-
-        function $fake(data) {
-            var deferred = $q.defer();
-            $timeout(function() {
-                deferred.resolve({ data: data });
-            }, 1000);
-            return deferred.promise;
-        }
-
-        this.get = $get;
-        this.post = $post;
-        this.put = $put;
-        this.patch = $patch;
-        this.delete = $delete;
-        this.fake = $fake;
-
-    }]);
+    ]);
 
 }());
 /* global angular, firebase */
@@ -786,6 +781,58 @@
         };
         return Painter;
     }]);
+
+}());
+/* global angular */
+
+(function() {
+    "use strict";
+
+    var app = angular.module('artisan');
+
+    app.factory('Doc', ['Api', '$promise', '$location', '$routeParams', 'environment',
+        function(Api, $promise, $location, $routeParams, environment) {
+
+            function Doc(item) {
+                angular.extend(this, {
+                    url: $location.path(),
+                    params: $routeParams,
+                });
+                angular.extend(this, environment);
+                if (item) {
+                    angular.extend(this, item);
+                }
+            }
+
+            Doc.prototype = {
+
+            };
+
+            var statics = {
+                current: function() {
+                    return $promise(function(promise) {
+                        Api.menu().then(function(items) {
+                            var doc = null,
+                                url = $location.path();
+                            angular.forEach(items, function(item) {
+                                if (item.url === url) {
+                                    doc = new Doc(item);
+                                }
+                                console.log(item, item.url, url);
+                            });
+                            promise.resolve(doc);
+                        }, function(error) {
+                            promise.reject(error);
+                        });
+                    });
+                }
+            };
+
+            angular.extend(Doc, statics);
+
+            return Doc;
+        }
+    ]);
 
 }());
 /* global angular */
@@ -1782,6 +1829,9 @@
         };
 
         function link(scope, element, attributes, model) {
+            if (attributes.ngBind) {
+                return;
+            }
             if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
                 return;
             }
@@ -1803,7 +1853,7 @@
                     }, 1000);
                 }, 10);
 
-                console.log('tap.onDown', node, node.parentElement);
+                // console.log('tap.onDown', node, node.parentElement);
             }
             var listeners = { // down, move, up, click
                 down: onDown,
@@ -2466,6 +2516,7 @@
                 }
             },
             error: function error(error) {
+                console.log('State.error', error);
                 var state = this;
                 state.isBusy = false;
                 state.isError = true;

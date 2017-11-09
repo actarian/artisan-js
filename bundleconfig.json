@@ -14,6 +14,7 @@
         "app/artisan/artisan.module.js",
         "app/artisan/api/web.service.js",
         "app/artisan/canvas/painter.service.js",
+        "app/artisan/core/doc.model.js",
         "app/artisan/events/events.factory.js",
         "app/artisan/filters/filters.js",
         "app/artisan/forms/control.directive.js",

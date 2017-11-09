@@ -13,9 +13,8 @@
                 onNav: onNav,
             });
 
-            Api.menu().then(function(response) {
-                // $scope.items = response.data;
-                nav.setItems(response.data);
+            Api.menu().then(function(items) {
+                nav.setItems(items);
 
             }, function(error) {
                 console.log('RootCtrl.error', error);

@@ -5,15 +5,23 @@
 
     var app = angular.module('app');
 
-    app.controller('SlugCtrl', ['$scope', 'Api', function($scope, Api) {
+    app.controller('SlugCtrl', ['$scope', 'State', 'Api', 'Doc',
+        function($scope, State, Api, Doc) {
+            var state = new State();
+            var view = {};
 
-        Api.doc().then(function(doc) {
-            $scope.doc = doc;
+            Doc.current().then(function(doc) {
+                view.doc = doc;
+                state.ready();
 
-        }, function(error) {
+            }, function(error) {
+                state.error(error);
 
-        });
+            });
 
-    }]);
+            $scope.state = state;
+            $scope.view = view;
+        }
+    ]);
 
 }());

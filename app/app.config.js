@@ -22,6 +22,7 @@
     function getEnvironment() {
         var environment = {
             language: 'en',
+            api: 'api',
         };
         if (window.environment) {
             angular.extend(environment, window.environment);

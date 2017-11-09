@@ -5,42 +5,20 @@
 
     var app = angular.module('app');
 
-    app.service('Api', ['WebApi', '$promise', '$location', '$routeParams', 'environment', function(WebApi, $promise, $location, $routeParams, environment) {
+    app.service('Api', ['WebApi', '$promise',
+        function(WebApi, $promise) {
 
-        var webapi = WebApi;
+            var service = {
+                menu: function() {
+                    return WebApi.get('/menu.js'); // promise
+                },
+            };
 
-        var service = {
-            menu: function() {
-                return webapi.get('/menu.js'); // promise
-            },
-            doc: function() {
-                return $promise(function(promise) {
-                    service.menu().then(function(response) {
-                        var doc = null;
-                        var currentUrl = $location.path();
-                        angular.forEach(response.data, function(item) {
-                            console.log(item.url, $routeParams.slug);
-                            if (item.url === currentUrl) {
-                                doc = angular.extend({
-                                    language: environment.language,
-                                    url: currentUrl,
-                                    params: $routeParams,
-                                }, item);
-                            }
-                        });
-                        promise.resolve(doc);
-                    }, function(error) {
-                        promise.reject(error);
-                    });
-                });
-            }
-        };
+            angular.extend(this, service);
 
-        angular.extend(this, service);
-
-        // var args = Array.prototype.slice.call(arguments);
-
-    }]);
+            // var args = Array.prototype.slice.call(arguments);
+        }
+    ]);
 
     /*
     app.provider('$api', [function $apiProvider() {
