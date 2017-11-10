@@ -6,6 +6,81 @@
     var app = angular.module('artisan', ['ng', 'ngRoute', 'ngMessages']);
 
 }());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.factory('Animate', [function () {
+
+		function Animate(callback) {
+			this.callback = callback;
+			this.key = null;
+			this.ticks = 0;
+		}
+		Animate.prototype = {
+			play: function () {
+				var _this = this;
+
+				function loop(time) {
+					_this.ticks++;
+					_this.callback(time, _this.ticks);
+					_this.key = window.requestAnimationFrame(loop);
+				}
+				if (!this.key) {
+					loop();
+				}
+			},
+			pause: function () {
+				if (this.key) {
+					window.cancelAnimationFrame(this.key);
+					this.key = null;
+				}
+			},
+			playpause: function () {
+				if (this.key) {
+					this.pause();
+				} else {
+					this.play();
+				}
+			},
+			doNOTPlay: function () {
+				this.pause();
+			},
+		}
+		return Animate;
+    }]);
+
+	(function () {
+		var lastTime = 0;
+		var vendors = ['ms', 'moz', 'webkit', 'o'];
+		for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+			window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+			window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] ||
+				window[vendors[x] + 'CancelRequestAnimationFrame'];
+		}
+		if (!window.requestAnimationFrame) {
+			window.requestAnimationFrame = function (callback, element) {
+				var currTime = new Date().getTime();
+				var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+				var id = window.setTimeout(function () {
+					callback(currTime + timeToCall);
+				}, timeToCall);
+				lastTime = currTime + timeToCall;
+				return id;
+			};
+		}
+		if (!window.cancelAnimationFrame) {
+			window.cancelAnimationFrame = function (id) {
+				clearTimeout(id);
+			};
+		}
+	}());
+
+}());
+
 /* global angular, app, Autolinker */
 (function () {
 
@@ -257,533 +332,580 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var transformProperty = detectTransformProperty();
 
-    app.factory('Vector', function() {
-        function Vector(x, y) {
-            this.x = x || 0;
-            this.y = y || 0;
-        }
-        Vector.make = function(a, b) {
-            return new Vector(b.x - a.x, b.y - a.y);
-        };
-        Vector.size = function(a) {
-            return Math.sqrt(a.x * a.x + a.y * a.y);
-        };
-        Vector.normalize = function(a) {
-            var l = Vector.size(a);
-            a.x /= l;
-            a.y /= l;
-            return a;
-        };
-        Vector.incidence = function(a, b) {
-            var angle = Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x);
-            // if (angle < 0) angle += 2 * Math.PI;
-            // angle = Math.min(angle, (Math.PI * 2 - angle));
-            return angle;
-        };
-        Vector.distance = function(a, b) {
-            return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
-        };
-        Vector.cross = function(a, b) {
-            return (a.x * b.y) - (a.y * b.x);
-        };
-        Vector.difference = function(a, b) {
-            return new Vector(a.x - b.x, a.y - b.y);
-        };
-        Vector.power = function(a, b) {
-            var x = Math.abs(b.x - a.x);
-            var y = Math.abs(b.y - a.y);
-            return (x + y) / 2;
-        };
-        Vector.prototype = {
-            size: function() {
-                return Vector.size(this);
-            },
-            normalize: function() {
-                return Vector.normalize(this);
-            },
-            incidence: function(b) {
-                return Vector.incidence(this, b);
-            },
-            cross: function(b) {
-                return Vector.cross(this, b);
-            },
-            distance: function(b) {
-                return Vector.distance(this, b);
-            },
-            difference: function(b) {
-                return Vector.difference(this, b);
-            },
-            power: function() {
-                return (Math.abs(this.x) + Math.abs(this.y)) / 2;
-            },
-            towards: function(b, friction) {
-                friction = friction || 0.125;
-                this.x += (b.x - this.x) * friction;
-                this.y += (b.y - this.y) * friction;
-                return this;
-            },
-            add: function(b) {
-                this.x += b.x;
-                this.y += b.y;
-                return this;
-            },
-            friction: function(b) {
-                this.x *= b;
-                this.y *= b;
-                return this;
-            },
-            copy: function(b) {
-                return new Vector(this.x, this.y);
-            },
-            toString: function() {
-                return '{' + this.x + ',' + this.y + '}';
-            },
-        };
-        return Vector;
-    });
+	var app = angular.module('artisan');
 
-    app.factory('Utils', ['$compile', '$controller', 'Vector', function($compile, $controller, Vector) {
-        (function() {
-            // POLYFILL window.requestAnimationFrame
-            var lastTime = 0;
-            var vendors = ['ms', 'moz', 'webkit', 'o'];
-            for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-                window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-                window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] ||
-                    window[vendors[x] + 'CancelRequestAnimationFrame'];
-            }
-            if (!window.requestAnimationFrame) {
-                window.requestAnimationFrame = function(callback, element) {
-                    var currTime = new Date().getTime();
-                    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-                    var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
-                    lastTime = currTime + timeToCall;
-                    return id;
-                };
-            }
-            if (!window.cancelAnimationFrame) {
-                window.cancelAnimationFrame = function(id) {
-                    clearTimeout(id);
-                };
-            }
-        }());
-        (function() {
-            // POLYFILL Array.prototype.reduce
-            // Production steps of ECMA-262, Edition 5, 15.4.4.21
-            // Reference: http://es5.github.io/#x15.4.4.21
-            // https://tc39.github.io/ecma262/#sec-array.prototype.reduce
-            if (!Array.prototype.reduce) {
-                Object.defineProperty(Array.prototype, 'reduce', {
-                    value: function(callback) { // , initialvalue
-                        if (this === null) {
-                            throw new TypeError('Array.prototype.reduce called on null or undefined');
-                        }
-                        if (typeof callback !== 'function') {
-                            throw new TypeError(callback + ' is not a function');
-                        }
-                        var o = Object(this);
-                        var len = o.length >>> 0;
-                        var k = 0;
-                        var value;
-                        if (arguments.length == 2) {
-                            value = arguments[1];
-                        } else {
-                            while (k < len && !(k in o)) {
-                                k++;
-                            }
-                            if (k >= len) {
-                                throw new TypeError('Reduce of empty array with no initial value');
-                            }
-                            value = o[k++];
-                        }
-                        while (k < len) {
-                            if (k in o) {
-                                value = callback(value, o[k], k, o);
-                            }
-                            k++;
-                        }
-                        return value;
-                    }
-                });
-            }
-        }());
-        var _isTouch;
-        var getNow = Date.now || function() {
-            return new Date().getTime();
-        };
-        var ua = window.navigator.userAgent.toLowerCase();
-        var safari = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1;
-        var msie = ua.indexOf('trident') !== -1 || ua.indexOf('edge') !== -1 || ua.indexOf('msie') !== -1;
-        var chrome = !safari && !msie && ua.indexOf('chrome') !== -1;
-        var mobile = ua.indexOf('mobile') !== -1;
-        var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-        var isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1;
+	app.factory('Style', [function () {
+		function Style() {
+			this.props = {
+				scale: 1,
+				hoverScale: 1,
+				currentScale: 1,
+			};
+		}
 
-        function Utils() {}
-        Utils.reverseSortOn = reverseSortOn;
-        Utils.getTouch = getTouch;
-        Utils.getRelativeTouch = getRelativeTouch;
-        Utils.getClosest = getClosest;
-        Utils.getClosestElement = getClosestElement;
-        Utils.throttle = throttle;
-        Utils.where = where;
-        Utils.format = format;
-        Utils.compileController = compileController;
-        Utils.reducer = reducer;
-        Utils.reducerSetter = reducerSetter;
-        Utils.reducerAdder = reducerAdder;
-        Utils.downloadFile = downloadFile;
-        Utils.serverDownload = serverDownload;
-        Utils.toMd5 = function(string) {
-            return Md5.encode(string);
-        };
-        Utils.ua = {
-            safari: safari,
-            msie: msie,
-            chrome: chrome,
-            mobile: mobile,
-        };
-        angular.forEach(Utils.ua, function(value, key) {
-            if (value) {
-                angular.element(document.getElementsByTagName('body')).addClass(key);
-            }
-        });
-        return Utils;
+		Style.prototype = {
+			set: function (element) {
+				var styles = [];
+				for (var key in this) {
+					if (key !== 'props') {
+						styles.push(key + ':' + this[key]);
+					}
+				}
+				element.style.cssText = styles.join(';') + ';';
+			},
+			transform: function (transform) {
+				this[transformProperty] = transform;
+			},
+			transformOrigin: function (x, y) {
+				this[transformProperty + '-origin-x'] = (Math.round(x * 1000) / 1000) + '%';
+				this[transformProperty + '-origin-y'] = (Math.round(y * 1000) / 1000) + '%';
+			},
+		};
 
-        function isTouch() {
-            if (!_isTouch) {
-                _isTouch = {
-                    value: ('ontouchstart' in window || 'onmsgesturechange' in window)
-                };
-            }
-            // console.log(_isTouch);
-            return _isTouch.value;
-        }
+		return Style;
+    }]);
 
-        function getTouch(e, previous) {
-            var t = new Vector();
-            if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
-                var touch = null;
-                var event = e.originalEvent ? e.originalEvent : e;
-                var touches = event.touches.length ? event.touches : event.changedTouches;
-                if (touches && touches.length) {
-                    touch = touches[0];
-                }
-                if (touch) {
-                    t.x = touch.pageX;
-                    t.y = touch.pageY;
-                }
-            } else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
-                t.x = e.pageX;
-                t.y = e.pageY;
-            }
-            if (previous) {
-                t.s = Vector.difference(t, previous);
-            }
-            t.type = e.type;
-            return t;
-        }
+	function detectTransformProperty() {
+		var transformProperty = 'transform',
+			safariPropertyHack = 'webkitTransform';
+		var div = document.createElement("DIV");
+		if (typeof div.style[transformProperty] !== 'undefined') {
+            ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
+				var e = '-' + prefix + '-transform';
+				if (typeof div.style[e] !== 'undefined') {
+					transformProperty = e;
+					return false;
+				}
+				return true;
+			});
+		} else if (typeof div.style[safariPropertyHack] !== 'undefined') {
+			transformProperty = '-webkit-transform';
+		} else {
+			transformProperty = undefined;
+		}
+		return transformProperty;
+	}
 
-        function getRelativeTouch(node, point) {
-            var element = angular.element(node); // passing through jqlite for accepting both
-            node = element[0];
-            var rect = node.getBoundingClientRect();
-            // var e = new Vector(rect.left + node.scrollLeft, rect.top + node.scrollTop);
-            var e = new Vector(rect.left, rect.top);
-            return Vector.difference(point, e);
-        }
+}());
 
-        function getClosest(el, selector) {
-            var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function(fn) {
-                if (typeof document.body[fn] == 'function') {
-                    matchesFn = fn;
-                    return true;
-                }
-                return false;
-            });
-            if (el[matchesFn](selector)) {
-                return el;
-            }
-            while (el !== null) {
-                parent = el.parentElement;
-                if (parent !== null && parent[matchesFn](selector)) {
-                    return parent;
-                }
-                el = parent;
-            }
-            return null;
-        }
+/* global angular */
 
-        function getClosestElement(el, target) {
-            var matchesFn, parent;
-            if (el === target) {
-                return el;
-            }
-            while (el !== null) {
-                parent = el.parentElement;
-                if (parent !== null && parent === target) {
-                    return parent;
-                }
-                el = parent;
-            }
-            return null;
-        }
+(function () {
+	"use strict";
 
-        function throttle(func, wait, options) {
-            // Returns a function, that, when invoked, will only be triggered at most once
-            // during a given window of time. Normally, the throttled function will run
-            // as much as it can, without ever going more than once per `wait` duration;
-            // but if you'd like to disable the execution on the leading edge, pass
-            // `{leading: false}`. To disable execution on the trailing edge, ditto.
-            var context, args, result;
-            var timeout = null;
-            var previous = 0;
-            if (!options) options = {};
-            var later = function() {
-                previous = options.leading === false ? 0 : getNow();
-                timeout = null;
-                result = func.apply(context, args);
-                if (!timeout) context = args = null;
-            };
-            return function() {
-                var now = getNow();
-                if (!previous && options.leading === false) previous = now;
-                var remaining = wait - (now - previous);
-                context = this;
-                args = arguments;
-                if (remaining <= 0 || remaining > wait) {
-                    if (timeout) {
-                        clearTimeout(timeout);
-                        timeout = null;
-                    }
-                    previous = now;
-                    result = func.apply(context, args);
-                    if (!timeout) context = args = null;
-                } else if (!timeout && options.trailing !== false) {
-                    timeout = setTimeout(later, remaining);
-                }
-                return result;
-            };
-        }
+	var app = angular.module('artisan');
 
-        function where(array, query) {
-            var found = null;
-            if (array) {
-                angular.forEach(array, function(item) {
-                    var has = true;
-                    angular.forEach(query, function(value, key) {
-                        has = has && item[key] === value;
-                    });
-                    if (has) {
-                        found = item;
-                    }
-                });
-            }
-            return found;
-        }
+	app.factory('Vector', function () {
+		function Vector(x, y) {
+			this.x = x || 0;
+			this.y = y || 0;
+		}
+		Vector.make = function (a, b) {
+			return new Vector(b.x - a.x, b.y - a.y);
+		};
+		Vector.size = function (a) {
+			return Math.sqrt(a.x * a.x + a.y * a.y);
+		};
+		Vector.normalize = function (a) {
+			var l = Vector.size(a);
+			a.x /= l;
+			a.y /= l;
+			return a;
+		};
+		Vector.incidence = function (a, b) {
+			var angle = Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x);
+			// if (angle < 0) angle += 2 * Math.PI;
+			// angle = Math.min(angle, (Math.PI * 2 - angle));
+			return angle;
+		};
+		Vector.distance = function (a, b) {
+			return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+		};
+		Vector.cross = function (a, b) {
+			return (a.x * b.y) - (a.y * b.x);
+		};
+		Vector.difference = function (a, b) {
+			return new Vector(a.x - b.x, a.y - b.y);
+		};
+		Vector.power = function (a, b) {
+			var x = Math.abs(b.x - a.x);
+			var y = Math.abs(b.y - a.y);
+			return (x + y) / 2;
+		};
+		Vector.prototype = {
+			size: function () {
+				return Vector.size(this);
+			},
+			normalize: function () {
+				return Vector.normalize(this);
+			},
+			incidence: function (b) {
+				return Vector.incidence(this, b);
+			},
+			cross: function (b) {
+				return Vector.cross(this, b);
+			},
+			distance: function (b) {
+				return Vector.distance(this, b);
+			},
+			difference: function (b) {
+				return Vector.difference(this, b);
+			},
+			power: function () {
+				return (Math.abs(this.x) + Math.abs(this.y)) / 2;
+			},
+			towards: function (b, friction) {
+				friction = friction || 0.125;
+				this.x += (b.x - this.x) * friction;
+				this.y += (b.y - this.y) * friction;
+				return this;
+			},
+			add: function (b) {
+				this.x += b.x;
+				this.y += b.y;
+				return this;
+			},
+			friction: function (b) {
+				this.x *= b;
+				this.y *= b;
+				return this;
+			},
+			copy: function (b) {
+				return new Vector(this.x, this.y);
+			},
+			toString: function () {
+				return '{' + this.x + ',' + this.y + '}';
+			},
+		};
+		return Vector;
+	});
 
-        function compileController(scope, element, html, data) {
-            // console.log('Utils.compileController', element);
-            element.html(html);
-            var link = $compile(element.contents());
-            if (data.controller) {
-                var $scope = scope.$new();
-                angular.extend($scope, data);
-                var controller = $controller(data.controller, { $scope: $scope });
-                if (data.controllerAs) {
-                    scope[data.controllerAs] = controller;
-                }
-                element.data('$ngControllerController', controller);
-                element.children().data('$ngControllerController', controller);
-                scope = $scope;
-            }
-            link(scope);
-        }
+	app.factory('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
 
-        function reverseSortOn(key) {
-            return function(a, b) {
-                if (a[key] < b[key]) {
-                    return 1;
-                }
-                if (a[key] > b[key]) {
-                    return -1;
-                }
-                // a must be equal to b
-                return 0;
-            };
-        }
+		(function () {
+			// POLYFILL Array.prototype.reduce
+			// Production steps of ECMA-262, Edition 5, 15.4.4.21
+			// Reference: http://es5.github.io/#x15.4.4.21
+			// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
+			if (!Array.prototype.reduce) {
+				Object.defineProperty(Array.prototype, 'reduce', {
+					value: function (callback) { // , initialvalue
+						if (this === null) {
+							throw new TypeError('Array.prototype.reduce called on null or undefined');
+						}
+						if (typeof callback !== 'function') {
+							throw new TypeError(callback + ' is not a function');
+						}
+						var o = Object(this);
+						var len = o.length >>> 0;
+						var k = 0;
+						var value;
+						if (arguments.length == 2) {
+							value = arguments[1];
+						} else {
+							while (k < len && !(k in o)) {
+								k++;
+							}
+							if (k >= len) {
+								throw new TypeError('Reduce of empty array with no initial value');
+							}
+							value = o[k++];
+						}
+						while (k < len) {
+							if (k in o) {
+								value = callback(value, o[k], k, o);
+							}
+							k++;
+						}
+						return value;
+					}
+				});
+			}
+		}());
+		var _isTouch;
+		var getNow = Date.now || function () {
+			return new Date().getTime();
+		};
+		var ua = window.navigator.userAgent.toLowerCase();
+		var safari = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1;
+		var msie = ua.indexOf('trident') !== -1 || ua.indexOf('edge') !== -1 || ua.indexOf('msie') !== -1;
+		var chrome = !safari && !msie && ua.indexOf('chrome') !== -1;
+		var mobile = ua.indexOf('mobile') !== -1;
+		var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+		var isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1;
 
-        function format(string, prepend, expression) {
-            string = string || '';
-            prepend = prepend || '';
-            var splitted = string.split(',');
-            if (splitted.length > 1) {
-                var formatted = splitted.shift();
-                angular.forEach(splitted, function(value, index) {
-                    if (expression) {
-                        formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
-                    } else {
-                        formatted = formatted.split('{' + index + '}').join(prepend + value);
-                    }
-                });
-                if (expression) {
-                    return '\'' + formatted + '\'';
-                } else {
-                    return formatted;
-                }
-            } else {
-                return prepend + string;
-            }
-        }
+		function Utils() {}
+		Utils.reverseSortOn = reverseSortOn;
+		Utils.getTouch = getTouch;
+		Utils.getRelativeTouch = getRelativeTouch;
+		Utils.getClosest = getClosest;
+		Utils.getClosestElement = getClosestElement;
+		Utils.throttle = throttle;
+		Utils.where = where;
+		Utils.format = format;
+		Utils.compileController = compileController;
+		Utils.reducer = reducer;
+		Utils.reducerSetter = reducerSetter;
+		Utils.reducerAdder = reducerAdder;
+		Utils.downloadFile = downloadFile;
+		Utils.serverDownload = serverDownload;
+		Utils.toMd5 = function (string) {
+			return Md5.encode(string);
+		};
+		Utils.ua = {
+			safari: safari,
+			msie: msie,
+			chrome: chrome,
+			mobile: mobile,
+		};
+		angular.forEach(Utils.ua, function (value, key) {
+			if (value) {
+				angular.element(document.getElementsByTagName('body')).addClass(key);
+			}
+		});
+		return Utils;
 
-        function reducer(o, key) {
-            return o[key];
-        }
+		function isTouch() {
+			if (!_isTouch) {
+				_isTouch = {
+					value: ('ontouchstart' in window || 'onmsgesturechange' in window)
+				};
+			}
+			// console.log(_isTouch);
+			return _isTouch.value;
+		}
 
-        function reducerSetter(o, key, value) {
-            if (typeof key == 'string') {
-                return reducerSetter(o, key.split('.'), value);
-            } else if (key.length == 1 && value !== undefined) {
-                return (o[key[0]] = value);
-            } else if (key.length === 0) {
-                return o;
-            } else {
-                return reducerSetter(o[key[0]], key.slice(1), value);
-            }
-        }
+		function getTouch(e, previous) {
+			var t = new Vector();
+			if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
+				var touch = null;
+				var event = e.originalEvent ? e.originalEvent : e;
+				var touches = event.touches.length ? event.touches : event.changedTouches;
+				if (touches && touches.length) {
+					touch = touches[0];
+				}
+				if (touch) {
+					t.x = touch.pageX;
+					t.y = touch.pageY;
+				}
+			} else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
+				t.x = e.pageX;
+				t.y = e.pageY;
+			}
+			if (previous) {
+				t.s = Vector.difference(t, previous);
+			}
+			t.type = e.type;
+			return t;
+		}
 
-        function reducerAdder(o, key, value) {
-            if (typeof key == 'string') {
-                return reducerAdder(o, key.split('.'), value);
-            } else if (key.length == 1 && value !== undefined) {
-                return (o[key[0]] += value);
-            } else if (key.length === 0) {
-                return o;
-            } else {
-                return reducerAdder(o[key[0]], key.slice(1), value);
-            }
-        }
+		function getRelativeTouch(node, point) {
+			var element = angular.element(node); // passing through jqlite for accepting both
+			node = element[0];
+			var rect = node.getBoundingClientRect();
+			// var e = new Vector(rect.left + node.scrollLeft, rect.top + node.scrollTop);
+			var e = new Vector(rect.left, rect.top);
+			return Vector.difference(point, e);
+		}
 
-        function downloadFile(content, name, type) {
-            type = type || 'application/octet-stream';
-            var base64 = null;
-            var blob = new Blob([content], { type: type });
-            var reader = new window.FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = function() {
-                base64 = reader.result;
-                download();
-            };
+		function getClosest(el, selector) {
+			var matchesFn, parent;
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+				if (typeof document.body[fn] == 'function') {
+					matchesFn = fn;
+					return true;
+				}
+				return false;
+			});
+			if (el[matchesFn](selector)) {
+				return el;
+			}
+			while (el !== null) {
+				parent = el.parentElement;
+				if (parent !== null && parent[matchesFn](selector)) {
+					return parent;
+				}
+				el = parent;
+			}
+			return null;
+		}
 
-            function download() {
-                // If in Chrome or Safari - download via virtual link click
-                // if (isChrome || isSafari) {
-                //Creating new link node.
-                if (document.createEvent) {
-                    var anchor = document.createElement('a');
-                    anchor.href = base64;
-                    if (anchor.download !== undefined) {
-                        //Set HTML5 download attribute. This will prevent file from opening if supported.
-                        var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
-                        anchor.download = downloadName;
-                    }
-                    //Dispatching click event.
-                    var event = document.createEvent('MouseEvents');
-                    event.initEvent('click', true, true);
-                    anchor.dispatchEvent(event);
-                    return true;
-                }
-                // }
-                // Force file download (whether supported by server).
-                var query = '?download';
-                window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
-            }
+		function getClosestElement(el, target) {
+			var matchesFn, parent;
+			if (el === target) {
+				return el;
+			}
+			while (el !== null) {
+				parent = el.parentElement;
+				if (parent !== null && parent === target) {
+					return parent;
+				}
+				el = parent;
+			}
+			return null;
+		}
 
-            function __download() {
-                var supportsDownloadAttribute = 'download' in document.createElement('a');
-                if (supportsDownloadAttribute) {
-                    var anchor = document.createElement('a');
-                    anchor.href = 'data:attachment/text;base64,' + encodeURI(window.btoa(content));
-                    anchor.target = '_blank';
-                    anchor.download = name;
-                    //Dispatching click event.
-                    if (document.createEvent) {
-                        var event = document.createEvent('MouseEvents');
-                        event.initEvent('click', true, true);
-                        anchor.dispatchEvent(event);
-                        return true;
-                    }
-                } else if (window.Blob !== undefined && window.saveAs !== undefined) {
-                    var blob = new Blob([content], { type: type });
-                    saveAs(blob, filename);
-                } else {
-                    window.open('data:attachment/text;charset=utf-8,' + encodeURI(content));
-                }
-            }
-            /*
-            var headers = response.headers();
-            // console.log(response);
-            var blob = new Blob([response.data], { type: "application/octet-stream" }); // { type: headers['content-type'] });
-            var windowUrl = (window.URL || window.webkitURL);
-            var downloadUrl = windowUrl.createObjectURL(blob);
-            var anchor = document.createElement("a");
-            anchor.href = downloadUrl;
-            var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
-            document.body.appendChild(anchor);
-            anchor.click();
-            windowUrl.revokeObjectURL(blob);
-            anchor.remove();
-            */
-            /*
-            //Dispatching click event.
-            if (document.createEvent) {
-                var e = document.createEvent('MouseEvents');
-                e.initEvent('click', true, true);
-                link.dispatchEvent(e);
-                return true;
-            }
-            */
-        }
+		function throttle(func, wait, options) {
+			// Returns a function, that, when invoked, will only be triggered at most once
+			// during a given window of time. Normally, the throttled function will run
+			// as much as it can, without ever going more than once per `wait` duration;
+			// but if you'd like to disable the execution on the leading edge, pass
+			// `{leading: false}`. To disable execution on the trailing edge, ditto.
+			var context, args, result;
+			var timeout = null;
+			var previous = 0;
+			if (!options) options = {};
+			var later = function () {
+				previous = options.leading === false ? 0 : getNow();
+				timeout = null;
+				result = func.apply(context, args);
+				if (!timeout) context = args = null;
+			};
+			return function () {
+				var now = getNow();
+				if (!previous && options.leading === false) previous = now;
+				var remaining = wait - (now - previous);
+				context = this;
+				args = arguments;
+				if (remaining <= 0 || remaining > wait) {
+					if (timeout) {
+						clearTimeout(timeout);
+						timeout = null;
+					}
+					previous = now;
+					result = func.apply(context, args);
+					if (!timeout) context = args = null;
+				} else if (!timeout && options.trailing !== false) {
+					timeout = setTimeout(later, remaining);
+				}
+				return result;
+			};
+		}
 
-        function serverDownload(options) {
-            var defaults = {
-                uri: '/api/reports/download',
-                name: 'Filename',
-                extension: 'txt',
-                type: 'text/plain',
-                content: 'Hello!',
-            };
-            options = angular.extend(defaults, options);
-            var content = JSON.stringify(options); // unescape(encodeURIComponent(JSON.stringify(download)));
-            var form = document.createElement('form');
-            var input = document.createElement('input');
-            input.name = 'download';
-            input.value = content;
-            form.appendChild(input);
-            form.action = options.uri;
-            form.method = 'POST';
-            form.target = 'ProjectDownloads';
-            form.enctype = 'application/x-www-form-urlencoded';
-            // form.enctype = 'multipart/form-data';
-            // form.enctype = 'text/plain';
-            document.body.appendChild(form);
-            form.submit();
-            setTimeout(function() {
-                document.body.removeChild(form);
-            }, 100);
-            // angular.element(form).find('button')[0].click();
-            return Utils;
-        }
+		function where(array, query) {
+			var found = null;
+			if (array) {
+				angular.forEach(array, function (item) {
+					var has = true;
+					angular.forEach(query, function (value, key) {
+						has = has && item[key] === value;
+					});
+					if (has) {
+						found = item;
+					}
+				});
+			}
+			return found;
+		}
+
+		function compileController(scope, element, html, data) {
+			// console.log('Utils.compileController', element);
+			element.html(html);
+			var link = $compile(element.contents());
+			if (data.controller) {
+				var $scope = scope.$new();
+				angular.extend($scope, data);
+				var controller = $controller(data.controller, {
+					$scope: $scope
+				});
+				if (data.controllerAs) {
+					scope[data.controllerAs] = controller;
+				}
+				element.data('$ngControllerController', controller);
+				element.children().data('$ngControllerController', controller);
+				scope = $scope;
+			}
+			link(scope);
+		}
+
+		function reverseSortOn(key) {
+			return function (a, b) {
+				if (a[key] < b[key]) {
+					return 1;
+				}
+				if (a[key] > b[key]) {
+					return -1;
+				}
+				// a must be equal to b
+				return 0;
+			};
+		}
+
+		function format(string, prepend, expression) {
+			string = string || '';
+			prepend = prepend || '';
+			var splitted = string.split(',');
+			if (splitted.length > 1) {
+				var formatted = splitted.shift();
+				angular.forEach(splitted, function (value, index) {
+					if (expression) {
+						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
+					} else {
+						formatted = formatted.split('{' + index + '}').join(prepend + value);
+					}
+				});
+				if (expression) {
+					return '\'' + formatted + '\'';
+				} else {
+					return formatted;
+				}
+			} else {
+				return prepend + string;
+			}
+		}
+
+		function reducer(o, key) {
+			return o[key];
+		}
+
+		function reducerSetter(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerSetter(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] = value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerSetter(o[key[0]], key.slice(1), value);
+			}
+		}
+
+		function reducerAdder(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerAdder(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] += value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerAdder(o[key[0]], key.slice(1), value);
+			}
+		}
+
+		function downloadFile(content, name, type) {
+			type = type || 'application/octet-stream';
+			var base64 = null;
+			var blob = new Blob([content], {
+				type: type
+			});
+			var reader = new window.FileReader();
+			reader.readAsDataURL(blob);
+			reader.onloadend = function () {
+				base64 = reader.result;
+				download();
+			};
+
+			function download() {
+				// If in Chrome or Safari - download via virtual link click
+				// if (isChrome || isSafari) {
+				//Creating new link node.
+				if (document.createEvent) {
+					var anchor = document.createElement('a');
+					anchor.href = base64;
+					if (anchor.download !== undefined) {
+						//Set HTML5 download attribute. This will prevent file from opening if supported.
+						var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
+						anchor.download = downloadName;
+					}
+					//Dispatching click event.
+					var event = document.createEvent('MouseEvents');
+					event.initEvent('click', true, true);
+					anchor.dispatchEvent(event);
+					return true;
+				}
+				// }
+				// Force file download (whether supported by server).
+				var query = '?download';
+				window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
+			}
+
+			function __download() {
+				var supportsDownloadAttribute = 'download' in document.createElement('a');
+				if (supportsDownloadAttribute) {
+					var anchor = document.createElement('a');
+					anchor.href = 'data:attachment/text;base64,' + encodeURI(window.btoa(content));
+					anchor.target = '_blank';
+					anchor.download = name;
+					//Dispatching click event.
+					if (document.createEvent) {
+						var event = document.createEvent('MouseEvents');
+						event.initEvent('click', true, true);
+						anchor.dispatchEvent(event);
+						return true;
+					}
+				} else if (window.Blob !== undefined && window.saveAs !== undefined) {
+					var blob = new Blob([content], {
+						type: type
+					});
+					saveAs(blob, filename);
+				} else {
+					window.open('data:attachment/text;charset=utf-8,' + encodeURI(content));
+				}
+			}
+			/*
+			var headers = response.headers();
+			// console.log(response);
+			var blob = new Blob([response.data], { type: "application/octet-stream" }); // { type: headers['content-type'] });
+			var windowUrl = (window.URL || window.webkitURL);
+			var downloadUrl = windowUrl.createObjectURL(blob);
+			var anchor = document.createElement("a");
+			anchor.href = downloadUrl;
+			var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+			anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
+			document.body.appendChild(anchor);
+			anchor.click();
+			windowUrl.revokeObjectURL(blob);
+			anchor.remove();
+			*/
+			/*
+			//Dispatching click event.
+			if (document.createEvent) {
+			    var e = document.createEvent('MouseEvents');
+			    e.initEvent('click', true, true);
+			    link.dispatchEvent(e);
+			    return true;
+			}
+			*/
+		}
+
+		function serverDownload(options) {
+			var defaults = {
+				uri: '/api/reports/download',
+				name: 'Filename',
+				extension: 'txt',
+				type: 'text/plain',
+				content: 'Hello!',
+			};
+			options = angular.extend(defaults, options);
+			var content = JSON.stringify(options); // unescape(encodeURIComponent(JSON.stringify(download)));
+			var form = document.createElement('form');
+			var input = document.createElement('input');
+			input.name = 'download';
+			input.value = content;
+			form.appendChild(input);
+			form.action = options.uri;
+			form.method = 'POST';
+			form.target = 'ProjectDownloads';
+			form.enctype = 'application/x-www-form-urlencoded';
+			// form.enctype = 'multipart/form-data';
+			// form.enctype = 'text/plain';
+			document.body.appendChild(form);
+			form.submit();
+			setTimeout(function () {
+				document.body.removeChild(form);
+			}, 100);
+			// angular.element(form).find('button')[0].click();
+			return Utils;
+		}
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
@@ -2990,6 +3112,908 @@
     }]);
 
 }());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.directive('scrollableX', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
+
+				$window.ondragstart = function () {
+					return false;
+				};
+
+				// CONSTS;
+				var padding = 150;
+
+				// FLAGS;            
+				var dragging, wheeling, busy;
+
+				// MOUSE;
+				var down, move, prev, up;
+
+				// COORDS;
+				var s = {
+						x: 0,
+						y: 0
+					},
+					e = {
+						x: 0,
+						y: 0
+					},
+					c = {
+						x: 0,
+						y: 0
+					},
+					i = {
+						x: 45,
+						y: 0
+					},
+					l = {
+						top: 0,
+						right: 0,
+						bottom: 0,
+						left: 0
+					},
+					speed = 0;
+
+				var scrollable, onLeft, onRight, showIndicatorFor, scrollableWhen;
+				if (attributes.scrollableX) {
+					scrollable = $parse(attributes.scrollableX)(scope);
+				} else {
+					scrollable = new Scrollable();
+				}
+				scrollable.link({
+					reset: function () {
+						e.x = c.x = 0;
+						redraw();
+					},
+					doLeft: doLeft,
+					doRight: doRight,
+				});
+				if (attributes.onLeft !== undefined) {
+					onLeft = $parse(attributes.onLeft, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				if (attributes.onRight !== undefined) {
+					onRight = $parse(attributes.onRight, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				if (attributes.showIndicatorFor !== undefined) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				if (attributes.scrollableWhen !== undefined) {
+					scrollableWhen = $parse(attributes.scrollableWhen, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+
+				// console.log('showIndicatorFor', showIndicatorFor);
+
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var elementNode = element[0];
+				var contentNode = elementNode.querySelector('.content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
+				var indicator = null,
+					indicatorNode = null,
+					indicatorStyle;
+				showIndicatorFor = false;
+				if (showIndicatorFor) {
+					indicator = angular.element('<div class="indicator"></div>');
+					indicatorNode = indicator[0];
+					indicatorStyle = new Style();
+					element.append(indicator);
+					$compile(indicator.contents())(scope);
+					indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+					indicatorStyle.set(indicatorNode);
+				}
+
+				var animate = new Animate(redraw);
+
+				function render(time) {
+					scrollable.renderX(isEnabled(), dragging, wheeling, move, down);
+					contentStyle.transform('translate3d(' + c.x.toFixed(2) + 'px,0,0)');
+					contentStyle.set(contentNode);
+					/*
+					if (showIndicatorFor) {
+					    if (dragging || wheeling || speed) {
+					        var percent = c.x / (elementNode.offsetWidth - contentNode.offsetWidth);
+					        percent = Math.max(0, Math.min(1, percent));
+					        i.x = (elementNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
+					        i.y += (0 - i.y) / 4;
+					        // var count = Math.round(contentNode.offsetWidth / 315);
+					        var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+					        indicator.html(index + '/' + showIndicatorFor.count);
+					        // indicator.html((percent * 100).toFixed(2).toString());
+					    } else {
+					        i.y += (45 - i.y) / 4;
+					    }
+					    indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+					    indicatorStyle.set(indicatorNode);
+					}
+					*/
+				}
+
+				function redraw(time) {
+					if (isEnabled()) {
+						// if (!busy) {
+						l.left = 0;
+						l.right = elementNode.offsetWidth - contentNode.offsetWidth;
+						if (dragging) {
+							e.x = s.x + move.x - down.x;
+							bounce();
+							// console.log('dragging', Math.abs(speed));
+
+						} else if (speed) {
+							e.x += speed;
+							speed *= 0.75;
+							if (wheeling) {
+								bounce();
+							}
+							// console.log('wheeling', Math.abs(speed));
+							if (Math.abs(speed) < 0.05) {
+								speed = 0;
+								e.x = s.x = c.x;
+								wheeling = false;
+								// animate.pause();
+							}
+						}
+						// }
+						e.x = Math.min(l.left, e.x);
+						e.x = Math.max(l.right, e.x);
+						c.x += (e.x - c.x) / 4;
+						contentStyle.transform('translate3d(' + c.x.toFixed(2) + 'px,0,0)');
+						contentStyle.set(contentNode);
+						if (showIndicatorFor) {
+							if (dragging || wheeling || speed) {
+								var percent = c.x / (elementNode.offsetWidth - contentNode.offsetWidth);
+								percent = Math.max(0, Math.min(1, percent));
+								i.x = (elementNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
+								i.y += (0 - i.y) / 4;
+								// var count = Math.round(contentNode.offsetWidth / 315);
+								var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+								indicator.html(index + '/' + showIndicatorFor.count);
+								// indicator.html((percent * 100).toFixed(2).toString());
+							} else {
+								i.y += (45 - i.y) / 4;
+							}
+							indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+							indicatorStyle.set(indicatorNode);
+						}
+						// console.log('dragging', dragging, 'wheeling', wheeling, 'speed', speed);
+						// console.log('elementNode.offsetWidth', elementNode.offsetWidth, 'contentNode.offsetWidth', contentNode.offsetWidth, 'diff', l.right, 'e.x', e.x);                        
+					} else {
+						contentStyle.transform('translate3d(0,0,0)');
+						contentStyle.set(contentNode);
+					}
+				}
+
+				function bounce() {
+					l.left += padding;
+					l.right -= padding;
+					if (e.x > l.left) {
+						doLeft();
+					} else if (e.x < l.right) {
+						doRight();
+					}
+				}
+
+				function doLeft() {
+					if (busy) {
+						return;
+					}
+					if (!onLeft) {
+						return;
+					}
+					busy = true;
+					onLeft(scope).then().finally(function () {
+						s.x = e.x = 0;
+						setTimeout(function () {
+							undrag();
+							busy = false;
+						}, 500);
+					});
+				}
+
+				function doRight() {
+					if (busy) {
+						return;
+					}
+					if (!onRight) {
+						return;
+					}
+					busy = true;
+					onRight(scope).then().finally(function () {
+						var right = elementNode.offsetWidth - contentNode.offsetWidth;
+						if (right > l.right) {
+							s.x = e.x = l.right;
+						} else {
+							s.x = e.x = l.right + padding;
+						}
+						setTimeout(function () {
+							undrag();
+							busy = false;
+						}, 500);
+					});
+				}
+
+				function undrag() {
+					// console.log('undrag');
+					dragging = false;
+					wheeling = false;
+					move = null;
+					down = null;
+					removeDragListeners();
+				}
+
+				function onDown(event) {
+					if (event.type == 'touchstart') {
+						element.off('mousedown', onDown);
+					}
+					if (!busy) {
+						s.x = e.x = c.x;
+						speed = 0;
+						down = Utils.getTouch(event);
+						wheeling = false;
+						// console.log(down);
+						addDragListeners();
+						animate.play();
+					}
+				}
+
+				function onMove(event) {
+					if (event.type == 'touchmove') {
+						angular.element($window).off('mousemove', onMove);
+					}
+					prev = move;
+					move = Utils.getTouch(event);
+					dragging = true;
+					// console.log(move);
+				}
+
+				function onUp(event) {
+					if (event.type == 'touchend') {
+						angular.element($window).off('mouseup', onUp);
+					}
+					if (move && prev) {
+						speed += (move.x - prev.x) * 4;
+					}
+					s.x = e.x = c.x;
+					dragging = false;
+					move = null;
+					down = null;
+					prev = null;
+					up = Utils.getTouch(event);
+					// console.log(up);
+					removeDragListeners();
+				}
+
+				function getWheelIncrement() {
+					var increment = (contentNode.offsetWidth - elementNode.offsetWidth) / 20;
+					increment = Math.min(10, Math.max(100, increment));
+					return increment;
+				}
+
+				function _onWheel(e) {
+					if (!busy && isEnabled()) {
+						if (!e) e = $window.event;
+						e = e.originalEvent ? e.originalEvent : e;
+						var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
+						speed += dir * getWheelIncrement();
+						wheeling = true;
+						// console.log('_onWheel.speed', speed);
+						animate.play();
+					}
+				}
+
+				var onWheel = Utils.throttle(_onWheel, 25);
+
+				function off() {
+					removeDragListeners();
+					animate.pause();
+					undrag();
+				}
+
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && $window.innerWidth >= 1024;
+					enabled = enabled && (elementNode.offsetWidth < contentNode.offsetWidth);
+					return enabled;
+				}
+
+				function onResize() {
+					if (!isEnabled()) {
+						off();
+					}
+					redraw();
+				}
+
+				scope.$watch(function () {
+					return contentNode.offsetWidth;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
+
+				function addListeners() {
+					angular.element($window).on('resize', onResize);
+					element.on('touchstart mousedown', onDown);
+					element.on('wheel', onWheel);
+					// element.addEventListener('DOMMouseScroll',handleScroll,false); // for Firefox
+					// element.addEventListener('mousewheel',    handleScroll,false); // for everyone else
+				}
+
+				function removeListeners() {
+					angular.element($window).off('resize', onResize);
+					element.off('touchstart mousedown', onDown);
+					element.off('wheel', onWheel);
+				}
+
+				function addDragListeners() {
+					angular.element($window).on('touchmove mousemove', onMove);
+					angular.element($window).on('touchend mouseup', onUp);
+				}
+
+				function removeDragListeners() {
+					angular.element($window).off('touchmove mousemove', onMove);
+					angular.element($window).off('touchend mouseup', onUp);
+				}
+				scope.$on('$destroy', function () {
+					removeListeners();
+					animate.pause();
+				});
+
+				addListeners();
+
+			},
+		};
+    }]);
+
+	app.directive('scrollableY', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
+
+		return {
+			restrict: 'A',
+			template: '<div class="content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
+				$window.ondragstart = function () {
+					return false;
+				};
+
+				// CONSTS;
+				var padding = 150;
+
+				// FLAGS;            
+				var dragging, wheeling, busy;
+
+				// MOUSE;
+				var down, move, prev, up;
+
+				// COORDS;
+				var s = {
+						x: 0,
+						y: 0
+					},
+					e = {
+						x: 0,
+						y: 0
+					},
+					c = {
+						x: 0,
+						y: 0
+					},
+					i = {
+						x: 45,
+						y: 0
+					},
+					l = {
+						top: 0,
+						right: 0,
+						bottom: 0,
+						left: 0
+					},
+					speed = 0;
+
+				var scrollable, onTop, onBottom, showIndicatorFor, scrollableWhen;
+				if (attributes.scrollableY) {
+					scrollable = $parse(attributes.scrollableY)(scope);
+				} else {
+					scrollable = new Scrollable();
+				}
+				scrollable.link({
+					reset: function () {
+						e.y = c.y = 0;
+						redraw();
+					},
+				});
+				if (attributes.onTop !== undefined) {
+					onTop = $parse(attributes.onTop, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				if (attributes.onBottom !== undefined) {
+					onBottom = $parse(attributes.onBottom, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				if (attributes.showIndicatorFor !== undefined) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				if (attributes.scrollableWhen !== undefined) {
+					scrollableWhen = $parse(attributes.scrollableWhen, /* interceptorFn */ null, /* expensiveChecks */ true);
+				}
+				// console.log('showIndicatorFor', showIndicatorFor);
+
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+
+				var elementNode = element[0];
+				var contentNode = elementNode.querySelector('.content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
+				var indicator = null,
+					indicatorNode = null,
+					indicatorStyle;
+				showIndicatorFor = false;
+				if (showIndicatorFor) {
+					indicator = angular.element('<div class="indicator"></div>');
+					indicatorNode = indicator[0];
+					indicatorStyle = new Style();
+					element.append(indicator);
+					$compile(indicator.contents())(scope);
+					indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+					indicatorStyle.set(indicatorNode);
+				}
+
+				var animate = new Animate(redraw);
+
+				function redraw(time) {
+					if (isEnabled()) {
+						// if (!busy) {
+						l.top = 0;
+						l.bottom = elementNode.offsetHeight - contentNode.offsetHeight;
+						if (dragging) {
+							e.y = s.y + move.y - down.y;
+							bounce();
+						} else if (speed) {
+							e.y += speed;
+							speed *= 0.75;
+							if (wheeling) {
+								bounce();
+							}
+							if (Math.abs(speed) < 0.05) {
+								speed = 0;
+								e.y = s.y = c.y;
+								wheeling = false;
+								animate.pause();
+							}
+						}
+						// }
+						e.y = Math.min(l.top, e.y);
+						e.y = Math.max(l.bottom, e.y);
+						c.y += (e.y - c.y) / 4;
+						contentStyle.transform('translate3d(0,' + c.y.toFixed(2) + 'px,0)');
+						contentStyle.set(contentNode);
+						if (showIndicatorFor) {
+							if (dragging || wheeling || speed) {
+								var percent = c.y / (elementNode.offsetHeight - contentNode.offsetHeight);
+								percent = Math.max(0, Math.min(1, percent));
+								i.y = (elementNode.offsetHeight - indicatorNode.offsetHeight) * (percent);
+								i.x += (0 - i.x) / 4;
+								// var count = Math.round(contentNode.offsetHeight / 315);
+								var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+								indicator.html(index + '/' + showIndicatorFor.count);
+								// indicator.html((percent * 100).toFixed(2).toString());
+							} else {
+								i.x += (45 - i.x) / 4;
+							}
+							indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+							indicatorStyle.set(indicatorNode);
+						}
+					}
+				}
+
+				function doTop() {
+					if (busy) {
+						return;
+					}
+					if (!onTop) {
+						return;
+					}
+					busy = true;
+					onTop(scope).then().finally(function () {
+						s.y = e.y = 0;
+						setTimeout(function () {
+							undrag();
+							busy = false;
+						}, 500);
+					});
+				}
+
+				function doBottom() {
+					if (busy) {
+						return;
+					}
+					if (!onBottom) {
+						return;
+					}
+					busy = true;
+					onBottom(scope).then().finally(function () {
+						var bottom = elementNode.offsetHeight - contentNode.offsetHeight;
+						if (bottom > l.bottom) {
+							s.y = e.y = l.bottom;
+						} else {
+							s.y = e.y = l.bottom + padding;
+						}
+						setTimeout(function () {
+							undrag();
+							busy = false;
+						}, 500);
+					});
+				}
+
+				function undrag() {
+					// console.log('undrag');
+					dragging = false;
+					wheeling = false;
+					move = null;
+					down = null;
+					removeDragListeners();
+				}
+
+				function bounce() {
+					l.top += padding;
+					l.bottom -= padding;
+					if (e.y > l.top) {
+						doTop();
+					} else if (e.y < l.bottom) {
+						doBottom();
+					}
+				}
+
+				function onDown(event) {
+					if (event.type == 'touchstart') {
+						element.off('mousedown', onDown);
+					}
+					if (!busy) {
+						s.y = e.y = c.y;
+						speed = 0;
+						down = Utils.getTouch(event);
+						wheeling = false;
+						// console.log(down);
+						addDragListeners();
+						animate.play();
+					}
+				}
+
+				function onMove(event) {
+					if (event.type == 'touchmove') {
+						angular.element($window).off('mousemove', onMove);
+					}
+					prev = move;
+					move = Utils.getTouch(event);
+					dragging = true;
+					// console.log(move);
+				}
+
+				function onUp(event) {
+					if (event.type == 'touchend') {
+						angular.element($window).off('mouseup', onUp);
+					}
+					if (move && prev) {
+						speed += (move.y - prev.y) * 4;
+					}
+					s.y = e.y = c.y;
+					dragging = false;
+					move = null;
+					down = null;
+					prev = null;
+					up = Utils.getTouch(event);
+					// console.log(up);
+					removeDragListeners();
+				}
+
+				function _onWheel(e) {
+					if (!busy && isEnabled()) {
+						if (!e) e = $window.event;
+						e = e.originalEvent ? e.originalEvent : e;
+						var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
+						speed += dir * 5;
+						wheeling = true;
+						animate.play();
+					}
+				}
+
+				var onWheel = Utils.throttle(_onWheel, 25);
+
+				function off() {
+					removeDragListeners();
+					animate.pause();
+					undrag();
+				}
+
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && $window.innerWidth >= 1024;
+					enabled = enabled && (elementNode.offsetHeight < contentNode.offsetHeight);
+					return enabled;
+				}
+
+				function onResize() {
+					if (!isEnabled()) {
+						off();
+					}
+					redraw();
+				}
+
+				scope.$watch(function () {
+					return contentNode.offsetWidth;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
+
+				function addListeners() {
+					angular.element($window).on('resize', onResize);
+					element.on('touchstart mousedown', onDown);
+					element.on('wheel', onWheel);
+					// element.addEventListener('DOMMouseScroll',handleScroll,false); // for Firefox
+					// element.addEventListener('mousewheel',    handleScroll,false); // for everyone else
+				}
+
+				function removeListeners() {
+					angular.element($window).off('resize', onResize);
+					element.off('touchstart mousedown', onDown);
+					element.off('wheel', onWheel);
+				}
+
+				function addDragListeners() {
+					angular.element($window).on('touchmove mousemove', onMove);
+					angular.element($window).on('touchend mouseup', onUp);
+				}
+
+				function removeDragListeners() {
+					angular.element($window).off('touchmove mousemove', onMove);
+					angular.element($window).off('touchend mouseup', onUp);
+				}
+				scope.$on('$destroy', function () {
+					removeListeners();
+					animate.pause();
+				});
+
+				addListeners();
+
+			},
+		};
+    }]);
+
+}());
+
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.factory('Scrollable', [function () {
+		function Scrollable() {
+			var scrollable = {
+				start: {
+					x: 0,
+					y: 0
+				},
+				end: {
+					x: 0,
+					y: 0
+				},
+				current: {
+					x: 0,
+					y: 0
+				},
+				indicator: {
+					x: 45,
+					y: 0
+				},
+				speed: {
+					x: 0,
+					y: 0
+				},
+				rect: {
+					top: 0,
+					right: 0,
+					bottom: 0,
+					left: 0
+				},
+				container: {
+					width: 0,
+					height: 0
+				},
+				content: {
+					width: 0,
+					height: 0
+				},
+			};
+			angular.extend(this, scrollable);
+		}
+		Scrollable.prototype = {
+			bounceX: function () {
+				var scrollable = this;
+				var end = scrollable.end,
+					rect = scrollable.rect;
+				var padding = 100;
+				rect.left += padding;
+				rect.right -= padding;
+				if (end.x > rect.left) {
+					scrollable.doLeft();
+				} else if (end.x < l.right) {
+					scrollable.doRight();
+				}
+			},
+			renderX: function () {
+				var scrollable = this,
+					enabled = scrollable.enabled,
+					dragging = scrollable.dragging,
+					wheeling = scrollable.wheeling,
+					move = scrollable.move,
+					down = scrollable.down;
+				var start = scrollable.start,
+					end = scrollable.end,
+					current = scrollable.current,
+					indicator = scrollable.indicator,
+					speed = scrollable.speed,
+					rect = scrollable.rect;
+				var container = scrollable.container,
+					content = scrollable.content;
+				if (enabled) {
+					rect.left = 0;
+					rect.right = container.width - content.width;
+					if (dragging) {
+						end.x = start.x + move.x - down.x;
+						scrollable.bounceX();
+					} else if (speed.x) {
+						end.x += speed.x;
+						speed.x *= 0.75;
+						if (wheeling) {
+							scrollable.bounceX();
+						}
+						if (Math.abs(speed.x) < 0.05) {
+							speed.x = 0;
+							end.x = start.x = current.x;
+							scrollable.wheeling = false;
+							// animate.pause();
+						}
+					}
+					end.x = Math.min(rect.left, end.x);
+					end.x = Math.max(rect.right, end.x);
+					current.x += (end.x - current.x) / 4;
+				} else {
+					current.x = end.x = 0;
+				}
+			},
+			scrollToX: function (x) {
+				var scrollable = this;
+				scrollable.start.x = scrollable.end.x = 0;
+				setTimeout(function () {
+					scrollable.undrag();
+					scrollable.busy = false;
+				}, 500);
+			},
+			doLeft: function (scope) {
+				var scrollable = this;
+				if (scrollable.busy) {
+					return;
+				}
+				if (!scrollable.onLeft) {
+					return;
+				}
+				scrollable.busy = true;
+				scrollable.onLeft(scope).then().finally(function () {
+					scrollable.scrollToX(0);
+				});
+			},
+			doRight: function (scope) {
+				var scrollable = this;
+				if (scrollable.busy) {
+					return;
+				}
+				if (!scrollable.onRight) {
+					return;
+				}
+				scrollable.busy = true;
+				scrollable.onRight(scope).then().finally(function () {
+					var right = scope.container.width - scope.content.width;
+					if (right > rect.right) {
+						start.x = end.x = rect.right;
+					} else {
+						start.x = end.x = rect.right + padding;
+					}
+					scrollable.scrollToX(0);
+				});
+			},
+			undrag: function () {
+				var scrollable = this;
+				scrollable.dragging = false;
+				scrollable.wheeling = false;
+				scrollable.move = null;
+				scrollable.down = null;
+			},
+			onDown: function (down) {
+				var scrollable = this,
+					start = scrollable.start,
+					end = scrollable.end,
+					current = scrollable.current,
+					speed = scrollable.speed;
+				start.x = end.x = current.x;
+				speed.x = 0;
+				scrollable.down = down;
+				scrollable.wheeling = false;
+			},
+			onMove: function (move) {
+				var scrollable = this;
+				scrollable.prev = scrollable.move;
+				scrollable.move = move;
+				scrollable.dragging = true;
+			},
+			onUp: function () {
+				var scrollable = this,
+					enabled = scrollable.enabled,
+					dragging = scrollable.dragging,
+					wheeling = scrollable.wheeling,
+					move = scrollable.move,
+					down = scrollable.down;
+				var start = scrollable.start,
+					end = scrollable.end,
+					current = scrollable.current,
+					indicator = scrollable.indicator,
+					speed = scrollable.speed,
+					rect = scrollable.rect;
+				var container = scrollable.container,
+					content = scrollable.content;
+				if (move && prev) {
+					speed.x += (move.x - prev.x) * 4;
+				}
+				start.x = end.x = current.x;
+				scrollable.dragging = false;
+				scrollable.move = null;
+				scrollable.down = null;
+				scrollable.prev = null;
+			},
+			getWheelIncrement: function () {
+				var scrollable = this;
+				var container = scrollable.container,
+					content = scrollable.content;
+				var increment = (content.width - container.width) / 20;
+				increment = Math.min(10, Math.max(100, increment));
+				return increment;
+			},
+			onWheel: function (e) {
+				var scrollable = this,
+					speed = scrollable.speed;
+				if (!scrollable.busy && scrollable.enabled) {
+					if (!e) e = $window.event;
+					e = e.originalEvent ? e.originalEvent : e;
+					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
+					speed.x += dir * scrollable.getWheelIncrement();
+					scrollable.wheeling = true;
+					// animate.play();
+					return true;
+				}
+			},
+			link: function (methods) {
+				angular.extend(this, methods);
+			},
+		};
+		return Scrollable;
+    }]);
+
+}());
+
 /* global angular */
 
 (function () {

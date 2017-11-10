@@ -1,19 +1,27 @@
 ﻿/* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.run(['$rootScope', '$sce', function($rootScope, $sce) {
+	app.run(['$rootScope', '$sce', 'Scrollable', function ($rootScope, $sce, Scrollable) {
 
-        $rootScope.trustResource = function(src) {
-            return $sce.trustAsResourceUrl(src);
-        };
+		$rootScope.items = new Array(20).fill({
+			name: 'Item',
+		});
 
-        $rootScope.cssUrl = function(src) {
-            return 'url(\'' + src + '\')';
-        };
+		var scrollable = new Scrollable();
+
+		$rootScope.scrollPreviews = scrollable;
+
+		$rootScope.trustResource = function (src) {
+			return $sce.trustAsResourceUrl(src);
+		};
+
+		$rootScope.cssUrl = function (src) {
+			return 'url(\'' + src + '\')';
+		};
 
     }]);
 
