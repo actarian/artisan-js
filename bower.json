@@ -1,24 +1,26 @@
 {
-    "name": "artisan",
-    "description": "artisan",
-    "main": "artisan.js",
-    "license": "ISC",
-    "homepage": "https://actarian.github.io/artisan/",
-    "private": true,
-    "ignore": [
-        "**/.*",
-        "node_modules",
-        "bower_components",
-        "test",
-        "tests"
-    ],
-    "dependencies": {
-        "angular": "^1.6.6",
-        "angular-messages": "^1.6.6",
-        "angular-route": "^1.6.6",
-        "animate.css": "^3.5.2",
-        "bootstrap": "v4.0.0-alpha.6",
-        "gsap": "greensock-js#^1.10.2",
-        "json-formatter": "^0.6.0"
-    }
+  "name": "artisan",
+  "description": "artisan",
+  "main": "artisan.js",
+  "license": "ISC",
+  "homepage": "https://actarian.github.io/artisan/",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "^1.6.6",
+    "angular-messages": "^1.6.6",
+    "angular-route": "^1.6.6",
+    "animate.css": "^3.5.2",
+    "bootstrap": "v4.0.0-alpha.6",
+    "gsap": "greensock-js#^1.10.2",
+    "json-formatter": "^0.6.0",
+    "angular-i18n": "^1.6.6",
+    "angular-sanitize": "^1.6.6"
+  }
 }

@@ -20,7 +20,6 @@
 
         $scope.state = state;
         $scope.state2 = state2;
-        $scope.view = view;
     }]);
 
 }());

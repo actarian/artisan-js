@@ -3,7 +3,7 @@
 (function() {
     "use strict";
 
-    var app = angular.module('app', ['artisan', 'jsonFormatter']);
+    var app = angular.module('app', ['ngSanitize', 'artisan', 'jsonFormatter']);
 
 }());
 /* global angular */
@@ -91,7 +91,14 @@
     function getEnvironment() {
         var environment = {
             language: 'en',
-            api: 'api',
+            urls: {
+                api: 'api',
+            },
+            apis: {
+                facebook: {
+                    app_id: 156171878319496,
+                }
+            }
         };
         if (window.environment) {
             angular.extend(environment, window.environment);
@@ -170,7 +177,15 @@
 
     var app = angular.module('app');
 
-    app.run(['$rootScope', function($rootScope) {
+    app.run(['$rootScope', '$sce', function($rootScope, $sce) {
+
+        $rootScope.trustResource = function(src) {
+            return $sce.trustAsResourceUrl(src);
+        };
+
+        $rootScope.cssUrl = function(src) {
+            return 'url(\'' + src + '\')';
+        };
 
     }]);
 
@@ -197,7 +212,6 @@
 
         $scope.state = state;
         $scope.state2 = state2;
-        $scope.view = view;
     }]);
 
 }());

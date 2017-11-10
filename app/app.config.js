@@ -22,7 +22,14 @@
     function getEnvironment() {
         var environment = {
             language: 'en',
-            api: 'api',
+            urls: {
+                api: 'api',
+            },
+            apis: {
+                facebook: {
+                    app_id: 156171878319496,
+                }
+            }
         };
         if (window.environment) {
             angular.extend(environment, window.environment);

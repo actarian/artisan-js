@@ -1,11 +1,20 @@
 [{
     "inputFiles": [
         "bower_components/angular/angular.js",
-        "bower_components/angular-route/angular-route.js",
         "bower_components/angular-messages/angular-messages.js",
+        "bower_components/angular-route/angular-route.js",
+        "bower_components/angular-sanitize/angular-sanitize.js",
         "bower_components/json-formatter/dist/json-formatter.js"
     ],
     "outputFileName": "docs/js/vendors.js",
+    "minify": {
+        "enabled": true
+    }
+}, {
+    "inputFiles": [
+        "bower_components/angular-i18n/angular-locale_en.js"
+    ],
+    "outputFileName": "docs/js/locale/en.js",
     "minify": {
         "enabled": true
     }

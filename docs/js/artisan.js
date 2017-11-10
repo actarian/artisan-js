@@ -904,7 +904,7 @@
             function $httpPromise(method, url, data) {
                 return $promise(function(promise) {
 
-                    $http[method](environment.api + url, data).then(function(response) {
+                    $http[method](environment.urls.api + url, data).then(function(response) {
                         promise.resolve(response.data);
 
                     }, function(e, status) {

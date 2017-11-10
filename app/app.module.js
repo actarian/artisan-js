@@ -3,6 +3,6 @@
 (function() {
     "use strict";
 
-    var app = angular.module('app', ['artisan', 'jsonFormatter']);
+    var app = angular.module('app', ['ngSanitize', 'artisan', 'jsonFormatter']);
 
 }());

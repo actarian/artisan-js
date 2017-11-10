@@ -1,30 +1,37 @@
-<h1>Contact Us</h1>
-<section>
-    <form name="view.form" role="form" novalidate autocomplete="off" ng-submit="view.form.$valid && submit()" ng-keyup="$event.keyCode == 13 && view.form.$valid && submit()">
-        <div form="view.form" control="select" source="data.languages" filter="notIn : $parent.model.languages : 'id'" ng-model="model.languages[model.languages.length]" title="Languages" placeholder="select a language"></div>
-        <span ng-repeat="item in model.languages track by $index">
+<h1 ng-bind="view.doc.name">-</h1>
+
+<json-formatter json="view"></json-formatter>
+
+<section ng-if="state.isReady">
+    <div class="inner">
+        <div class="maxw-sm">
+            <form name="view.form" role="form" novalidate autocomplete="off" ng-submit="view.form.$valid && submit()" ng-keyup="$event.keyCode == 13 && view.form.$valid && submit()">
+                <div form="view.form" control="select" source="data.languages" filter="notIn : $parent.model.languages : 'id'" ng-model="model.languages[model.languages.length]" title="Languages" placeholder="select a language"></div>
+                <span ng-repeat="item in model.languages track by $index">
             <span class="badge badge-default" ng-click="onRemoveLanguage(item)">
                 <span ng-bind="item.name"></span>
-        <i class="icon-remove"></i>
-        </span>
-        </span>
-        <div form="view.form" control="email" ng-model="model.email" title="Email" placeholder="email" required="true"></div>
-        <div form="view.form" control="password" ng-model="model.password" title="Password" placeholder="password" required="true" min="6"></div>
-        <button type="submit" class="btn btn-primary animated infinite" ng-class="state.classes({ 
+                <i class="icon-remove"></i>
+                </span>
+                </span>
+                <div form="view.form" control="email" ng-model="model.email" title="Email" placeholder="email" required="true"></div>
+                <div form="view.form" control="password" ng-model="model.password" title="Password" placeholder="password" required="true" min="6"></div>
+                <button type="submit" class="btn btn-primary animated infinite" ng-class="state.classes({ 
             busy: 'bounce', error: 'shake', success: 'pulse' 
         })" ng-disabled="state2.isBusy"><span ng-bind="state.labels({ 
             ready: 'action 1', busy: 'sending...', 'error': 'error', success: 'success' 
         })"></span></button>
-        <button type="button" class="btn btn-outline-primary animated infinite" ng-click="submit2()" ng-class="state2.classes({ 
+                <button type="button" class="btn btn-outline-primary animated infinite" ng-click="submit2()" ng-class="state2.classes({ 
             busy: 'bounce', error: 'shake', success: 'pulse' 
         })" ng-disabled="state.isBusy"><span ng-bind="state2.labels({ 
             ready: 'action 2', busy: 'sending...', 'error': 'error', success: 'success' 
         })"></span></button>
-    </form>
-    <div class="well mb-2">
-        <json-formatter json="model"></json-formatter>
-    </div>
-    <div class="well mb-2">
-        <json-formatter json="state"></json-formatter>
+            </form>
+            <div class="well mb-2">
+                <json-formatter json="model"></json-formatter>
+            </div>
+            <div class="well mb-2">
+                <json-formatter json="state"></json-formatter>
+            </div>
+        </div>
     </div>
 </section>
