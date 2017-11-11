@@ -4119,13 +4119,6 @@
 				});
 			}
 
-			function off() {
-				dragging = false;
-				wheeling = false;
-				move = null;
-				down = null;
-			}
-
 			function dragStart(point) {
 				if (!busy) {
 					start.x = end.x = current.x;
@@ -4177,6 +4170,13 @@
 
 			function doReset() {
 				end.x = current.x = 0;
+			}
+
+			function off() {
+				dragging = false;
+				wheeling = false;
+				move = null;
+				down = null;
 			}
 
 		}
