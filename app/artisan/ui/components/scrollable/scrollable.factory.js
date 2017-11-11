@@ -1,193 +1,231 @@
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Scrollable', [function() {
-        function Scrollable() {
-            var scrollable = {
-                start: { x: 0, y: 0 },
-                end: { x: 0, y: 0 },
-                current: { x: 0, y: 0 },
-                indicator: { x: 45, y: 0 },
-                speed: { x: 0, y: 0 },
-                rect: { top: 0, right: 0, bottom: 0, left: 0 },
-                container: { width: 0, height: 0 },
-                content: { width: 0, height: 0 },
-            };
-            angular.extend(this, scrollable);
-        }
-        Scrollable.prototype = {
-            bounceX: function() {
-                var scrollable = this;
-                var end = scrollable.end,
-                    rect = scrollable.rect;
-                var padding = 100;
-                rect.left += padding;
-                rect.right -= padding;
-                if (end.x > rect.left) {
-                    scrollable.doLeft();
-                } else if (end.x < l.right) {
-                    scrollable.doRight();
-                }
-            },
-            renderX: function() {
-                var scrollable = this,
-                    enabled = scrollable.enabled,
-                    dragging = scrollable.dragging,
-                    wheeling = scrollable.wheeling,
-                    move = scrollable.move,
-                    down = scrollable.down;
-                var start = scrollable.start,
-                    end = scrollable.end,
-                    current = scrollable.current,
-                    indicator = scrollable.indicator,
-                    speed = scrollable.speed,
-                    rect = scrollable.rect;
-                var container = scrollable.container,
-                    content = scrollable.content;
-                if (enabled) {
-                    rect.left = 0;
-                    rect.right = container.width - content.width;
-                    if (dragging) {
-                        end.x = start.x + move.x - down.x;
-                        scrollable.bounceX();
-                    } else if (speed.x) {
-                        end.x += speed.x;
-                        speed.x *= 0.75;
-                        if (wheeling) {
-                            scrollable.bounceX();
-                        }
-                        if (Math.abs(speed.x) < 0.05) {
-                            speed.x = 0;
-                            end.x = start.x = current.x;
-                            scrollable.wheeling = false;
-                            // animate.pause();
-                        }
-                    }
-                    end.x = Math.min(rect.left, end.x);
-                    end.x = Math.max(rect.right, end.x);
-                    current.x += (end.x - current.x) / 4;
-                } else {
-                    current.x = end.x = 0;
-                }
-            },
-            scrollToX: function(x) {
-                var scrollable = this;
-                scrollable.start.x = scrollable.end.x = 0;
-                setTimeout(function() {
-                    scrollable.undrag();
-                    scrollable.busy = false;
-                }, 500);
-            },
-            doLeft: function(scope) {
-                var scrollable = this;
-                if (scrollable.busy) {
-                    return;
-                }
-                if (!scrollable.onLeft) {
-                    return;
-                }
-                scrollable.busy = true;
-                scrollable.onLeft(scope).then().finally(function() {
-                    scrollable.scrollToX(0);
-                });
-            },
-            doRight: function(scope) {
-                var scrollable = this;
-                if (scrollable.busy) {
-                    return;
-                }
-                if (!scrollable.onRight) {
-                    return;
-                }
-                scrollable.busy = true;
-                scrollable.onRight(scope).then().finally(function() {
-                    var right = scope.container.width - scope.content.width;
-                    if (right > rect.right) {
-                        start.x = end.x = rect.right;
-                    } else {
-                        start.x = end.x = rect.right + padding;
-                    }
-                    scrollable.scrollToX(0);
-                });
-            },
-            undrag: function() {
-                var scrollable = this;
-                scrollable.dragging = false;
-                scrollable.wheeling = false;
-                scrollable.move = null;
-                scrollable.down = null;
-            },
-            onDown: function(down) {
-                var scrollable = this,
-                    start = scrollable.start,
-                    end = scrollable.end,
-                    current = scrollable.current,
-                    speed = scrollable.speed;
-                start.x = end.x = current.x;
-                speed.x = 0;
-                scrollable.down = down;
-                scrollable.wheeling = false;
-            },
-            onMove: function(move) {
-                var scrollable = this;
-                scrollable.prev = scrollable.move;
-                scrollable.move = move;
-                scrollable.dragging = true;
-            },
-            onUp: function() {
-                var scrollable = this,
-                    enabled = scrollable.enabled,
-                    dragging = scrollable.dragging,
-                    wheeling = scrollable.wheeling,
-                    move = scrollable.move,
-                    down = scrollable.down;
-                var start = scrollable.start,
-                    end = scrollable.end,
-                    current = scrollable.current,
-                    indicator = scrollable.indicator,
-                    speed = scrollable.speed,
-                    rect = scrollable.rect;
-                var container = scrollable.container,
-                    content = scrollable.content;
-                if (move && prev) {
-                    speed.x += (move.x - prev.x) * 4;
-                }
-                start.x = end.x = current.x;
-                scrollable.dragging = false;
-                scrollable.move = null;
-                scrollable.down = null;
-                scrollable.prev = null;
-            },
-            getWheelIncrement: function() {
-                var scrollable = this;
-                var container = scrollable.container,
-                    content = scrollable.content;
-                var increment = (content.width - container.width) / 20;
-                increment = Math.min(10, Math.max(100, increment));
-                return increment;
-            },
-            onWheel: function(e) {
-                var scrollable = this,
-                    speed = scrollable.speed;
-                if (!scrollable.busy && scrollable.enabled) {
-                    if (!e) e = $window.event;
-                    e = e.originalEvent ? e.originalEvent : e;
-                    var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
-                    speed.x += dir * scrollable.getWheelIncrement();
-                    scrollable.wheeling = true;
-                    // animate.play();
-                    return true;
-                }
-            },
-            link: function(methods) {
-                angular.extend(this, methods);
-            },
-        };
-        return Scrollable;
+	app.factory('Scrollable', ['Point', 'Rect', function (Point, Rect) {
+		function Scrollable() {
+
+			var padding = 150;
+			var enabled, busy, dragging, wheeling, down, move, prev;
+
+			var start = new Point(),
+				end = new Point(),
+				current = new Point(),
+				indicator = new Point(),
+				speed = new Point(),
+				rect = new Rect(),
+				container = new Rect(),
+				content = new Rect();
+
+			rect.top = rect.right = rect.bottom = rect.left = 0;
+
+			var scrollable = {
+				// properties
+				start: start,
+				end: end,
+				current: current,
+				indicator: indicator,
+				speed: speed,
+				rect: rect,
+				container: container,
+				content: content,
+				// methods
+				setContainer: setContainer,
+				setContent: setContent,
+				setEnabled: setEnabled,
+				getCurrent: getCurrent,
+				getIndicator: getIndicator,
+				bounceX: bounceX,
+				renderX: renderX,
+				scrollToX: scrollToX,
+				doLeft: doLeft,
+				doRight: doRight,
+				dragStart: dragStart,
+				dragMove: dragMove,
+				dragEnd: dragEnd,
+				wheelX: wheelX,
+				doReset: doReset,
+				off: off,
+			};
+
+			angular.extend(this, scrollable);
+
+			scrollable = this;
+
+			function setContainer(node) {
+				container.width = node.offsetWidth;
+				container.height = node.offsetHeight;
+			}
+
+			function setContent(node) {
+				content.width = node.offsetWidth;
+				content.height = node.offsetHeight;
+			}
+
+			function setEnabled(flag) {
+				enabled = flag;
+			}
+
+			function getCurrent() {
+				return current;
+			}
+
+			function getIndicator() {
+				return indicator;
+			}
+
+			function bounceX() {
+				var padding = 100;
+				rect.left += padding;
+				rect.right -= padding;
+				if (end.x > rect.left) {
+					doLeft();
+				} else if (end.x < rect.right) {
+					doRight();
+				}
+			}
+
+			function renderX() {
+				if (enabled) {
+					rect.left = 0;
+					rect.right = container.width - content.width;
+					if (dragging) {
+						end.x = start.x + move.x - down.x;
+						bounceX();
+					} else if (speed.x) {
+						end.x += speed.x;
+						speed.x *= 0.75;
+						if (wheeling) {
+							bounceX();
+						}
+						if (Math.abs(speed.x) < 0.05) {
+							speed.x = 0;
+							end.x = start.x = current.x;
+							scrollable.wheeling = false;
+							// animate.pause();
+						}
+					}
+					end.x = Math.min(rect.left, end.x);
+					end.x = Math.max(rect.right, end.x);
+					current.x += (end.x - current.x) / 4;
+				} else {
+					current.x = end.x = 0;
+				}
+			}
+
+			function scrollToX(x) {
+				start.x = end.x = 0;
+				setTimeout(function () {
+					off();
+					busy = false;
+				}, 500);
+			}
+
+			function doLeft(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onLeft) {
+					return;
+				}
+				busy = true;
+				scrollable.onLeft(scope).then().finally(function () {
+					scrollToX(0);
+				});
+			}
+
+			function doRight(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onRight) {
+					return;
+				}
+				busy = true;
+				scrollable.onRight(scope).then().finally(function () {
+					var right = container.width - content.width;
+					if (right > rect.right) {
+						start.x = end.x = rect.right;
+					} else {
+						start.x = end.x = rect.right + padding;
+					}
+					scrollToX(0);
+				});
+			}
+
+			function off() {
+				dragging = false;
+				wheeling = false;
+				move = null;
+				down = null;
+			}
+
+			function dragStart(point) {
+				if (!busy) {
+					start.x = end.x = current.x;
+					start.y = end.y = current.y;
+					speed.x = 0;
+					speed.y = 0;
+					down = point;
+					wheeling = false;
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			function dragMove(point) {
+				prev = move;
+				move = point;
+				dragging = true;
+			}
+
+			function dragEnd() {
+				if (move && prev) {
+					speed.x += (move.x - prev.x) * 4;
+					speed.y += (move.y - prev.y) * 4;
+				}
+				start.x = end.x = current.x;
+				start.y = end.y = current.y;
+				dragging = false;
+				move = null;
+				down = null;
+				prev = null;
+			}
+
+			function incrementX() {
+				var increment = (content.width - container.width) / 20;
+				increment = Math.min(10, Math.max(100, increment));
+				return increment;
+			}
+
+			function wheelX(dir) {
+				if (!busy && enabled) {
+					end.x += dir * content.height;
+					speed.x += dir * 5;
+					// speed.x += dir * incrementX();
+					wheeling = true;
+					return (end.x + speed.x < rect.left && end.x + speed.x > rect.right);
+				}
+			}
+
+			function doReset() {
+				end.x = current.x = 0;
+			}
+
+		}
+
+		function link(methods) {
+			angular.extend(this, methods);
+		}
+
+		Scrollable.prototype = {
+			link: link,
+		};
+		return Scrollable;
     }]);
 
 }());

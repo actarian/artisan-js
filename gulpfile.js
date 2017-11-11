@@ -71,15 +71,16 @@ gulp.task('bundle:js', function () {
 	return merge(tasks);
 });
 gulp.task('bundle:partials', function () {
-	return gulp.src('./app/partials/**/*.html', {
-			base: './app/partials/'
+	return gulp.src('./artisan/**/*.html', {
+			base: './artisan/'
 		})
 		.pipe(plumber())
 		.pipe(rename(function (path) {
-			path.dirname = path.dirname.split('app/partials/').join('');
-			console.log('aaargh', path.dirname);
+			path.dirname = path.dirname.split('\\').join('/');
+			path.dirname = path.dirname.split('artisan/').join('');
 			// path.basename += "-partial";
 			path.extname = '';
+			console.log('path', path);
 		}))
 		.pipe(html2js('artisan-partials.js', {
 			adapter: 'angular',

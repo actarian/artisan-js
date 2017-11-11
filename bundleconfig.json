@@ -25,6 +25,8 @@
         "app/artisan/core/animate/animate.factory.js",
         "app/artisan/core/events/events.factory.js",
         "app/artisan/core/filters/filters.js",
+        "app/artisan/core/geom/point.factory.js",
+        "app/artisan/core/geom/rect.factory.js",
         "app/artisan/core/hash/hash.factory.js",
         "app/artisan/core/promise/promise.factory.js",
         "app/artisan/core/state/state.factory.js",
