@@ -2,21 +2,21 @@
 
 <json-formatter json="view"></json-formatter>
 
+<!--
 <div class="blog-previews" scrollable-x="scrollPreviews" show-indicator-for="items">
     <div class="blog-previews__flex">
         <div class="blog-preview" safe-click="openBlog(item)" ng-repeat="item in items track by $index"></div>
     </div>
 </div>
+-->
 
 <section ng-repeat="section in view.doc.sections track by $index">
-
     <div class="background" ng-style="{ 'background-image': cssUrl(section.image.url) }" alt="{{section.image.caption}}" ng-if="section.image"></div>
     <!--
     <svg class="svg-picture" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" alt="{{section.image.caption}}" ng-if="section.image">
         <image xlink:href="#" ng-attr-xlink:href="{{trustResource(section.image.url)}}" x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMinYMin slice"></image>
     </svg>
     -->
-
     <div class="inner">
         <h2><span ng-bind="section.title"></span></h2>
         <div ng-bind="section.abstract"></div>

@@ -294,4 +294,47 @@
 
     }]);
 
+	function fixPassiveEvents() {
+		if (!window.addEventListener) {
+			return;
+		}
+
+		function isSupported() {
+			var supported = false;
+			try {
+				var options = Object.defineProperty({}, 'passive', {
+					get: function () {
+						supported = true;
+					},
+				});
+				window.addEventListener("test", null, options);
+			} catch (e) {
+				console.log('fixPassiveEvents.isSupprted', e);
+			}
+			return supported;
+		}
+		var defaults = {
+			passive: true,
+			capture: false,
+		};
+
+		function overwriteOriginal(original) {
+			EventTarget.prototype.addEventListener = function (type, listener, options) {
+				var usesListenerOptions = typeof options === 'object';
+				var capture = usesListenerOptions ? options.capture : options;
+				options = usesListenerOptions ? options : {};
+				options.passive = options.passive !== undefined ? options.passive : defaults.passive;
+				options.capture = capture !== undefined ? capture : defaults.capture;
+				original.call(this, type, listener, options);
+			};
+		}
+		var supported = isSupported();
+		if (supported) {
+			var original = EventTarget.prototype.addEventListener;
+			overwriteOriginal(original);
+		}
+	}
+
+	fixPassiveEvents();
+
 }());

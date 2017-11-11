@@ -226,27 +226,28 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.controller('HomeCtrl', ['$scope', 'State', 'View', function($scope, State, View) {
-        var state = new State();
+	app.controller('HomeCtrl', ['$scope', 'State', 'View', function ($scope, State, View) {
+		var state = new State();
 
-        View.current().then(function(view) {
-            $scope.view = view;
-            state.ready();
+		View.current().then(function (view) {
+			$scope.view = view;
+			state.ready();
 
-        }, function(error) {
-            state.error(error);
+		}, function (error) {
+			state.error(error);
 
-        });
+		});
 
-        $scope.state = state;
+		$scope.state = state;
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
