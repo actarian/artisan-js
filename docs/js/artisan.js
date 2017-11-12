@@ -88,7 +88,7 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Events', [function () {
+	app.factory('Events', ['EventsService', function (EventsService) {
 
 		function Event(e, element) {
 			var documentNode = (document.documentElement || document.body.parentNode || document.body);
@@ -377,12 +377,14 @@
 
     }]);
 
-	function fixPassiveEvents() {
-		if (!window.addEventListener) {
-			return;
-		}
+	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
 
-		function isSupported() {
+		handlePassiveEvents();
+		preventHistoryNavigation();
+
+		this.hasPassiveEvents = hasPassiveEvents;
+
+		function hasPassiveEvents() {
 			var supported = false;
 			try {
 				var options = Object.defineProperty({}, 'passive', {
@@ -392,33 +394,75 @@
 				});
 				window.addEventListener("test", null, options);
 			} catch (e) {
-				console.log('fixPassiveEvents.isSupprted', e);
+				console.log('handlePassiveEvents.isSupprted', e);
 			}
 			return supported;
 		}
-		var defaults = {
-			passive: true,
-			capture: false,
-		};
 
-		function overwriteOriginal(original) {
-			EventTarget.prototype.addEventListener = function (type, listener, options) {
-				var usesListenerOptions = typeof options === 'object';
-				var capture = usesListenerOptions ? options.capture : options;
-				options = usesListenerOptions ? options : {};
-				options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-				options.capture = capture !== undefined ? capture : defaults.capture;
-				original.call(this, type, listener, options);
+		function handlePassiveEvents() {
+			if (!window.addEventListener) {
+				return;
+			}
+
+			var defaults = {
+				passive: true,
+				capture: false,
 			};
-		}
-		var supported = isSupported();
-		if (supported) {
-			var original = EventTarget.prototype.addEventListener;
-			overwriteOriginal(original);
-		}
-	}
 
-	fixPassiveEvents();
+			function overwriteOriginal(original) {
+				EventTarget.prototype.addEventListener = function (type, listener, options) {
+					var usesListenerOptions = typeof options === 'object';
+					var capture = usesListenerOptions ? options.capture : options;
+					options = usesListenerOptions ? options : {};
+					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
+					options.capture = capture !== undefined ? capture : defaults.capture;
+					original.call(this, type, listener, options);
+				};
+			}
+			var supported = hasPassiveEvents();
+			if (supported) {
+				var original = EventTarget.prototype.addEventListener;
+				overwriteOriginal(original);
+			}
+		}
+
+		function preventHistoryNavigation() {
+			// This code is only valid for Mac
+			var mac = navigator.userAgent.match(/Macintosh/);
+			if (!mac) {
+				return;
+			}
+			// detection
+			var chrome = navigator.userAgent.indexOf('Chrome') > -1;
+			var safari = navigator.userAgent.indexOf("Safari") > -1;
+			var firefox = navigator.userAgent.indexOf('Firefox') > -1;
+			// Handle scroll events in Chrome, Safari, and Firefox
+			if (chrome || safari || firefox) {
+				// TODO: This only prevents scroll when reaching the topmost or leftmost
+				// positions of a container. It doesn't handle rightmost or bottom,
+				// and Lion scroll can be triggered by scrolling right (or bottom) and then
+				// scrolling left without raising your fingers from the scroll position.
+				angular.element($window).on('mousewheel', onScroll);
+			}
+
+			function onScroll(e) {
+				// prevent futile scroll, which would trigger the Back/Next page event
+				if (
+					// left - if none of the parents can be scrolled left
+					(e.deltaX < 0 && (Utils.getParents(e.target).filter(function (node) {
+						return node.scrollLeft > 0;
+					}).length === 0)) ||
+					// ip - if none of the parents can be scrolled up
+					(e.deltaY > 0 && !(Utils.getParents(e.target).filter(function (node) {
+						return node.scrollTop > 0;
+					}).length === 0))
+				) {
+					e.preventDefault();
+				}
+			}
+		}
+
+	}]);
 
 }());
 
@@ -1270,6 +1314,7 @@
 		Utils.getRelativeTouch = getRelativeTouch;
 		Utils.getClosest = getClosest;
 		Utils.getClosestElement = getClosestElement;
+		Utils.getParents = getParents;
 		Utils.throttle = throttle;
 		Utils.where = where;
 		Utils.format = format;
@@ -1373,6 +1418,19 @@
 				el = parent;
 			}
 			return null;
+		}
+
+		function getParents(node, topParentNode) {
+			// if no topParentNode defined will bubble up all the way to *document*
+			topParentNode = topParentNode || document;
+			var parents = [];
+			var parentNode = node.parentNode;
+			while (parentNode !== topParentNode) {
+				parents.push(parentNode);
+				parentNode = parentNode.parentNode;
+			}
+			parents.push(topParentNode); // push that topParentNode you wanted to stop at
+			return parents;
 		}
 
 		function throttle(func, wait, options) {
@@ -3735,32 +3793,19 @@
 			transclude: true,
 			link: function (scope, element, attributes, model) {
 
-				var scrollable, onLeft, onRight, showIndicatorFor, scrollableWhen;
-				if (attributes.scrollableX) {
-					scrollable = $parse(attributes.scrollableX)(scope);
-				} else {
-					scrollable = new Scrollable();
-				}
-				if (attributes.onLeft !== undefined) {
+				var onLeft, onRight, showIndicatorFor, scrollableWhen;
+				if (attributes.onLeft) {
 					onLeft = $parse(attributes.onLeft);
 				}
-				if (attributes.onRight !== undefined) {
+				if (attributes.onRight) {
 					onRight = $parse(attributes.onRight);
 				}
-				if (attributes.showIndicatorFor !== undefined) {
+				if (attributes.showIndicatorFor) {
 					showIndicatorFor = $parse(attributes.showIndicatorFor);
 				}
-				if (attributes.scrollableWhen !== undefined) {
+				if (attributes.scrollableWhen) {
 					scrollableWhen = $parse(attributes.scrollableWhen);
 				}
-				scrollable.link({
-					reset: function () {
-						scrollable.doReset();
-						render();
-					},
-					onLeft: onLeft,
-					onRight: onRight,
-				});
 
 				// ELEMENTS & STYLESHEETS;
 				element.attr('unselectable', 'on').addClass('unselectable');
@@ -3768,6 +3813,32 @@
 				var contentNode = containerNode.querySelector('.content');
 				var content = angular.element(content);
 				var contentStyle = new Style();
+
+				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
+				link(scrollable);
+
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						reset: function () {
+							scrollable.doReset();
+							render();
+						},
+						onLeft: onLeft,
+						onRight: onRight,
+					});
+				}
+
+				/*
+				scope.$watch(attributes.scrollableX, function (newValue) {
+					console.log(newValue);
+				});
+				*/
 
 				/*
 				var indicator = null,
@@ -3789,8 +3860,13 @@
 				var animate = new Animate(render);
 
 				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
 					scrollable.setEnabled(isEnabled());
-					scrollable.renderX();
+					var animating = scrollable.renderX();
+					if (!animating) {
+						// animate.pause();
+					}
 					var current = scrollable.getCurrent();
 					contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
 					contentStyle.set(contentNode);
@@ -3844,23 +3920,27 @@
 					dragOff();
 				}
 
-				function _onWheel(e) {
+				function _onScrollX(dir) {
+					return scrollable.wheelX(dir);
+				}
+
+				var onScrollX = Utils.throttle(_onScrollX, 25);
+
+				function onWheel(e) {
 					if (!e) e = $window.event;
 					e = e.originalEvent ? e.originalEvent : e;
 					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
-					var shouldStopPageScrolling = scrollable.wheelX(dir);
-					if (shouldStopPageScrolling) {
+					if (scrollable.wheelXCheck(dir)) {
+						onScrollX(dir);
 						animate.play();
+						e.preventDefault();
 					}
-					// event stop propagation not working
 				}
 
-				var onWheel = Utils.throttle(_onWheel, 25);
-				// var onWheel = _onWheel;
-
 				function off() {
+					console.log('off');
 					dragOff();
-					animate.pause();
+					// animate.pause();
 					scrollable.off();
 				}
 
@@ -3875,8 +3955,6 @@
 				}
 
 				function onResize() {
-					scrollable.setContainer(containerNode);
-					scrollable.setContent(contentNode);
 					var enabled = isEnabled();
 					if (!enabled) {
 						off();
@@ -3893,21 +3971,21 @@
 				function addListeners() {
 					angular.element($window).on('resize', onResize);
 					element.on('touchstart mousedown', onDown);
-					element.on('wheel', onWheel);
-					/*
+					// element.on('wheel', onWheel);
 					element[0].addEventListener('DOMMouseScroll', onWheel, {
 						passive: false
 					}); // for Firefox
 					element[0].addEventListener('mousewheel', onWheel, {
 						passive: false
 					}); // for everyone else
-					*/
 				}
 
 				function removeListeners() {
 					angular.element($window).off('resize', onResize);
 					element.off('touchstart mousedown', onDown);
-					element.off('wheel', onWheel);
+					// element.off('wheel', onWheel);
+					element[0].removeEventListener('DOMMouseScroll', onWheel); // for Firefox
+					element[0].removeEventListener('mousewheel', onWheel);
 				}
 
 				function dragOn() {
@@ -3919,6 +3997,7 @@
 					angular.element($window).off('touchmove mousemove', onMove);
 					angular.element($window).off('touchend mouseup', onUp);
 				}
+
 				scope.$on('$destroy', function () {
 					removeListeners();
 					animate.pause();
@@ -3973,17 +4052,17 @@
 
 			var padding = 150;
 			var enabled, busy, dragging, wheeling, down, move, prev;
+			var currentIndex = 0;
 
 			var start = new Point(),
 				end = new Point(),
 				current = new Point(),
 				indicator = new Point(),
+				offset = new Point(),
 				speed = new Point(),
-				rect = new Rect(),
 				container = new Rect(),
-				content = new Rect();
-
-			rect.top = rect.right = rect.bottom = rect.left = 0;
+				content = new Rect(),
+				overflow = new Rect();
 
 			var scrollable = {
 				// properties
@@ -3992,7 +4071,7 @@
 				current: current,
 				indicator: indicator,
 				speed: speed,
-				rect: rect,
+				overflow: overflow,
 				container: container,
 				content: content,
 				// methods
@@ -4001,14 +4080,17 @@
 				setEnabled: setEnabled,
 				getCurrent: getCurrent,
 				getIndicator: getIndicator,
-				bounceX: bounceX,
 				renderX: renderX,
 				scrollToX: scrollToX,
+				scrollToIndex: scrollToIndex,
+				scrollPrev: scrollPrev,
+				scrollNext: scrollNext,
 				doLeft: doLeft,
 				doRight: doRight,
 				dragStart: dragStart,
 				dragMove: dragMove,
 				dragEnd: dragEnd,
+				wheelXCheck: wheelXCheck,
 				wheelX: wheelX,
 				doReset: doReset,
 				off: off,
@@ -4040,51 +4122,59 @@
 				return indicator;
 			}
 
-			function bounceX() {
-				var padding = 100;
-				rect.left += padding;
-				rect.right -= padding;
-				if (end.x > rect.left) {
+			function extendX() {
+				var extending = false;
+				overflow.x += padding;
+				overflow.width -= padding;
+				if (end.x > overflow.x) {
+					extending = true;
 					doLeft();
-				} else if (end.x < rect.right) {
+				} else if (end.x < overflow.width) {
+					extending = true;
 					doRight();
 				}
+				return extending;
 			}
 
 			function renderX() {
+				var animating = true;
 				if (enabled) {
-					rect.left = 0;
-					rect.right = container.width - content.width;
+					overflow.x = 0;
+					overflow.width = container.width - content.width;
 					if (dragging) {
 						end.x = start.x + move.x - down.x;
-						bounceX();
+						if (extendX()) {
+							start.x = end.x;
+							down.x = move.x;
+						}
 					} else if (speed.x) {
 						end.x += speed.x;
 						speed.x *= 0.75;
 						if (wheeling) {
-							bounceX();
+							extendX();
 						}
 						if (Math.abs(speed.x) < 0.05) {
 							speed.x = 0;
-							end.x = start.x = current.x;
-							scrollable.wheeling = false;
-							// animate.pause();
+							scrollable.wheeling = wheeling = false;
 						}
+					} else if (offset.x) {
+						end.x = -offset.x;
+						offset.x = 0;
 					}
-					end.x = Math.min(rect.left, end.x);
-					end.x = Math.max(rect.right, end.x);
+					end.x = Math.round(end.x * 10000) / 10000;
+					end.x = Math.min(overflow.x, end.x);
+					end.x = Math.max(overflow.width, end.x);
 					current.x += (end.x - current.x) / 4;
+					if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
+						current.x = end.x;
+						animating = false;
+					}
+					// console.log(parseFloat(current.x.toFixed(6)), end.x, overflow.x);
 				} else {
 					current.x = end.x = 0;
+					animating = false;
 				}
-			}
-
-			function scrollToX(x) {
-				start.x = end.x = 0;
-				setTimeout(function () {
-					off();
-					busy = false;
-				}, 500);
+				return animating;
 			}
 
 			function doLeft(scope) {
@@ -4110,10 +4200,10 @@
 				busy = true;
 				scrollable.onRight(scope).then().finally(function () {
 					var right = container.width - content.width;
-					if (right > rect.right) {
-						start.x = end.x = rect.right;
+					if (right > overflow.width) {
+						start.x = end.x = overflow.width;
 					} else {
-						start.x = end.x = rect.right + padding;
+						start.x = end.x = overflow.width + padding;
 					}
 					scrollToX(0);
 				});
@@ -4158,14 +4248,68 @@
 				return increment;
 			}
 
-			function wheelX(dir) {
+			function wheelXCheck(dir) {
 				if (!busy && enabled) {
-					end.x += dir * content.height;
-					speed.x += dir * 5;
-					// speed.x += dir * incrementX();
-					wheeling = true;
-					return (end.x + speed.x < rect.left && end.x + speed.x > rect.right);
+					// var endx = end.x + dir * content.height;
+					// var speedx = speed.x + dir * 5;
+					if (dir < 0) {
+						return (end.x > overflow.width);
+					} else {
+						return (end.x < overflow.x);
+					}
+				} else {
+					return false;
 				}
+			}
+
+			function wheelX(dir) {
+				end.x += dir * content.height;
+				speed.x += dir * 5;
+				wheeling = true;
+			}
+
+			function scrollToX(x) {
+				start.x = end.x = x;
+				setTimeout(function () {
+					off();
+					busy = false;
+				}, 500);
+			}
+
+			function getItemAtIndex(index) {
+				var item = null;
+				var items = scrollable.getItems();
+				if (index >= 0 && index < items.length) {
+					item = items[index];
+				}
+				// console.log('getItemAtIndex', index, items.length, item);
+				return item;
+			}
+
+			function scrollToIndex(index) {
+				if (index !== currentIndex) {
+					currentIndex = index;
+					var item = getItemAtIndex(index);
+					// console.log('scrollToIndex', item, index, currentIndex);
+					if (item) {
+						offset.x = item.offsetLeft;
+						offset.y = item.offsetTop;
+						console.log('offset', offset);
+					}
+				}
+			}
+
+			function scrollPrev() {
+				var index = Math.max(0, currentIndex - 1);
+				// console.log('scrollPrev', index);
+				scrollToIndex(index);
+			}
+
+			function scrollNext() {
+				var items = scrollable.getItems();
+				var index = Math.min(items.length - 1, currentIndex + 1);
+				console.log('scrollNext', index);
+				scrollToIndex(index);
 			}
 
 			function doReset() {
@@ -4187,9 +4331,12 @@
 
 		Scrollable.prototype = {
 			link: link,
+			getItems: function () {
+				return [content];
+			},
 		};
 		return Scrollable;
-    }]);
+		}]);
 
 }());
 

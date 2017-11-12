@@ -5,7 +5,7 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Events', [function () {
+	app.factory('Events', ['EventsService', function (EventsService) {
 
 		function Event(e, element) {
 			var documentNode = (document.documentElement || document.body.parentNode || document.body);
@@ -294,12 +294,14 @@
 
     }]);
 
-	function fixPassiveEvents() {
-		if (!window.addEventListener) {
-			return;
-		}
+	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
 
-		function isSupported() {
+		handlePassiveEvents();
+		preventHistoryNavigation();
+
+		this.hasPassiveEvents = hasPassiveEvents;
+
+		function hasPassiveEvents() {
 			var supported = false;
 			try {
 				var options = Object.defineProperty({}, 'passive', {
@@ -309,32 +311,74 @@
 				});
 				window.addEventListener("test", null, options);
 			} catch (e) {
-				console.log('fixPassiveEvents.isSupprted', e);
+				console.log('handlePassiveEvents.isSupprted', e);
 			}
 			return supported;
 		}
-		var defaults = {
-			passive: true,
-			capture: false,
-		};
 
-		function overwriteOriginal(original) {
-			EventTarget.prototype.addEventListener = function (type, listener, options) {
-				var usesListenerOptions = typeof options === 'object';
-				var capture = usesListenerOptions ? options.capture : options;
-				options = usesListenerOptions ? options : {};
-				options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-				options.capture = capture !== undefined ? capture : defaults.capture;
-				original.call(this, type, listener, options);
+		function handlePassiveEvents() {
+			if (!window.addEventListener) {
+				return;
+			}
+
+			var defaults = {
+				passive: true,
+				capture: false,
 			};
-		}
-		var supported = isSupported();
-		if (supported) {
-			var original = EventTarget.prototype.addEventListener;
-			overwriteOriginal(original);
-		}
-	}
 
-	fixPassiveEvents();
+			function overwriteOriginal(original) {
+				EventTarget.prototype.addEventListener = function (type, listener, options) {
+					var usesListenerOptions = typeof options === 'object';
+					var capture = usesListenerOptions ? options.capture : options;
+					options = usesListenerOptions ? options : {};
+					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
+					options.capture = capture !== undefined ? capture : defaults.capture;
+					original.call(this, type, listener, options);
+				};
+			}
+			var supported = hasPassiveEvents();
+			if (supported) {
+				var original = EventTarget.prototype.addEventListener;
+				overwriteOriginal(original);
+			}
+		}
+
+		function preventHistoryNavigation() {
+			// This code is only valid for Mac
+			var mac = navigator.userAgent.match(/Macintosh/);
+			if (!mac) {
+				return;
+			}
+			// detection
+			var chrome = navigator.userAgent.indexOf('Chrome') > -1;
+			var safari = navigator.userAgent.indexOf("Safari") > -1;
+			var firefox = navigator.userAgent.indexOf('Firefox') > -1;
+			// Handle scroll events in Chrome, Safari, and Firefox
+			if (chrome || safari || firefox) {
+				// TODO: This only prevents scroll when reaching the topmost or leftmost
+				// positions of a container. It doesn't handle rightmost or bottom,
+				// and Lion scroll can be triggered by scrolling right (or bottom) and then
+				// scrolling left without raising your fingers from the scroll position.
+				angular.element($window).on('mousewheel', onScroll);
+			}
+
+			function onScroll(e) {
+				// prevent futile scroll, which would trigger the Back/Next page event
+				if (
+					// left - if none of the parents can be scrolled left
+					(e.deltaX < 0 && (Utils.getParents(e.target).filter(function (node) {
+						return node.scrollLeft > 0;
+					}).length === 0)) ||
+					// ip - if none of the parents can be scrolled up
+					(e.deltaY > 0 && !(Utils.getParents(e.target).filter(function (node) {
+						return node.scrollTop > 0;
+					}).length === 0))
+				) {
+					e.preventDefault();
+				}
+			}
+		}
+
+	}]);
 
 }());

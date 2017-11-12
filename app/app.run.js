@@ -5,23 +5,18 @@
 
 	var app = angular.module('app');
 
-	app.run(['$rootScope', '$sce', 'Scrollable', function ($rootScope, $sce, Scrollable) {
+	app.run(['$rootScope', '$sce', function ($rootScope, $sce) {
 
-		$rootScope.items = new Array(20).fill({
-			name: 'Item',
-		});
-
-		var scrollable = new Scrollable();
-
-		$rootScope.scrollPreviews = scrollable;
-
-		$rootScope.trustResource = function (src) {
+		function trustResource(src) {
 			return $sce.trustAsResourceUrl(src);
-		};
+		}
 
-		$rootScope.cssUrl = function (src) {
+		function cssUrl(src) {
 			return 'url(\'' + src + '\')';
-		};
+		}
+
+		$rootScope.trustResource = trustResource;
+		$rootScope.cssUrl = cssUrl;
 
     }]);
 

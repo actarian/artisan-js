@@ -150,6 +150,7 @@
 		Utils.getRelativeTouch = getRelativeTouch;
 		Utils.getClosest = getClosest;
 		Utils.getClosestElement = getClosestElement;
+		Utils.getParents = getParents;
 		Utils.throttle = throttle;
 		Utils.where = where;
 		Utils.format = format;
@@ -253,6 +254,19 @@
 				el = parent;
 			}
 			return null;
+		}
+
+		function getParents(node, topParentNode) {
+			// if no topParentNode defined will bubble up all the way to *document*
+			topParentNode = topParentNode || document;
+			var parents = [];
+			var parentNode = node.parentNode;
+			while (parentNode !== topParentNode) {
+				parents.push(parentNode);
+				parentNode = parentNode.parentNode;
+			}
+			parents.push(topParentNode); // push that topParentNode you wanted to stop at
+			return parents;
 		}
 
 		function throttle(func, wait, options) {

@@ -16,32 +16,19 @@
 			transclude: true,
 			link: function (scope, element, attributes, model) {
 
-				var scrollable, onLeft, onRight, showIndicatorFor, scrollableWhen;
-				if (attributes.scrollableX) {
-					scrollable = $parse(attributes.scrollableX)(scope);
-				} else {
-					scrollable = new Scrollable();
-				}
-				if (attributes.onLeft !== undefined) {
+				var onLeft, onRight, showIndicatorFor, scrollableWhen;
+				if (attributes.onLeft) {
 					onLeft = $parse(attributes.onLeft);
 				}
-				if (attributes.onRight !== undefined) {
+				if (attributes.onRight) {
 					onRight = $parse(attributes.onRight);
 				}
-				if (attributes.showIndicatorFor !== undefined) {
+				if (attributes.showIndicatorFor) {
 					showIndicatorFor = $parse(attributes.showIndicatorFor);
 				}
-				if (attributes.scrollableWhen !== undefined) {
+				if (attributes.scrollableWhen) {
 					scrollableWhen = $parse(attributes.scrollableWhen);
 				}
-				scrollable.link({
-					reset: function () {
-						scrollable.doReset();
-						render();
-					},
-					onLeft: onLeft,
-					onRight: onRight,
-				});
 
 				// ELEMENTS & STYLESHEETS;
 				element.attr('unselectable', 'on').addClass('unselectable');
@@ -49,6 +36,32 @@
 				var contentNode = containerNode.querySelector('.content');
 				var content = angular.element(content);
 				var contentStyle = new Style();
+
+				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
+				link(scrollable);
+
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						reset: function () {
+							scrollable.doReset();
+							render();
+						},
+						onLeft: onLeft,
+						onRight: onRight,
+					});
+				}
+
+				/*
+				scope.$watch(attributes.scrollableX, function (newValue) {
+					console.log(newValue);
+				});
+				*/
 
 				/*
 				var indicator = null,
@@ -70,8 +83,13 @@
 				var animate = new Animate(render);
 
 				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
 					scrollable.setEnabled(isEnabled());
-					scrollable.renderX();
+					var animating = scrollable.renderX();
+					if (!animating) {
+						// animate.pause();
+					}
 					var current = scrollable.getCurrent();
 					contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
 					contentStyle.set(contentNode);
@@ -125,23 +143,27 @@
 					dragOff();
 				}
 
-				function _onWheel(e) {
+				function _onScrollX(dir) {
+					return scrollable.wheelX(dir);
+				}
+
+				var onScrollX = Utils.throttle(_onScrollX, 25);
+
+				function onWheel(e) {
 					if (!e) e = $window.event;
 					e = e.originalEvent ? e.originalEvent : e;
 					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
-					var shouldStopPageScrolling = scrollable.wheelX(dir);
-					if (shouldStopPageScrolling) {
+					if (scrollable.wheelXCheck(dir)) {
+						onScrollX(dir);
 						animate.play();
+						e.preventDefault();
 					}
-					// event stop propagation not working
 				}
 
-				var onWheel = Utils.throttle(_onWheel, 25);
-				// var onWheel = _onWheel;
-
 				function off() {
+					console.log('off');
 					dragOff();
-					animate.pause();
+					// animate.pause();
 					scrollable.off();
 				}
 
@@ -156,8 +178,6 @@
 				}
 
 				function onResize() {
-					scrollable.setContainer(containerNode);
-					scrollable.setContent(contentNode);
 					var enabled = isEnabled();
 					if (!enabled) {
 						off();
@@ -174,21 +194,21 @@
 				function addListeners() {
 					angular.element($window).on('resize', onResize);
 					element.on('touchstart mousedown', onDown);
-					element.on('wheel', onWheel);
-					/*
+					// element.on('wheel', onWheel);
 					element[0].addEventListener('DOMMouseScroll', onWheel, {
 						passive: false
 					}); // for Firefox
 					element[0].addEventListener('mousewheel', onWheel, {
 						passive: false
 					}); // for everyone else
-					*/
 				}
 
 				function removeListeners() {
 					angular.element($window).off('resize', onResize);
 					element.off('touchstart mousedown', onDown);
-					element.off('wheel', onWheel);
+					// element.off('wheel', onWheel);
+					element[0].removeEventListener('DOMMouseScroll', onWheel); // for Firefox
+					element[0].removeEventListener('mousewheel', onWheel);
 				}
 
 				function dragOn() {
@@ -200,6 +220,7 @@
 					angular.element($window).off('touchmove mousemove', onMove);
 					angular.element($window).off('touchend mouseup', onUp);
 				}
+
 				scope.$on('$destroy', function () {
 					removeListeners();
 					animate.pause();

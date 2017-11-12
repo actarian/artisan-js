@@ -110,7 +110,7 @@ gulp.task('webserver', function () {
 			port: 6001,
 			fallback: 'index.html',
 			open: true,
-			livereload: true,
+			livereload: false,
 			directoryListing: false,
 		}));
 });
