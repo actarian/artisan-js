@@ -3814,6 +3814,8 @@
 				var content = angular.element(content);
 				var contentStyle = new Style();
 
+				var animate = new Animate(render);
+
 				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
 				link(scrollable);
 
@@ -3824,6 +3826,14 @@
 								var items = containerNode.querySelectorAll(attributes.scrollableItem);
 								return items;
 							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
 						},
 						reset: function () {
 							scrollable.doReset();
@@ -3856,8 +3866,6 @@
 					indicatorStyle.set(indicatorNode);
 				}
 				*/
-
-				var animate = new Animate(render);
 
 				function render(time) {
 					scrollable.setContainer(containerNode);

@@ -307,11 +307,11 @@
 			var scrollable = new Scrollable();
 
 			function scrollPrev() {
-				scrollable.scrollPrev();
+				scrollable.prev();
 			}
 
 			function scrollNext() {
-				scrollable.scrollNext();
+				scrollable.next();
 			}
 
 			$scope.items = items;
