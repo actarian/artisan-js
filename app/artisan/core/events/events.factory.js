@@ -359,7 +359,9 @@
 				// positions of a container. It doesn't handle rightmost or bottom,
 				// and Lion scroll can be triggered by scrolling right (or bottom) and then
 				// scrolling left without raising your fingers from the scroll position.
-				angular.element($window).on('mousewheel', onScroll);
+				$window.addEventListener('mousewheel', onScroll, {
+					passive: false
+				});
 			}
 
 			function onScroll(e) {

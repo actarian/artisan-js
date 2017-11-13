@@ -795,15 +795,15 @@ a:focus {
     margin-top: 1px; } }
 
 /* --- end nav --- */
-[scrollable-x] {
+[scrollable-x], [scrollable-y] {
   position: relative;
   overflow: hidden;
   -webkit-overflow-scroll: touch;
   cursor: pointer; }
-  [scrollable-x] > .content {
+  [scrollable-x] > .content, [scrollable-y] > .content {
     display: inline-block;
     -webkit-overflow-scrolling: touch; }
-  [scrollable-x] > .indicator {
+  [scrollable-x] > .indicator, [scrollable-y] > .indicator {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -827,7 +827,7 @@ a:focus {
 
 .blog-previews {
   width: 100%;
-  height: 360px;
+  height: 340px;
   margin-bottom: 100px; }
 
 .blog-previews__flex {
@@ -836,15 +836,24 @@ a:focus {
   /*<div class="" ng-class="{ active: item.active, animating: item.animating }" safe-click="openBlog(item)" ng-repeat="item in sources.items | filter : filterBlog() track by $index">*/
   /* <div class="blog-preview__scroll" scrollable-y scrollable-when="item.active"> */ }
   .blog-previews__flex .blog-preview {
-    display: inline-flex;
+    display: inline-block;
+    width: 300px;
+    height: 300px;
+    margin: 10px; }
+    .blog-previews__flex .blog-preview .inner {
+      display: block;
+      width: 300px;
+      height: 300px; }
+  .blog-previews__flex .blog-card {
+    display: flex;
     justify-content: center;
     align-items: center;
     width: 300px;
     height: 300px;
+    margin-bottom: 30px;
     border: 1px solid #0000fe;
     border-radius: 12px;
-    margin: 10px;
     box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15); }
-    .blog-previews__flex .blog-preview .title {
+    .blog-previews__flex .blog-card .title {
       font-size: 110px;
       margin-top: -40px; }

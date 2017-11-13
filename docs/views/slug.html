@@ -8,7 +8,11 @@
 <div class="blog-previews" scrollable-x="scrollable" scrollable-item=".blog-preview">
     <div class="blog-previews__flex">
         <div class="blog-preview" safe-click="openBlog(item)" ng-repeat="item in items track by $index">
-            <div class="title" ng-bind="$index + 1"></div>
+            <div class="inner" scrollable-y scrollable-item=".blog-card">
+                <div class="blog-card" ng-repeat="card in item.items track by $index">
+                    <div class="title" ng-bind="item.id + '.' + card.id"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -297,11 +297,17 @@
 
 			////////////
 
-			var items = new Array(20).fill({
-				name: 'Item',
-				items: new Array(2).fill({
+			var items = new Array(20).fill(null).map(function (value, index) {
+				return {
+					id: index + 1,
 					name: 'Item',
-				}),
+					items: new Array(2).fill(null).map(function (value, index) {
+						return {
+							id: index + 1,
+							name: 'Item',
+						};
+					}),
+				};
 			});
 
 			var scrollable = new Scrollable();
