@@ -297,7 +297,7 @@
 	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
 
 		handlePassiveEvents();
-		preventHistoryNavigation();
+		// preventHistoryNavigation();
 
 		this.hasPassiveEvents = hasPassiveEvents;
 
