@@ -405,7 +405,7 @@
 			}
 
 			var defaults = {
-				passive: true,
+				passive: false,
 				capture: false,
 			};
 
@@ -1255,91 +1255,59 @@
 		return Vector;
 	});
 
-	app.factory('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
+	app.service('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
 
-		(function () {
-			// POLYFILL Array.prototype.reduce
-			// Production steps of ECMA-262, Edition 5, 15.4.4.21
-			// Reference: http://es5.github.io/#x15.4.4.21
-			// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
-			if (!Array.prototype.reduce) {
-				Object.defineProperty(Array.prototype, 'reduce', {
-					value: function (callback) { // , initialvalue
-						if (this === null) {
-							throw new TypeError('Array.prototype.reduce called on null or undefined');
-						}
-						if (typeof callback !== 'function') {
-							throw new TypeError(callback + ' is not a function');
-						}
-						var o = Object(this);
-						var len = o.length >>> 0;
-						var k = 0;
-						var value;
-						if (arguments.length == 2) {
-							value = arguments[1];
-						} else {
-							while (k < len && !(k in o)) {
-								k++;
-							}
-							if (k >= len) {
-								throw new TypeError('Reduce of empty array with no initial value');
-							}
-							value = o[k++];
-						}
-						while (k < len) {
-							if (k in o) {
-								value = callback(value, o[k], k, o);
-							}
-							k++;
-						}
-						return value;
-					}
-				});
-			}
-		}());
-		var _isTouch;
+		this.ua = getUA();
+		this.reverseSortOn = reverseSortOn;
+		this.getTouch = getTouch;
+		this.getRelativeTouch = getRelativeTouch;
+		this.getClosest = getClosest;
+		this.getClosestElement = getClosestElement;
+		this.getParents = getParents;
+		this.indexOf = indexOf;
+		this.removeValue = removeValue;
+		this.throttle = throttle;
+		this.where = where;
+		this.format = format;
+		this.compileController = compileController;
+		this.reducer = reducer;
+		this.reducerSetter = reducerSetter;
+		this.reducerAdder = reducerAdder;
+		this.downloadFile = downloadFile;
+		this.serverDownload = serverDownload;
+		this.toMd5 = toMd5;
+
 		var getNow = Date.now || function () {
 			return new Date().getTime();
 		};
-		var ua = window.navigator.userAgent.toLowerCase();
-		var safari = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1;
-		var msie = ua.indexOf('trident') !== -1 || ua.indexOf('edge') !== -1 || ua.indexOf('msie') !== -1;
-		var chrome = !safari && !msie && ua.indexOf('chrome') !== -1;
-		var mobile = ua.indexOf('mobile') !== -1;
-		var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
-		var isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1;
 
-		function Utils() {}
-		Utils.reverseSortOn = reverseSortOn;
-		Utils.getTouch = getTouch;
-		Utils.getRelativeTouch = getRelativeTouch;
-		Utils.getClosest = getClosest;
-		Utils.getClosestElement = getClosestElement;
-		Utils.getParents = getParents;
-		Utils.throttle = throttle;
-		Utils.where = where;
-		Utils.format = format;
-		Utils.compileController = compileController;
-		Utils.reducer = reducer;
-		Utils.reducerSetter = reducerSetter;
-		Utils.reducerAdder = reducerAdder;
-		Utils.downloadFile = downloadFile;
-		Utils.serverDownload = serverDownload;
-		Utils.toMd5 = function (string) {
-			return Md5.encode(string);
-		};
-		Utils.ua = {
-			safari: safari,
-			msie: msie,
-			chrome: chrome,
-			mobile: mobile,
-		};
-		angular.forEach(Utils.ua, function (value, key) {
-			if (value) {
-				angular.element(document.getElementsByTagName('body')).addClass(key);
-			}
-		});
-		return Utils;
+		function getUA() {
+			var agent = window.navigator.userAgent.toLowerCase();
+			var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
+			var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
+			var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
+			var mobile = agent.indexOf('mobile') !== -1;
+			var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+			var isSafari = navigator.userAgent.toLowerCase().indexOf('safari') > -1;
+			var ua = {
+				safari: safari,
+				msie: msie,
+				chrome: chrome,
+				mobile: mobile,
+			};
+			angular.forEach(ua, function (value, key) {
+				if (value) {
+					angular.element(document.getElementsByTagName('body')).addClass(key);
+				}
+			});
+			return ua;
+		}
+
+		function toMd5(string) {
+			// return Md5.encode(string);
+		}
+
+		var _isTouch;
 
 		function isTouch() {
 			if (!_isTouch) {
@@ -1432,6 +1400,44 @@
 			}
 			parents.push(topParentNode); // push that topParentNode you wanted to stop at
 			return parents;
+		}
+
+		function indexOf(array, object, key) {
+			key = key || 'id';
+			var index = -1;
+			if (array) {
+				var i = 0,
+					t = array.length;
+				while (i < t) {
+					if (array[i] && array[i][key] === object[key]) {
+						index = i;
+						break;
+					}
+					i++;
+				}
+			}
+			return index;
+		}
+
+		function removeValue(array, value) {
+			var index = -1;
+			if (array) {
+				var i = 0,
+					t = array.length;
+				while (i < t) {
+					if (array[i] === value) {
+						index = i;
+						break;
+					}
+					i++;
+				}
+			}
+			if (index !== -1) {
+				array.splice(index, 1);
+				return value;
+			} else {
+				return null;
+			}
 		}
 
 		function throttle(func, wait, options) {
@@ -1688,8 +1694,48 @@
 		}
     }]);
 
-}());
+	(function () {
+		// POLYFILL Array.prototype.reduce
+		// Production steps of ECMA-262, Edition 5, 15.4.4.21
+		// Reference: http://es5.github.io/#x15.4.4.21
+		// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
+		if (!Array.prototype.reduce) {
+			Object.defineProperty(Array.prototype, 'reduce', {
+				value: function (callback) { // , initialvalue
+					if (this === null) {
+						throw new TypeError('Array.prototype.reduce called on null or undefined');
+					}
+					if (typeof callback !== 'function') {
+						throw new TypeError(callback + ' is not a function');
+					}
+					var o = Object(this);
+					var len = o.length >>> 0;
+					var k = 0;
+					var value;
+					if (arguments.length == 2) {
+						value = arguments[1];
+					} else {
+						while (k < len && !(k in o)) {
+							k++;
+						}
+						if (k >= len) {
+							throw new TypeError('Reduce of empty array with no initial value');
+						}
+						value = o[k++];
+					}
+					while (k < len) {
+						if (k in o) {
+							value = callback(value, o[k], k, o);
+						}
+						k++;
+					}
+					return value;
+				}
+			});
+		}
+	}());
 
+}());
 /* global angular */
 
 (function() {
@@ -3838,7 +3884,7 @@
 						},
 						reset: function () {
 							scrollable.doReset();
-							render();
+							animate.play();
 						},
 						onLeft: onLeft,
 						onRight: onRight,
@@ -4098,7 +4144,7 @@
 						},
 						reset: function () {
 							scrollable.doReset();
-							render();
+							animate.play();
 						},
 						onTop: onTop,
 						onBottom: onBottom,
@@ -4527,6 +4573,18 @@
 				}
 			}
 
+			function wheelXIncrement(dir) {
+				var increment = 100;
+				if (snappable) {
+					var items = scrollable.getItems();
+					if (items) {
+						var index = Math.max(0, Math.min(items.length - 1, currentIndex + dir));
+						increment = items[index].offsetWidth;
+					}
+				}
+				return increment;
+			}
+
 			function wheelX(dir) {
 				end.x += dir * content.height;
 				speed.x += dir * 5;
@@ -4667,8 +4725,20 @@
 				}
 			}
 
+			function wheelYIncrement(dir) {
+				var increment = 100;
+				if (snappable) {
+					var items = scrollable.getItems();
+					if (items) {
+						var index = Math.max(0, Math.min(items.length - 1, currentIndex + dir));
+						increment = items[index].offsetHeight;
+					}
+				}
+				return increment;
+			}
+
 			function wheelY(dir) {
-				end.y += dir * content.width;
+				end.y += dir * wheelYIncrement(dir);
 				speed.y += dir * 5;
 				wheeling = true;
 			}

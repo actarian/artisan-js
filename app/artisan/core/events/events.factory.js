@@ -322,7 +322,7 @@
 			}
 
 			var defaults = {
-				passive: true,
+				passive: false,
 				capture: false,
 			};
 

@@ -285,6 +285,18 @@
 				}
 			}
 
+			function wheelXIncrement(dir) {
+				var increment = 100;
+				if (snappable) {
+					var items = scrollable.getItems();
+					if (items) {
+						var index = Math.max(0, Math.min(items.length - 1, currentIndex + dir));
+						increment = items[index].offsetWidth;
+					}
+				}
+				return increment;
+			}
+
 			function wheelX(dir) {
 				end.x += dir * content.height;
 				speed.x += dir * 5;
@@ -425,8 +437,20 @@
 				}
 			}
 
+			function wheelYIncrement(dir) {
+				var increment = 100;
+				if (snappable) {
+					var items = scrollable.getItems();
+					if (items) {
+						var index = Math.max(0, Math.min(items.length - 1, currentIndex + dir));
+						increment = items[index].offsetHeight;
+					}
+				}
+				return increment;
+			}
+
 			function wheelY(dir) {
-				end.y += dir * content.width;
+				end.y += dir * wheelYIncrement(dir);
 				speed.y += dir * 5;
 				wheeling = true;
 			}

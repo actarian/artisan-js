@@ -60,7 +60,7 @@
 						},
 						reset: function () {
 							scrollable.doReset();
-							render();
+							animate.play();
 						},
 						onLeft: onLeft,
 						onRight: onRight,
@@ -320,7 +320,7 @@
 						},
 						reset: function () {
 							scrollable.doReset();
-							render();
+							animate.play();
 						},
 						onTop: onTop,
 						onBottom: onBottom,
