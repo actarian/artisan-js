@@ -142,14 +142,17 @@
 
         function getParents(node, topParentNode) {
             // if no topParentNode defined will bubble up all the way to *document*
-            topParentNode = topParentNode || document;
+            topParentNode = topParentNode || document.documentElement;
             var parents = [];
-            var parentNode = node.parentNode;
-            while (parentNode !== topParentNode) {
-                parents.push(parentNode);
-                parentNode = parentNode.parentNode;
+            if (node) {
+                parents.push(node);
+                var parentNode = node.parentNode;
+                while (parentNode !== topParentNode) {
+                    parents.push(parentNode);
+                    parentNode = parentNode.parentNode;
+                }
+                parents.push(topParentNode); // push that topParentNode you wanted to stop at
             }
-            parents.push(topParentNode); // push that topParentNode you wanted to stop at
             return parents;
         }
 

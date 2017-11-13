@@ -344,36 +344,25 @@
         }
 
         function preventHistoryNavigation() {
-            // This code is only valid for Mac
-            var mac = navigator.userAgent.match(/Macintosh/);
-            if (!mac) {
+            if (!Utils.ua.mac) {
                 return;
             }
-            // detection
-            var chrome = navigator.userAgent.indexOf('Chrome') > -1;
-            var safari = navigator.userAgent.indexOf("Safari") > -1;
-            var firefox = navigator.userAgent.indexOf('Firefox') > -1;
-            // Handle scroll events in Chrome, Safari, and Firefox
-            if (chrome || safari || firefox) {
-                // TODO: This only prevents scroll when reaching the topmost or leftmost
-                // positions of a container. It doesn't handle rightmost or bottom,
-                // and Lion scroll can be triggered by scrolling right (or bottom) and then
-                // scrolling left without raising your fingers from the scroll position.
+            if (Utils.ua.chrome || Utils.ua.safari || Utils.ua.firefox) {
                 $window.addEventListener('mousewheel', onScroll, {
                     passive: false
                 });
             }
 
             function onScroll(e) {
-                // prevent futile scroll, which would trigger the Back/Next page event
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    return;
+                }
                 if (
-                    // left - if none of the parents can be scrolled left
                     (e.deltaX < 0 && (Utils.getParents(e.target).filter(function(node) {
                         return node.scrollLeft > 0;
                     }).length === 0)) ||
-                    // ip - if none of the parents can be scrolled up
-                    (e.deltaY > 0 && !(Utils.getParents(e.target).filter(function(node) {
-                        return node.scrollTop > 0;
+                    (e.deltaX > 0 && (Utils.getParents(e.target).filter(function(node) {
+                        return node.scrollWidth - node.scrollLeft > node.clientWidth;
                     }).length === 0))
                 ) {
                     e.preventDefault();

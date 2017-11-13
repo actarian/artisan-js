@@ -227,9 +227,10 @@
                         if (wheeling) {
                             extendX();
                         }
-                        if (Math.abs(speed.x) < 0.05) {
+                        if (Math.abs(speed.x) < 2.05) {
                             speed.x = 0;
                             scrollable.wheeling = wheeling = false;
+                            snapToNearestX();
                         }
                     } else if (offset.x) {
                         end.x = -offset.x;
@@ -268,21 +269,22 @@
             }
 
             function snapToNearestX() {
-                if (snappable) {
-                    var items = scrollable.getItems();
-                    if (items) {
-                        var index = -1;
-                        var min = Number.POSITIVE_INFINITY;
-                        angular.forEach(items, function(item, i) {
-                            var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
-                            if (distance < min) {
-                                min = distance;
-                                index = i;
-                            }
-                        });
-                        // console.log('snapToNearestX.index', index, min);
-                        if (index !== -1) {
+                var items = scrollable.getItems();
+                if (items) {
+                    var index = -1;
+                    var min = Number.POSITIVE_INFINITY;
+                    angular.forEach(items, function(item, i) {
+                        var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
+                        if (distance < min) {
+                            min = distance;
+                            index = i;
+                        }
+                    });
+                    if (index !== -1) {
+                        if (snappable) { // && !Utils.ua.mac) {
                             return scrollToIndex(index);
+                        } else {
+                            currentIndex = index;
                         }
                     }
                 }
@@ -379,9 +381,10 @@
                         if (wheeling) {
                             extendX();
                         }
-                        if (Math.abs(speed.y) < 0.05) {
+                        if (Math.abs(speed.y) < 2.05) {
                             speed.y = 0;
                             scrollable.wheeling = wheeling = false;
+                            snapToNearestY();
                         }
                     } else if (offset.y) {
                         end.y = -offset.y;
@@ -393,6 +396,7 @@
                     current.y += (end.y - current.y) / 4;
                     if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
                         current.y = end.y;
+                        animating = false;
                         if (!snapToNearestY()) {
                             animating = false;
                         }
@@ -420,21 +424,23 @@
             }
 
             function snapToNearestY() {
-                if (snappable) {
-                    var items = scrollable.getItems();
-                    if (items) {
-                        var index = -1;
-                        var min = Number.POSITIVE_INFINITY;
-                        angular.forEach(items, function(item, i) {
-                            var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
-                            if (distance < min) {
-                                min = distance;
-                                index = i;
-                            }
-                        });
-                        // console.log('snapToNearestX.index', index, min);
-                        if (index !== -1) {
+                var items = scrollable.getItems();
+                if (items) {
+                    var index = -1;
+                    var min = Number.POSITIVE_INFINITY;
+                    angular.forEach(items, function(item, i) {
+                        var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
+                        if (distance < min) {
+                            min = distance;
+                            index = i;
+                        }
+                    });
+                    // console.log('snapToNearestY.index', index, min);
+                    if (index !== -1) {
+                        if (snappable) { // && !Utils.ua.mac) {
                             return scrollToIndex(index);
+                        } else {
+                            currentIndex = index;
                         }
                     }
                 }

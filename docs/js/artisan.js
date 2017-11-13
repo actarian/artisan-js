@@ -427,36 +427,25 @@
         }
 
         function preventHistoryNavigation() {
-            // This code is only valid for Mac
-            var mac = navigator.userAgent.match(/Macintosh/);
-            if (!mac) {
+            if (!Utils.ua.mac) {
                 return;
             }
-            // detection
-            var chrome = navigator.userAgent.indexOf('Chrome') > -1;
-            var safari = navigator.userAgent.indexOf("Safari") > -1;
-            var firefox = navigator.userAgent.indexOf('Firefox') > -1;
-            // Handle scroll events in Chrome, Safari, and Firefox
-            if (chrome || safari || firefox) {
-                // TODO: This only prevents scroll when reaching the topmost or leftmost
-                // positions of a container. It doesn't handle rightmost or bottom,
-                // and Lion scroll can be triggered by scrolling right (or bottom) and then
-                // scrolling left without raising your fingers from the scroll position.
+            if (Utils.ua.chrome || Utils.ua.safari || Utils.ua.firefox) {
                 $window.addEventListener('mousewheel', onScroll, {
                     passive: false
                 });
             }
 
             function onScroll(e) {
-                // prevent futile scroll, which would trigger the Back/Next page event
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    return;
+                }
                 if (
-                    // left - if none of the parents can be scrolled left
                     (e.deltaX < 0 && (Utils.getParents(e.target).filter(function(node) {
                         return node.scrollLeft > 0;
                     }).length === 0)) ||
-                    // ip - if none of the parents can be scrolled up
-                    (e.deltaY > 0 && !(Utils.getParents(e.target).filter(function(node) {
-                        return node.scrollTop > 0;
+                    (e.deltaX > 0 && (Utils.getParents(e.target).filter(function(node) {
+                        return node.scrollWidth - node.scrollLeft > node.clientWidth;
                     }).length === 0))
                 ) {
                     e.preventDefault();
@@ -1400,14 +1389,17 @@
 
         function getParents(node, topParentNode) {
             // if no topParentNode defined will bubble up all the way to *document*
-            topParentNode = topParentNode || document;
+            topParentNode = topParentNode || document.documentElement;
             var parents = [];
-            var parentNode = node.parentNode;
-            while (parentNode !== topParentNode) {
-                parents.push(parentNode);
-                parentNode = parentNode.parentNode;
+            if (node) {
+                parents.push(node);
+                var parentNode = node.parentNode;
+                while (parentNode !== topParentNode) {
+                    parents.push(parentNode);
+                    parentNode = parentNode.parentNode;
+                }
+                parents.push(topParentNode); // push that topParentNode you wanted to stop at
             }
-            parents.push(topParentNode); // push that topParentNode you wanted to stop at
             return parents;
         }
 
@@ -4535,9 +4527,10 @@
                         if (wheeling) {
                             extendX();
                         }
-                        if (Math.abs(speed.x) < 0.05) {
+                        if (Math.abs(speed.x) < 2.05) {
                             speed.x = 0;
                             scrollable.wheeling = wheeling = false;
+                            snapToNearestX();
                         }
                     } else if (offset.x) {
                         end.x = -offset.x;
@@ -4576,21 +4569,22 @@
             }
 
             function snapToNearestX() {
-                if (snappable) {
-                    var items = scrollable.getItems();
-                    if (items) {
-                        var index = -1;
-                        var min = Number.POSITIVE_INFINITY;
-                        angular.forEach(items, function(item, i) {
-                            var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
-                            if (distance < min) {
-                                min = distance;
-                                index = i;
-                            }
-                        });
-                        // console.log('snapToNearestX.index', index, min);
-                        if (index !== -1) {
+                var items = scrollable.getItems();
+                if (items) {
+                    var index = -1;
+                    var min = Number.POSITIVE_INFINITY;
+                    angular.forEach(items, function(item, i) {
+                        var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
+                        if (distance < min) {
+                            min = distance;
+                            index = i;
+                        }
+                    });
+                    if (index !== -1) {
+                        if (snappable) { // && !Utils.ua.mac) {
                             return scrollToIndex(index);
+                        } else {
+                            currentIndex = index;
                         }
                     }
                 }
@@ -4687,9 +4681,10 @@
                         if (wheeling) {
                             extendX();
                         }
-                        if (Math.abs(speed.y) < 0.05) {
+                        if (Math.abs(speed.y) < 2.05) {
                             speed.y = 0;
                             scrollable.wheeling = wheeling = false;
+                            snapToNearestY();
                         }
                     } else if (offset.y) {
                         end.y = -offset.y;
@@ -4701,6 +4696,7 @@
                     current.y += (end.y - current.y) / 4;
                     if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
                         current.y = end.y;
+                        animating = false;
                         if (!snapToNearestY()) {
                             animating = false;
                         }
@@ -4728,21 +4724,23 @@
             }
 
             function snapToNearestY() {
-                if (snappable) {
-                    var items = scrollable.getItems();
-                    if (items) {
-                        var index = -1;
-                        var min = Number.POSITIVE_INFINITY;
-                        angular.forEach(items, function(item, i) {
-                            var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
-                            if (distance < min) {
-                                min = distance;
-                                index = i;
-                            }
-                        });
-                        // console.log('snapToNearestX.index', index, min);
-                        if (index !== -1) {
+                var items = scrollable.getItems();
+                if (items) {
+                    var index = -1;
+                    var min = Number.POSITIVE_INFINITY;
+                    angular.forEach(items, function(item, i) {
+                        var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
+                        if (distance < min) {
+                            min = distance;
+                            index = i;
+                        }
+                    });
+                    // console.log('snapToNearestY.index', index, min);
+                    if (index !== -1) {
+                        if (snappable) { // && !Utils.ua.mac) {
                             return scrollToIndex(index);
+                        } else {
+                            currentIndex = index;
                         }
                     }
                 }
