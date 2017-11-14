@@ -157,6 +157,7 @@
 				// var onScrollX = Utils.throttle(_onScrollX, 25);
 
 				function onWheel(event) {
+					console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
 					if (scrollable.wheelXCheck(event.dir)) {
 						onScrollX(event.dir, event.interval);
 						animate.play();
@@ -193,6 +194,8 @@
 				}, function (newValue, oldValue) {
 					onResize();
 				});
+
+				console.log('registeX');
 
 				var events = new Events(element).add({
 					down: onDown,
@@ -332,6 +335,7 @@
 				// var onScrollY = Utils.throttle(_onScrollY, 25);
 
 				function onWheel(event) {
+					console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
 					if (scrollable.wheelYCheck(event.dir)) {
 						onScrollY(event.dir, event.interval);
 						animate.play();
@@ -368,6 +372,8 @@
 				}, function (newValue, oldValue) {
 					onResize();
 				});
+
+				console.log('registeY');
 
 				var events = new Events(element).add({
 					down: onDown,

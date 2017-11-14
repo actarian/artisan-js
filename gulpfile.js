@@ -80,7 +80,7 @@ gulp.task('bundle:partials', function () {
 			path.dirname = path.dirname.split('artisan/').join('');
 			// path.basename += "-partial";
 			path.extname = '';
-			console.log('path', path);
+			// console.log('path', path);
 		}))
 		.pipe(html2js('artisan-partials.js', {
 			adapter: 'angular',

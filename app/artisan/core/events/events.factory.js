@@ -45,12 +45,12 @@
 				e = e.originalEvent ? e.originalEvent : e;
 				var deltaX = e.deltaX || e.wheelDeltaX;
 				var deltaY = e.deltaY || e.wheelDeltaY;
-				// console.log(e.deltaX, e.deltaY, e.wheelDeltaX, e.wheelDeltaY);
 				if (Math.abs(deltaX) > Math.abs(deltaY)) {
 					this.dir = deltaX < 0 ? 1 : -1;
 				} else {
 					this.dir = deltaY < 0 ? 1 : -1;
 				}
+				// console.log(element, this.dir, e.deltaX, e.deltaY, e.wheelDeltaX, e.wheelDeltaY);
 			}
 			this.originalEvent = e;
 			this.element = element;
@@ -435,14 +435,26 @@
 
 			function getModifiedAddEventListener(original) {
 				function addEventListener(type, listener, options) {
+					if (options === true) {
+						options = angular.copy(defaults);
+						options.capture = true;
+					} else if (options === undefined) {
+						options = angular.copy(defaults);
+					}
+					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
+					options.capture = options.capture !== undefined ? options.capture : defaults.capture;
+					// console.log(type, options);
+					/*
 					var usesListenerOptions = typeof options === 'object';
 					options = usesListenerOptions ? options : {};
 					var descriptor = Object.getOwnPropertyDescriptor(options, 'passive');
-					if (descriptor === undefined || descriptor.writable) {
+					if (!descriptor || descriptor.writable) {
 						var capture = usesListenerOptions ? options.capture : options;
 						options.passive = options.passive !== undefined ? options.passive : defaults.passive;
 						options.capture = capture !== undefined ? capture : defaults.capture;
+						// console.log(this, type);
 					}
+					*/
 					original.call(this, type, listener, options);
 				}
 				return addEventListener;
