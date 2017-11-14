@@ -371,8 +371,6 @@
                     onResize();
                 });
 
-                console.log('registeY');
-
                 var events = new Events(element).add({
                     down: onDown,
                     wheel: onWheel,

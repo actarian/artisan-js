@@ -1,83 +1,77 @@
-[scrollable-x], [scrollable-y] {
-	position: relative;
-	overflow: hidden;
-	-webkit-overflow-scroll: touch;
-	cursor: pointer;
-
-	&>.content {
-		display: inline-block; // position: absolute; // for performance
-		// min-width: 100%;
-		// height: 100%;
-		-webkit-overflow-scrolling: touch;
-	}
-
-	&>.indicator {
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		width: 20px;
-		height: 40px;
-		background: grey;
-		color: white;
-		font-size: 14px;
-		border-radius: 1px 0 0 1px;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		font-weight: 700;
-	}
+[scrollable-x],
+[scrollable-y] {
+    position: relative;
+    overflow: hidden;
+    -webkit-overflow-scroll: touch;
+    cursor: pointer;
+    &>.content {
+        display: inline-block; // position: absolute; // for performance
+        // min-width: 100%;
+        // height: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    &>.indicator {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 20px;
+        height: 40px;
+        background: grey;
+        color: white;
+        font-size: 14px;
+        border-radius: 1px 0 0 1px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-weight: 700;
+    }
 }
 
 .unselectable {
-	-moz-user-select: -moz-none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-o-user-select: none;
-	user-select: none;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
 }
 
-
-
-
-
 .blog-previews {
-	width: 100%;
-	height: 340px;
-	margin-bottom: 100px;
+    width: 100%;
+    height: 310px;
+    margin-bottom: 100px;
 }
 
 .blog-previews__flex {
-	display: inline-block;
-	white-space: nowrap;
-
-	.blog-preview {
-		display: inline-block;
-		width: 300px;
-		height: 300px;
-		margin: 10px;
-
-		.inner {
-			display: block;
-			width: 300px;
-			height: 300px;
-		}
-	}
-
-	.blog-card {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 300px;
-		height: 300px;
-		margin-bottom: 30px;
-		border: 1px solid $blue;
-		border-radius: 12px;
-		box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
-		.title {
-			font-size: 110px;
-			margin-top: -40px;
-		}
-	}
-	/*<div class="" ng-class="{ active: item.active, animating: item.animating }" safe-click="openBlog(item)" ng-repeat="item in sources.items | filter : filterBlog() track by $index">*/
-	/* <div class="blog-preview__scroll" scrollable-y scrollable-when="item.active"> */
+    display: inline-block;
+    white-space: nowrap;
+    .blog-preview {
+        display: inline-block;
+        width: 300px;
+        height: 300px;
+        margin: 10px;
+        .inner {
+            display: block;
+            width: 300px;
+            height: 300px;
+        }
+    }
+    .blog-card {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 300px;
+        height: 300px;
+        border: 1px solid $blue;
+        border-radius: 12px;
+        // box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+        .title {
+            font-size: 110px;
+            margin-top: -40px;
+        }
+    }
+    .blog-card+.blog-card {
+        margin-top: 30px;
+    }
+    /*<div class="" ng-class="{ active: item.active, animating: item.animating }" safe-click="openBlog(item)" ng-repeat="item in sources.items | filter : filterBlog() track by $index">*/
+    /* <div class="blog-preview__scroll" scrollable-y scrollable-when="item.active"> */
 }

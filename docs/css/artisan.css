@@ -795,15 +795,18 @@ a:focus {
     margin-top: 1px; } }
 
 /* --- end nav --- */
-[scrollable-x], [scrollable-y] {
+[scrollable-x],
+[scrollable-y] {
   position: relative;
   overflow: hidden;
   -webkit-overflow-scroll: touch;
   cursor: pointer; }
-  [scrollable-x] > .content, [scrollable-y] > .content {
+  [scrollable-x] > .content,
+  [scrollable-y] > .content {
     display: inline-block;
     -webkit-overflow-scrolling: touch; }
-  [scrollable-x] > .indicator, [scrollable-y] > .indicator {
+  [scrollable-x] > .indicator,
+  [scrollable-y] > .indicator {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -827,7 +830,7 @@ a:focus {
 
 .blog-previews {
   width: 100%;
-  height: 340px;
+  height: 310px;
   margin-bottom: 100px; }
 
 .blog-previews__flex {
@@ -850,10 +853,10 @@ a:focus {
     align-items: center;
     width: 300px;
     height: 300px;
-    margin-bottom: 30px;
     border: 1px solid #0000fe;
-    border-radius: 12px;
-    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15); }
+    border-radius: 12px; }
     .blog-previews__flex .blog-card .title {
       font-size: 110px;
       margin-top: -40px; }
+  .blog-previews__flex .blog-card + .blog-card {
+    margin-top: 30px; }
