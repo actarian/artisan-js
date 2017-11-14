@@ -481,28 +481,33 @@
 
 	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
 
-		handlePassiveEvents();
-		preventHistoryNavigation();
+		var service = this;
 
-		this.hasPassiveEvents = hasPassiveEvents;
+		service.hasPassiveEvents = hasPassiveEvents;
+		service.addEventListener = getAddEventListener();
+
+		preventHistoryNavigation();
 
 		function hasPassiveEvents() {
 			var supported = false;
-			try {
-				var options = Object.defineProperty({}, 'passive', {
-					get: function () {
-						supported = true;
-					},
-				});
-				window.addEventListener("test", null, options);
-			} catch (e) {
-				console.log('handlePassiveEvents.isSupprted', e);
+			if ($window.addEventListener) {
+				try {
+					var options = Object.defineProperty({}, 'passive', {
+						get: function () {
+							supported = true;
+						},
+					});
+					$window.addEventListener('test', null, options);
+				} catch (e) {
+					console.log('getAddEventListener.isSupprted', e);
+				}
 			}
 			return supported;
 		}
 
-		function handlePassiveEvents() {
-			if (!window.addEventListener) {
+		function getAddEventListener() {
+			var supported = hasPassiveEvents();
+			if (!supported) {
 				return;
 			}
 
@@ -511,21 +516,27 @@
 				capture: false,
 			};
 
-			function overwriteOriginal(original) {
-				EventTarget.prototype.addEventListener = function (type, listener, options) {
+			function getModifiedAddEventListener(original) {
+				function addEventListener(type, listener, options) {
 					var usesListenerOptions = typeof options === 'object';
-					var capture = usesListenerOptions ? options.capture : options;
 					options = usesListenerOptions ? options : {};
-					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-					options.capture = capture !== undefined ? capture : defaults.capture;
+					var descriptor = Object.getOwnPropertyDescriptor(options, 'passive');
+					if (descriptor === undefined || descriptor.writable) {
+						var capture = usesListenerOptions ? options.capture : options;
+						options.passive = options.passive !== undefined ? options.passive : defaults.passive;
+						options.capture = capture !== undefined ? capture : defaults.capture;
+					}
 					original.call(this, type, listener, options);
-				};
+				}
+				return addEventListener;
 			}
-			var supported = hasPassiveEvents();
-			if (supported) {
-				var original = EventTarget.prototype.addEventListener;
-				overwriteOriginal(original);
-			}
+
+			var original = EventTarget.prototype.addEventListener;
+			var modified = getModifiedAddEventListener(original);
+
+			EventTarget.prototype.addEventListener = modified;
+
+			return modified;
 		}
 
 		function preventHistoryNavigation() {
@@ -4440,7 +4451,7 @@
 					if (item) {
 						offset.x = item.offsetLeft;
 						offset.y = item.offsetTop;
-						console.log('scrollToIndex', index, offset);
+						// console.log('scrollToIndex', index, offset);
 					}
 					return true;
 				}

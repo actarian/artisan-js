@@ -104,7 +104,7 @@
 					if (item) {
 						offset.x = item.offsetLeft;
 						offset.y = item.offsetTop;
-						console.log('scrollToIndex', index, offset);
+						// console.log('scrollToIndex', index, offset);
 					}
 					return true;
 				}
