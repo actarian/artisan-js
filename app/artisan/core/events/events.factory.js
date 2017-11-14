@@ -65,6 +65,7 @@
 			getPage: getPage,
 			getWidth: getWidth,
 			getHeight: getHeight,
+			stop: stop,
 		};
 
 		function getWidth() {
@@ -124,6 +125,11 @@
 			}
 			this.type = e.type;
 			return page;
+		}
+
+		function stop() {
+			this.originalEvent.stopPropagation();
+			this.originalEvent.preventDefault();
 		}
 
 		function Events(element) {

@@ -127,18 +127,25 @@
 				}
 
 				function onDown(event) {
-					if (scrollable.dragStart(event.relative)) {
+					if (scrollable.dragStart(event.absolute)) {
 						dragOn();
 						animate.play();
 					}
 				}
 
 				function onMove(event) {
-					scrollable.dragMove(event.relative);
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.y) > Math.abs(drag.x)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
 				}
 
 				function onUp(event) {
-					scrollable.dragEnd(event.relative);
+					scrollable.dragEnd(event.absolute);
+					event.stop();
 					dragOff();
 				}
 
@@ -153,8 +160,7 @@
 					if (scrollable.wheelXCheck(event.dir)) {
 						onScrollX(event.dir, event.interval);
 						animate.play();
-						event.originalEvent.stopPropagation();
-						event.originalEvent.preventDefault();
+						event.stop();
 					}
 				}
 
@@ -296,18 +302,25 @@
 				}
 
 				function onDown(event) {
-					if (scrollable.dragStart(event.relative)) {
+					if (scrollable.dragStart(event.absolute)) {
 						dragOn();
 						animate.play();
 					}
 				}
 
 				function onMove(event) {
-					scrollable.dragMove(event.relative);
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.x) > Math.abs(drag.y)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
 				}
 
 				function onUp(event) {
-					scrollable.dragEnd(event.relative);
+					scrollable.dragEnd(event.absolute);
+					event.stop();
 					dragOff();
 				}
 
@@ -322,8 +335,7 @@
 					if (scrollable.wheelYCheck(event.dir)) {
 						onScrollY(event.dir, event.interval);
 						animate.play();
-						event.originalEvent.stopPropagation();
-						event.originalEvent.preventDefault();
+						event.stop();
 					}
 				}
 

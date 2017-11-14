@@ -148,6 +148,7 @@
 			getPage: getPage,
 			getWidth: getWidth,
 			getHeight: getHeight,
+			stop: stop,
 		};
 
 		function getWidth() {
@@ -207,6 +208,11 @@
 			}
 			this.type = e.type;
 			return page;
+		}
+
+		function stop() {
+			this.originalEvent.stopPropagation();
+			this.originalEvent.preventDefault();
 		}
 
 		function Events(element) {
@@ -4054,18 +4060,25 @@
 				}
 
 				function onDown(event) {
-					if (scrollable.dragStart(event.relative)) {
+					if (scrollable.dragStart(event.absolute)) {
 						dragOn();
 						animate.play();
 					}
 				}
 
 				function onMove(event) {
-					scrollable.dragMove(event.relative);
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.y) > Math.abs(drag.x)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
 				}
 
 				function onUp(event) {
-					scrollable.dragEnd(event.relative);
+					scrollable.dragEnd(event.absolute);
+					event.stop();
 					dragOff();
 				}
 
@@ -4080,8 +4093,7 @@
 					if (scrollable.wheelXCheck(event.dir)) {
 						onScrollX(event.dir, event.interval);
 						animate.play();
-						event.originalEvent.stopPropagation();
-						event.originalEvent.preventDefault();
+						event.stop();
 					}
 				}
 
@@ -4223,18 +4235,25 @@
 				}
 
 				function onDown(event) {
-					if (scrollable.dragStart(event.relative)) {
+					if (scrollable.dragStart(event.absolute)) {
 						dragOn();
 						animate.play();
 					}
 				}
 
 				function onMove(event) {
-					scrollable.dragMove(event.relative);
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.x) > Math.abs(drag.y)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
 				}
 
 				function onUp(event) {
-					scrollable.dragEnd(event.relative);
+					scrollable.dragEnd(event.absolute);
+					event.stop();
 					dragOff();
 				}
 
@@ -4249,8 +4268,7 @@
 					if (scrollable.wheelYCheck(event.dir)) {
 						onScrollY(event.dir, event.interval);
 						animate.play();
-						event.originalEvent.stopPropagation();
-						event.originalEvent.preventDefault();
+						event.stop();
 					}
 				}
 
@@ -4325,8 +4343,6 @@
 
 	app.factory('Scrollable', ['Utils', 'Point', 'Rect', function (Utils, Point, Rect) {
 
-		console.log(Utils.ua);
-
 		function Scrollable() {
 
 			var padding = 150;
@@ -4338,6 +4354,7 @@
 			var start = new Point(),
 				end = new Point(),
 				current = new Point(),
+				drag = new Point(),
 				indicator = new Point(),
 				offset = new Point(),
 				speed = new Point(),
@@ -4360,6 +4377,7 @@
 				setContent: setContent,
 				setEnabled: setEnabled,
 				getCurrent: getCurrent,
+				getDrag: getDrag,
 				getIndicator: getIndicator,
 				scrollToIndex: scrollToIndex,
 				scrollPrev: scrollPrev,
@@ -4407,6 +4425,10 @@
 				return current;
 			}
 
+			function getDrag() {
+				return drag;
+			}
+
 			function getIndicator() {
 				return indicator;
 			}
@@ -4415,11 +4437,10 @@
 				if (index !== currentIndex) {
 					currentIndex = index;
 					var item = getItemAtIndex(index);
-					// console.log('scrollToIndex', item, index, currentIndex);
 					if (item) {
 						offset.x = item.offsetLeft;
 						offset.y = item.offsetTop;
-						// console.log('offset', offset);
+						console.log('scrollToIndex', index, offset);
 					}
 					return true;
 				}
@@ -4432,6 +4453,7 @@
 					speed.x = 0;
 					speed.y = 0;
 					down = point;
+					currentIndex = -1;
 					wheeling = false;
 					return true;
 				} else {
@@ -4442,6 +4464,8 @@
 			function dragMove(point) {
 				prev = move;
 				move = point;
+				drag.x = move.x - down.x;
+				drag.y = move.y - down.y;
 				dragging = true;
 			}
 
@@ -4697,7 +4721,7 @@
 						end.y += speed.y;
 						speed.y *= 0.75;
 						if (wheeling) {
-							extendX();
+							extendY();
 						}
 						if (Math.abs(speed.y) < 2.05) {
 							speed.y = 0;
@@ -4720,6 +4744,7 @@
 						}
 					}
 					// console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
+					// console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
 				} else {
 					current.y = end.y = 0;
 					animating = false;
@@ -4753,7 +4778,6 @@
 							index = i;
 						}
 					});
-					// console.log('snapToNearestY.index', index, min);
 					if (index !== -1) {
 						if (snappable) { // && !Utils.ua.mac) {
 							return scrollToIndex(index);
@@ -4817,7 +4841,7 @@
 			},
 		};
 		return Scrollable;
-    }]);
+		}]);
 
 }());
 /* global angular */
