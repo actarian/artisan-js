@@ -14,13 +14,6 @@
 				x: $window.pageXOffset || documentNode.scrollLeft,
 				y: $window.pageYOffset || documentNode.scrollTop
 			};
-			if (e.type === 'resize') {
-				var view = {
-					w: this.getWidth(),
-					h: this.getHeight(),
-				};
-				this.view = view;
-			}
 			var node = getNode(element);
 			var offset = {
 				x: node.offsetLeft,
@@ -41,10 +34,14 @@
 				this.relative = relative;
 				this.absolute = absolute;
 			}
-			if (this.type === 'resize') {
-				console.log(this.type);
+			if (e.type === 'resize') {
+				var view = {
+					w: this.getWidth(),
+					h: this.getHeight(),
+				};
+				this.view = view;
 			}
-			if (this.type === 'mousewheel' || this.type === 'DOMMouseScroll') {
+			if (e.type === 'mousewheel' || e.type === 'DOMMouseScroll') {
 				e = e.originalEvent ? e.originalEvent : e;
 				var deltaX = e.deltaX || e.wheelDeltaX;
 				var deltaY = e.deltaY || e.wheelDeltaY;

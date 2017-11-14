@@ -127,7 +127,6 @@
 				}
 
 				function onDown(event) {
-					console.log('onDown', event.relative);
 					if (scrollable.dragStart(event.relative)) {
 						dragOn();
 						animate.play();
@@ -135,7 +134,6 @@
 				}
 
 				function onMove(event) {
-					console.log('onMove', event.relative);
 					scrollable.dragMove(event.relative);
 				}
 
