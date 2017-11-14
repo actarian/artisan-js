@@ -8,6 +8,7 @@
 	app.factory('Events', ['$window', '$document', 'EventsService', 'Utils', function ($window, $document, EventsService, Utils) {
 
 		function Event(e, element) {
+			e = e || $window.event;
 			var documentNode = Utils.getDocumentNode();
 			var scroll = {
 				x: $window.pageXOffset || documentNode.scrollLeft,
@@ -43,11 +44,22 @@
 			if (this.type === 'resize') {
 				console.log(this.type);
 			}
+			if (this.type === 'mousewheel' || this.type === 'DOMMouseScroll') {
+				e = e.originalEvent ? e.originalEvent : e;
+				var deltaX = e.deltaX || e.wheelDeltaX;
+				var deltaY = e.deltaY || e.wheelDeltaY;
+				if (Math.abs(deltaX) > Math.abs(deltaY)) {
+					this.dir = deltaX < 0 ? 1 : -1;
+				} else {
+					this.dir = deltaY < 0 ? 1 : -1;
+				}
+			}
 			this.originalEvent = e;
 			this.element = element;
 			this.node = node;
 			this.offset = offset;
 			this.rect = rect;
+			this.timestamp = new Date().getTime();
 			// console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
 			// console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
 		}
@@ -117,6 +129,8 @@
 		}
 
 		function Events(element) {
+			var events = this;
+
 			this.element = element;
 			this.listeners = {};
 			this.standardEvents = {
@@ -167,17 +181,25 @@
 					callback: onMouseScroll
 				},
 			};
-			var events = this;
+			this.setTimestamp = function (event) {
+				if (event) {
+					event.interval = event.timestamp - events.timestamp;
+				}
+				events.timestamp = new Date().getTime();
+			};
+			this.setTimestamp();
 
 			function onClick(e) {
 				// console.log('onClick', e, events);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.click.apply(this, [event]);
 			}
 
 			function onMouseDown(e) {
 				// console.log('onMouseDown', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.down.apply(this, [event]);
 				events.removeTouchEvents();
 			}
@@ -185,18 +207,21 @@
 			function onMouseMove(e) {
 				// console.log('onMouseMove', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.move.apply(this, [event]);
 			}
 
 			function onMouseUp(e) {
 				// console.log('onMouseUp', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.up.apply(this, [event]);
 			}
 
 			function onMouseWheel(e) {
 				// console.log('onMouseWheel', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.wheel.apply(this, [event]);
 				events.removeScrollEvents();
 			}
@@ -204,6 +229,7 @@
 			function onMouseScroll(e) {
 				// console.log('onMouseScroll', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.wheel.apply(this, [event]);
 				events.removeWheelEvents();
 			}
@@ -211,12 +237,14 @@
 			function onResize(e) {
 				// console.log('onResize', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.resize.apply(this, [event]);
 			}
 
 			function onTouchStart(e) {
 				// console.log('onTouchStart', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.down.apply(this, [event]);
 				events.removeStandardEvents();
 			}
@@ -224,12 +252,14 @@
 			function onTouchMove(e) {
 				// console.log('onTouchMove', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.move.apply(this, [event]);
 			}
 
 			function onTouchEnd(e) {
 				// console.log('onTouchEnd', e);
 				var event = new Event(e, events.element);
+				events.setTimestamp(event);
 				events.listeners.up.apply(this, [event]);
 			}
 		}

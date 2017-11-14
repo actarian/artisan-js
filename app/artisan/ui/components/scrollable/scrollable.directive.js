@@ -127,14 +127,15 @@
 				}
 
 				function onDown(event) {
+					console.log('onDown', event.relative);
 					if (scrollable.dragStart(event.relative)) {
 						dragOn();
 						animate.play();
 					}
-					console.log(event, event.originalEvent);
 				}
 
 				function onMove(event) {
+					console.log('onMove', event.relative);
 					scrollable.dragMove(event.relative);
 				}
 
@@ -143,23 +144,19 @@
 					dragOff();
 				}
 
-				function _onScrollX(dir, trackpad) {
-					return scrollable.wheelX(dir, trackpad);
+				function _onScrollX(dir, interval) {
+					return scrollable.wheelX(dir, interval);
 				}
 
 				var onScrollX = _onScrollX;
 				// var onScrollX = Utils.throttle(_onScrollX, 25);
 
 				function onWheel(event) {
-					if (!event) event = $window.event;
-					var e = event.originalEvent ? event.originalEvent : event;
-					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
-					if (scrollable.wheelXCheck(dir)) {
-						onScrollX(dir);
+					if (scrollable.wheelXCheck(event.dir)) {
+						onScrollX(event.dir, event.interval);
 						animate.play();
-						e.preventDefault();
+						event.originalEvent.preventDefault();
 					}
-					console.log(event, e);
 				}
 
 				function off() {
@@ -315,22 +312,18 @@
 					dragOff();
 				}
 
-				function _onScrollY(dir) {
-					return scrollable.wheelY(dir);
+				function _onScrollY(dir, interval) {
+					return scrollable.wheelY(dir, interval);
 				}
 
 				var onScrollY = _onScrollY;
 				// var onScrollY = Utils.throttle(_onScrollY, 25);
 
-				function onWheel(e) {
-					if (!e) e = $window.event;
-					e = e.originalEvent ? e.originalEvent : e;
-					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
-					// console.log('onWheel', dir, scrollable.wheelYCheck(dir), e);
-					if (scrollable.wheelYCheck(dir)) {
-						onScrollY(dir);
+				function onWheel(event) {
+					if (scrollable.wheelYCheck(event.dir)) {
+						onScrollY(event.dir, event.interval);
 						animate.play();
-						e.preventDefault();
+						event.originalEvent.preventDefault();
 					}
 				}
 
