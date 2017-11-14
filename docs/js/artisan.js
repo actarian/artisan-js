@@ -83,375 +83,440 @@
 
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Events', ['EventsService', function(EventsService) {
+	app.factory('Events', ['$window', '$document', 'EventsService', 'Utils', function ($window, $document, EventsService, Utils) {
 
-        function Event(e, element) {
-            var documentNode = (document.documentElement || document.body.parentNode || document.body);
-            var scroll = {
-                x: window.pageXOffset || documentNode.scrollLeft,
-                y: window.pageYOffset || documentNode.scrollTop
-            };
-            if (e.type === 'resize') {
-                var view = {
-                    w: this.getWidth(),
-                    h: this.getHeight(),
-                };
-                this.view = view;
+		function Event(e, element) {
+			var documentNode = Utils.getDocumentNode();
+			var scroll = {
+				x: $window.pageXOffset || documentNode.scrollLeft,
+				y: $window.pageYOffset || documentNode.scrollTop
+			};
+			if (e.type === 'resize') {
+				var view = {
+					w: this.getWidth(),
+					h: this.getHeight(),
+				};
+				this.view = view;
+			}
+			var node = getNode(element);
+			var offset = {
+				x: node.offsetLeft,
+				y: node.offsetTop,
+			};
+			var boundNode = node === $window ? documentNode : node;
+			var rect = boundNode.getBoundingClientRect();
+			var page = this.getPage(e);
+			if (page) {
+				var relative = {
+					x: page.x - scroll.x - rect.left,
+					y: page.y - scroll.y - rect.top,
+				};
+				var absolute = {
+					x: page.x - scroll.x,
+					y: page.y - scroll.y,
+				};
+				this.relative = relative;
+				this.absolute = absolute;
+			}
+			if (this.type === 'resize') {
+				console.log(this.type);
+			}
+			this.originalEvent = e;
+			this.element = element;
+			this.node = node;
+			this.offset = offset;
+			this.rect = rect;
+			// console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
+			// console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
+		}
+		Event.prototype = {
+			getPage: getPage,
+			getWidth: getWidth,
+			getHeight: getHeight,
+		};
+
+		function getWidth() {
+			if (self.innerWidth) {
+				return self.innerWidth;
+			}
+			var documentNode = Utils.getDocumentNode();
+			return documentNode.clientWidth;
+			/*
+			if ($document.documentElement && $document.documentElement.clientWidth) {
+				return $document.documentElement.clientWidth;
+			}
+			if ($document.body) {
+				return $document.body.clientWidth;
             }
-            var node = getNode(element);
-            var offset = {
-                x: node.offsetLeft,
-                y: node.offsetTop,
-            };
-            var rect = node.getBoundingClientRect();
-            var page = this.getPage(e);
-            if (page) {
-                var relative = {
-                    x: page.x - scroll.x - rect.left,
-                    y: page.y - scroll.y - rect.top,
-                };
-                var absolute = {
-                    x: page.x - scroll.x,
-                    y: page.y - scroll.y,
-                };
-                this.relative = relative;
-                this.absolute = absolute;
+            */
+		}
+
+		function getHeight() {
+			if (self.innerHeight) {
+				return self.innerHeight;
+			}
+			var documentNode = Utils.getDocumentNode();
+			return documentNode.clientHeight;
+			/*
+            if ($document.documentElement && $document.documentElement.clientHeight) {
+				return $document.documentElement.clientHeight;
+			}
+			if ($document.body) {
+				return $document.body.clientHeight;
             }
-            if (this.type === 'resize') {
-                console.log(this.type);
-            }
-            this.originalEvent = e;
-            this.element = element;
-            this.node = node;
-            this.offset = offset;
-            this.rect = rect;
-            // console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
-            // console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
-        }
-        Event.prototype = {
-            getPage: getPage,
-            getWidth: getWidth,
-            getHeight: getHeight,
-        };
+            */
+		}
 
-        function getWidth() {
-            if (self.innerWidth) {
-                return self.innerWidth;
-            }
-            if (document.documentElement && document.documentElement.clientWidth) {
-                return document.documentElement.clientWidth;
-            }
-            if (document.body) {
-                return document.body.clientWidth;
-            }
-        }
+		function getPage(e) {
+			var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
+			var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+			var page = null;
+			if (touchEvents.indexOf(e.type) !== -1) {
+				var t = null;
+				var event = e.originalEvent ? e.originalEvent : e;
+				var touches = event.touches.length ? event.touches : event.changedTouches;
+				if (touches && touches.length) {
+					t = touches[0];
+				}
+				if (t) {
+					page = {
+						x: t.pageX,
+						y: t.pageY,
+					};
+				}
+			} else if (standardEvents.indexOf(e.type) !== -1) {
+				page = {
+					x: e.pageX,
+					y: e.pageY,
+				};
+			}
+			this.type = e.type;
+			return page;
+		}
 
-        function getHeight() {
-            if (self.innerHeight) {
-                return self.innerHeight;
-            }
-            if (document.documentElement && document.documentElement.clientHeight) {
-                return document.documentElement.clientHeight;
-            }
-            if (document.body) {
-                return document.body.clientHeight;
-            }
-        }
+		function Events(element) {
+			this.element = element;
+			this.listeners = {};
+			this.standardEvents = {
+				click: {
+					key: 'click',
+					callback: onClick
+				},
+				down: {
+					key: 'mousedown',
+					callback: onMouseDown
+				},
+				move: {
+					key: 'mousemove',
+					callback: onMouseMove
+				},
+				up: {
+					key: 'mouseup',
+					callback: onMouseUp
+				},
+				resize: {
+					key: 'resize',
+					callback: onResize
+				},
+			};
+			this.touchEvents = {
+				down: {
+					key: 'touchstart',
+					callback: onTouchStart
+				},
+				move: {
+					key: 'touchmove',
+					callback: onTouchMove
+				},
+				up: {
+					key: 'touchend',
+					callback: onTouchEnd
+				},
+			};
+			this.wheelEvents = {
+				wheel: {
+					key: 'mousewheel',
+					callback: onMouseWheel
+				},
+			};
+			this.scrollEvents = {
+				wheel: {
+					key: 'DOMMouseScroll',
+					callback: onMouseScroll
+				},
+			};
+			var events = this;
 
-        function getPage(e) {
-            var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
-            var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
-            var page = null;
-            if (touchEvents.indexOf(e.type) !== -1) {
-                var t = null;
-                var event = e.originalEvent ? e.originalEvent : e;
-                var touches = event.touches.length ? event.touches : event.changedTouches;
-                if (touches && touches.length) {
-                    t = touches[0];
-                }
-                if (t) {
-                    page = {
-                        x: t.pageX,
-                        y: t.pageY,
-                    };
-                }
-            } else if (standardEvents.indexOf(e.type) !== -1) {
-                page = {
-                    x: e.pageX,
-                    y: e.pageY,
-                };
-            }
-            this.type = e.type;
-            return page;
-        }
+			function onClick(e) {
+				// console.log('onClick', e, events);
+				var event = new Event(e, events.element);
+				events.listeners.click.apply(this, [event]);
+			}
 
-        function Events(element) {
-            this.element = element;
-            this.listeners = {};
-            this.standardEvents = {
-                click: {
-                    key: 'click',
-                    callback: onClick
-                },
-                down: {
-                    key: 'mousedown',
-                    callback: onMouseDown
-                },
-                move: {
-                    key: 'mousemove',
-                    callback: onMouseMove
-                },
-                up: {
-                    key: 'mouseup',
-                    callback: onMouseUp
-                },
-                resize: {
-                    key: 'resize',
-                    callback: onResize
-                },
-            };
-            this.touchEvents = {
-                down: {
-                    key: 'touchstart',
-                    callback: onTouchStart
-                },
-                move: {
-                    key: 'touchmove',
-                    callback: onTouchMove
-                },
-                up: {
-                    key: 'touchend',
-                    callback: onTouchEnd
-                },
-            };
+			function onMouseDown(e) {
+				// console.log('onMouseDown', e);
+				var event = new Event(e, events.element);
+				events.listeners.down.apply(this, [event]);
+				events.removeTouchEvents();
+			}
 
-            var events = this;
+			function onMouseMove(e) {
+				// console.log('onMouseMove', e);
+				var event = new Event(e, events.element);
+				events.listeners.move.apply(this, [event]);
+			}
 
-            function onClick(e) {
-                // console.log('onClick', e, events);
-                var event = new Event(e, events.element);
-                events.listeners.click.apply(this, [event]);
-            }
+			function onMouseUp(e) {
+				// console.log('onMouseUp', e);
+				var event = new Event(e, events.element);
+				events.listeners.up.apply(this, [event]);
+			}
 
-            function onMouseDown(e) {
-                // console.log('onMouseDown', e);
-                var event = new Event(e, events.element);
-                events.listeners.down.apply(this, [event]);
-                events.removeTouchEvents();
-            }
+			function onMouseWheel(e) {
+				// console.log('onMouseWheel', e);
+				var event = new Event(e, events.element);
+				events.listeners.wheel.apply(this, [event]);
+				events.removeScrollEvents();
+			}
 
-            function onMouseMove(e) {
-                // console.log('onMouseMove', e);
-                var event = new Event(e, events.element);
-                events.listeners.move.apply(this, [event]);
-            }
+			function onMouseScroll(e) {
+				// console.log('onMouseScroll', e);
+				var event = new Event(e, events.element);
+				events.listeners.wheel.apply(this, [event]);
+				events.removeWheelEvents();
+			}
 
-            function onMouseUp(e) {
-                // console.log('onMouseUp', e);
-                var event = new Event(e, events.element);
-                events.listeners.up.apply(this, [event]);
-            }
+			function onResize(e) {
+				// console.log('onResize', e);
+				var event = new Event(e, events.element);
+				events.listeners.resize.apply(this, [event]);
+			}
 
-            function onResize(e) {
-                console.log('onResize', e);
-                var event = new Event(e, events.element);
-                events.listeners.resize.apply(this, [event]);
-            }
+			function onTouchStart(e) {
+				// console.log('onTouchStart', e);
+				var event = new Event(e, events.element);
+				events.listeners.down.apply(this, [event]);
+				events.removeStandardEvents();
+			}
 
-            function onTouchStart(e) {
-                // console.log('onTouchStart', e);
-                var event = new Event(e, events.element);
-                events.listeners.down.apply(this, [event]);
-                events.removeStandardEvents();
-            }
+			function onTouchMove(e) {
+				// console.log('onTouchMove', e);
+				var event = new Event(e, events.element);
+				events.listeners.move.apply(this, [event]);
+			}
 
-            function onTouchMove(e) {
-                // console.log('onTouchMove', e);
-                var event = new Event(e, events.element);
-                events.listeners.move.apply(this, [event]);
-            }
+			function onTouchEnd(e) {
+				// console.log('onTouchEnd', e);
+				var event = new Event(e, events.element);
+				events.listeners.up.apply(this, [event]);
+			}
+		}
+		Events.prototype = {
+			add: add,
+			remove: remove,
+			removeStandardEvents: removeStandardEvents,
+			removeTouchEvents: removeTouchEvents,
+			removeWheelEvents: removeWheelEvents,
+			removeScrollEvents: removeScrollEvents,
+		};
+		return Events;
 
-            function onTouchEnd(e) {
-                // console.log('onTouchEnd', e);
-                var event = new Event(e, events.element);
-                events.listeners.up.apply(this, [event]);
-            }
-        }
-        Events.prototype = {
-            add: add,
-            remove: remove,
-            removeStandardEvents: removeStandardEvents,
-            removeTouchEvents: removeTouchEvents,
-        };
-        return Events;
+		function getNode(element) {
+			return element.length ? element[0] : element;
+		}
 
-        function getNode(element) {
-            return element.length ? element[0] : element; // (element.length && (element[0] instanceOf Node || element[0] instanceOf HTMLElement)) ? element[0] : element;
-        }
+		function getElement(element) {
+			return element.length ? element : angular.element(element);
+		}
 
-        function getElement(element) {
-            return element.length ? element : angular.element(element); // (element.length && (element[0] instanceOf Node || element[0] instanceOf HTMLElement)) ? element : angular.element(element);
-        }
+		function add(listeners, scope) {
+			var events = this,
+				standard = this.standardEvents,
+				touch = this.touchEvents,
+				wheel = this.wheelEvents,
+				scroll = this.scrollEvents;
+			var element = getElement(this.element),
+				windowElement = angular.element($window);
 
-        function add(listeners, scope) {
-            var events = this,
-                standard = this.standardEvents,
-                touch = this.touchEvents;
-            var element = getElement(this.element),
-                windowElement = angular.element(window);
+			angular.forEach(listeners, function (callback, key) {
+				if (events.listeners[key]) {
+					var listener = {};
+					listener[key] = events.listeners[key];
+					remove(listener);
+				}
+				events.listeners[key] = callback;
+				if (standard[key]) {
+					if (key === 'resize') {
+						windowElement.on(standard[key].key, standard[key].callback);
+					} else {
+						element.on(standard[key].key, standard[key].callback);
+					}
+				}
+				if (touch[key]) {
+					element.on(touch[key].key, touch[key].callback);
+				}
+				if (wheel[key]) {
+					element.on(wheel[key].key, wheel[key].callback);
+				}
+				if (scroll[key]) {
+					element.on(scroll[key].key, scroll[key].callback);
+				}
+				// console.log('add', key, element);
+			});
 
-            angular.forEach(listeners, function(callback, key) {
-                if (events.listeners[key]) {
-                    var listener = {};
-                    listener[key] = events.listeners[key];
-                    remove(listener);
-                }
-                events.listeners[key] = callback;
-                if (standard[key]) {
-                    if (key === 'resize') {
-                        windowElement.on(standard[key].key, standard[key].callback);
-                    } else {
-                        element.on(standard[key].key, standard[key].callback);
-                    }
-                }
-                if (touch[key]) {
-                    element.on(touch[key].key, touch[key].callback);
-                }
-            });
+			if (scope) {
+				scope.$on('$destroy', function () {
+					events.remove(listeners);
+				});
+			}
 
-            if (scope) {
-                scope.$on('$destroy', function() {
-                    events.remove(listeners);
-                });
-            }
+			return events;
+		}
 
-            return events;
-        }
+		function remove(listeners) {
+			var events = this,
+				standard = this.standardEvents,
+				touch = this.touchEvents,
+				wheel = this.wheelEvents,
+				scroll = this.scrollEvents;
+			var element = getElement(this.element),
+				windowElement = angular.element($window);
+			angular.forEach(listeners, function (callback, key) {
+				if (standard[key]) {
+					if (key === 'resize') {
+						windowElement.off(standard[key].key, standard[key].callback);
+					} else {
+						element.off(standard[key].key, standard[key].callback);
+					}
+				}
+				if (touch[key]) {
+					element.off(touch[key].key, touch[key].callback);
+				}
+				if (wheel[key]) {
+					element.off(wheel[key].key, wheel[key].callback);
+				}
+				if (scroll[key]) {
+					element.off(scroll[key].key, scroll[key].callback);
+				}
+				events.listeners[key] = null;
+			});
+			return events;
+		}
 
-        function remove(listeners) {
-            var events = this,
-                standard = this.standardEvents,
-                touch = this.touchEvents;
-            var element = getElement(this.element),
-                windowElement = angular.element(window);
-            angular.forEach(listeners, function(callback, key) {
-                if (standard[key]) {
-                    if (key === 'resize') {
-                        windowElement.off(standard[key].key, standard[key].callback);
-                    } else {
-                        element.off(standard[key].key, standard[key].callback);
-                    }
-                }
-                if (touch[key]) {
-                    element.off(touch[key].key, touch[key].callback);
-                }
-                events.listeners[key] = null;
-            });
-            return events;
-        }
+		function removeStandardEvents() {
+			var events = this,
+				standard = events.standardEvents,
+				touch = events.touchEvents;
+			var element = getElement(events.element);
+			element.off('mousedown', standard.down.callback);
+			element.off('mousemove', standard.move.callback);
+			element.off('mouseup', standard.up.callback);
+		}
 
-        function removeStandardEvents() {
-            var events = this,
-                standard = events.standardEvents,
-                touch = events.touchEvents;
-            var element = getElement(events.element);
-            element.off('mousedown', standard.down.callback);
-            element.off('mousemove', standard.move.callback);
-            element.off('mouseup', standard.up.callback);
-        }
+		function removeTouchEvents() {
+			var events = this,
+				standard = events.standardEvents,
+				touch = events.touchEvents;
+			var element = getElement(events.element);
+			element.off('touchstart', touch.down.callback);
+			element.off('touchmove', touch.move.callback);
+			element.off('touchend', touch.up.callback);
+		}
 
-        function removeTouchEvents() {
-            var events = this,
-                standard = events.standardEvents,
-                touch = events.touchEvents;
-            var element = getElement(events.element);
-            element.off('touchstart', touch.down.callback);
-            element.off('touchmove', touch.move.callback);
-            element.off('touchend', touch.up.callback);
-        }
+		function removeWheelEvents() {
+			var events = this;
+			var element = getElement(events.element);
+			element.off('mousewheel', events.mouseEvents.wheel.callback);
+		}
+
+		function removeScrollEvents() {
+			var events = this;
+			var element = getElement(events.element);
+			element.off('DOMMouseScroll', events.scrollEvents.wheel.callback);
+		}
 
     }]);
 
-    app.service('EventsService', ['$window', 'Utils', function($window, Utils) {
+	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
 
-        handlePassiveEvents();
-        preventHistoryNavigation();
+		handlePassiveEvents();
+		preventHistoryNavigation();
 
-        this.hasPassiveEvents = hasPassiveEvents;
+		this.hasPassiveEvents = hasPassiveEvents;
 
-        function hasPassiveEvents() {
-            var supported = false;
-            try {
-                var options = Object.defineProperty({}, 'passive', {
-                    get: function() {
-                        supported = true;
-                    },
-                });
-                window.addEventListener("test", null, options);
-            } catch (e) {
-                console.log('handlePassiveEvents.isSupprted', e);
-            }
-            return supported;
-        }
+		function hasPassiveEvents() {
+			var supported = false;
+			try {
+				var options = Object.defineProperty({}, 'passive', {
+					get: function () {
+						supported = true;
+					},
+				});
+				window.addEventListener("test", null, options);
+			} catch (e) {
+				console.log('handlePassiveEvents.isSupprted', e);
+			}
+			return supported;
+		}
 
-        function handlePassiveEvents() {
-            if (!window.addEventListener) {
-                return;
-            }
+		function handlePassiveEvents() {
+			if (!window.addEventListener) {
+				return;
+			}
 
-            var defaults = {
-                passive: false,
-                capture: false,
-            };
+			var defaults = {
+				passive: false,
+				capture: false,
+			};
 
-            function overwriteOriginal(original) {
-                EventTarget.prototype.addEventListener = function(type, listener, options) {
-                    var usesListenerOptions = typeof options === 'object';
-                    var capture = usesListenerOptions ? options.capture : options;
-                    options = usesListenerOptions ? options : {};
-                    options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-                    options.capture = capture !== undefined ? capture : defaults.capture;
-                    original.call(this, type, listener, options);
-                };
-            }
-            var supported = hasPassiveEvents();
-            if (supported) {
-                var original = EventTarget.prototype.addEventListener;
-                overwriteOriginal(original);
-            }
-        }
+			function overwriteOriginal(original) {
+				EventTarget.prototype.addEventListener = function (type, listener, options) {
+					var usesListenerOptions = typeof options === 'object';
+					var capture = usesListenerOptions ? options.capture : options;
+					options = usesListenerOptions ? options : {};
+					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
+					options.capture = capture !== undefined ? capture : defaults.capture;
+					original.call(this, type, listener, options);
+				};
+			}
+			var supported = hasPassiveEvents();
+			if (supported) {
+				var original = EventTarget.prototype.addEventListener;
+				overwriteOriginal(original);
+			}
+		}
 
-        function preventHistoryNavigation() {
-            if (!Utils.ua.mac) {
-                return;
-            }
-            if (Utils.ua.chrome || Utils.ua.safari || Utils.ua.firefox) {
-                $window.addEventListener('mousewheel', onScroll, {
-                    passive: false
-                });
-            }
+		function preventHistoryNavigation() {
+			if (!Utils.ua.mac) {
+				return;
+			}
+			if (Utils.ua.chrome || Utils.ua.safari || Utils.ua.firefox) {
+				$window.addEventListener('mousewheel', onScroll, {
+					passive: false
+				});
+			}
 
-            function onScroll(e) {
-                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                    return;
-                }
-                if (
-                    (e.deltaX < 0 && (Utils.getParents(e.target).filter(function(node) {
-                        return node.scrollLeft > 0;
-                    }).length === 0)) ||
-                    (e.deltaX > 0 && (Utils.getParents(e.target).filter(function(node) {
-                        return node.scrollWidth - node.scrollLeft > node.clientWidth;
-                    }).length === 0))
-                ) {
-                    e.preventDefault();
-                }
-            }
-        }
+			function onScroll(e) {
+				if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+					return;
+				}
+				if (
+					(e.deltaX < 0 && (Utils.getParents(e.target).filter(function (node) {
+						return node.scrollLeft > 0;
+					}).length === 0)) ||
+					(e.deltaX > 0 && (Utils.getParents(e.target).filter(function (node) {
+						return node.scrollWidth - node.scrollLeft > node.clientWidth;
+					}).length === 0))
+				) {
+					e.preventDefault();
+				}
+			}
+		}
 
     }]);
 
@@ -1247,494 +1312,500 @@
 
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('Utils', ['$compile', '$controller', 'Vector', function($compile, $controller, Vector) {
+	app.service('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
 
-        this.ua = getUA();
-        this.reverseSortOn = reverseSortOn;
-        this.getTouch = getTouch;
-        this.getRelativeTouch = getRelativeTouch;
-        this.getClosest = getClosest;
-        this.getClosestElement = getClosestElement;
-        this.getParents = getParents;
-        this.indexOf = indexOf;
-        this.removeValue = removeValue;
-        this.throttle = throttle;
-        this.where = where;
-        this.format = format;
-        this.compileController = compileController;
-        this.reducer = reducer;
-        this.reducerSetter = reducerSetter;
-        this.reducerAdder = reducerAdder;
-        this.downloadFile = downloadFile;
-        this.serverDownload = serverDownload;
-        this.toMd5 = toMd5;
+		this.ua = getUA();
+		this.reverseSortOn = reverseSortOn;
+		this.getTouch = getTouch;
+		this.getRelativeTouch = getRelativeTouch;
+		this.getClosest = getClosest;
+		this.getClosestElement = getClosestElement;
+		this.getParents = getParents;
+		this.getDocumentNode = getDocumentNode;
+		this.indexOf = indexOf;
+		this.removeValue = removeValue;
+		this.throttle = throttle;
+		this.where = where;
+		this.format = format;
+		this.compileController = compileController;
+		this.reducer = reducer;
+		this.reducerSetter = reducerSetter;
+		this.reducerAdder = reducerAdder;
+		this.downloadFile = downloadFile;
+		this.serverDownload = serverDownload;
+		this.toMd5 = toMd5;
 
-        var getNow = Date.now || function() {
-            return new Date().getTime();
-        };
+		var getNow = Date.now || function () {
+			return new Date().getTime();
+		};
 
-        function getUA() {
-            var agent = window.navigator.userAgent.toLowerCase();
-            var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
-            var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
-            var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
-            var mobile = agent.indexOf('mobile') !== -1;
-            var mac = agent.indexOf('macintosh') !== -1;
-            var ua = {
-                agent: agent,
-                safari: safari,
-                msie: msie,
-                chrome: chrome,
-                mobile: mobile,
-                mac: mac,
-            };
-            angular.forEach(ua, function(value, key) {
-                if (value) {
-                    angular.element(document.getElementsByTagName('body')).addClass(key);
-                }
-            });
-            return ua;
-        }
+		function getUA() {
+			var agent = window.navigator.userAgent.toLowerCase();
+			var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
+			var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
+			var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
+			var mobile = agent.indexOf('mobile') !== -1;
+			var mac = agent.indexOf('macintosh') !== -1;
+			var ua = {
+				agent: agent,
+				safari: safari,
+				msie: msie,
+				chrome: chrome,
+				mobile: mobile,
+				mac: mac,
+			};
+			angular.forEach(ua, function (value, key) {
+				if (value) {
+					angular.element(document.getElementsByTagName('body')).addClass(key);
+				}
+			});
+			return ua;
+		}
 
-        function toMd5(string) {
-            // return Md5.encode(string);
-        }
+		function toMd5(string) {
+			// return Md5.encode(string);
+		}
 
-        var _isTouch;
+		var _isTouch;
 
-        function isTouch() {
-            if (!_isTouch) {
-                _isTouch = {
-                    value: ('ontouchstart' in window || 'onmsgesturechange' in window)
-                };
-            }
-            // console.log(_isTouch);
-            return _isTouch.value;
-        }
+		function isTouch() {
+			if (!_isTouch) {
+				_isTouch = {
+					value: ('ontouchstart' in window || 'onmsgesturechange' in window)
+				};
+			}
+			// console.log(_isTouch);
+			return _isTouch.value;
+		}
 
-        function getTouch(e, previous) {
-            var t = new Vector();
-            if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
-                var touch = null;
-                var event = e.originalEvent ? e.originalEvent : e;
-                var touches = event.touches.length ? event.touches : event.changedTouches;
-                if (touches && touches.length) {
-                    touch = touches[0];
-                }
-                if (touch) {
-                    t.x = touch.pageX;
-                    t.y = touch.pageY;
-                }
-            } else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
-                t.x = e.pageX;
-                t.y = e.pageY;
-            }
-            if (previous) {
-                t.s = Vector.difference(t, previous);
-            }
-            t.type = e.type;
-            return t;
-        }
+		function getTouch(e, previous) {
+			var t = new Vector();
+			if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
+				var touch = null;
+				var event = e.originalEvent ? e.originalEvent : e;
+				var touches = event.touches.length ? event.touches : event.changedTouches;
+				if (touches && touches.length) {
+					touch = touches[0];
+				}
+				if (touch) {
+					t.x = touch.pageX;
+					t.y = touch.pageY;
+				}
+			} else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
+				t.x = e.pageX;
+				t.y = e.pageY;
+			}
+			if (previous) {
+				t.s = Vector.difference(t, previous);
+			}
+			t.type = e.type;
+			return t;
+		}
 
-        function getRelativeTouch(node, point) {
-            var element = angular.element(node); // passing through jqlite for accepting both
-            node = element[0];
-            var rect = node.getBoundingClientRect();
-            // var e = new Vector(rect.left + node.scrollLeft, rect.top + node.scrollTop);
-            var e = new Vector(rect.left, rect.top);
-            return Vector.difference(point, e);
-        }
+		function getRelativeTouch(node, point) {
+			var element = angular.element(node); // passing through jqlite for accepting both
+			node = element[0];
+			var rect = node.getBoundingClientRect();
+			// var e = new Vector(rect.left + node.scrollLeft, rect.top + node.scrollTop);
+			var e = new Vector(rect.left, rect.top);
+			return Vector.difference(point, e);
+		}
 
-        function getClosest(el, selector) {
-            var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function(fn) {
-                if (typeof document.body[fn] == 'function') {
-                    matchesFn = fn;
-                    return true;
-                }
-                return false;
-            });
-            if (el[matchesFn](selector)) {
-                return el;
-            }
-            while (el !== null) {
-                parent = el.parentElement;
-                if (parent !== null && parent[matchesFn](selector)) {
-                    return parent;
-                }
-                el = parent;
-            }
-            return null;
-        }
+		function getClosest(el, selector) {
+			var matchesFn, parent;
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+				if (typeof document.body[fn] == 'function') {
+					matchesFn = fn;
+					return true;
+				}
+				return false;
+			});
+			if (el[matchesFn](selector)) {
+				return el;
+			}
+			while (el !== null) {
+				parent = el.parentElement;
+				if (parent !== null && parent[matchesFn](selector)) {
+					return parent;
+				}
+				el = parent;
+			}
+			return null;
+		}
 
-        function getClosestElement(el, target) {
-            var matchesFn, parent;
-            if (el === target) {
-                return el;
-            }
-            while (el !== null) {
-                parent = el.parentElement;
-                if (parent !== null && parent === target) {
-                    return parent;
-                }
-                el = parent;
-            }
-            return null;
-        }
+		function getClosestElement(el, target) {
+			var matchesFn, parent;
+			if (el === target) {
+				return el;
+			}
+			while (el !== null) {
+				parent = el.parentElement;
+				if (parent !== null && parent === target) {
+					return parent;
+				}
+				el = parent;
+			}
+			return null;
+		}
 
-        function getParents(node, topParentNode) {
-            // if no topParentNode defined will bubble up all the way to *document*
-            topParentNode = topParentNode || document.documentElement;
-            var parents = [];
-            if (node) {
-                parents.push(node);
-                var parentNode = node.parentNode;
-                while (parentNode !== topParentNode) {
-                    parents.push(parentNode);
-                    parentNode = parentNode.parentNode;
-                }
-                parents.push(topParentNode); // push that topParentNode you wanted to stop at
-            }
-            return parents;
-        }
+		function getDocumentNode() {
+			var documentNode = (document.documentElement || document.body.parentNode || document.body);
+			return documentNode;
+		}
 
-        function indexOf(array, object, key) {
-            key = key || 'id';
-            var index = -1;
-            if (array) {
-                var i = 0,
-                    t = array.length;
-                while (i < t) {
-                    if (array[i] && array[i][key] === object[key]) {
-                        index = i;
-                        break;
-                    }
-                    i++;
-                }
-            }
-            return index;
-        }
+		function getParents(node, topParentNode) {
+			// if no topParentNode defined will bubble up all the way to *document*
+			topParentNode = topParentNode || getDocumentNode();
+			var parents = [];
+			if (node) {
+				parents.push(node);
+				var parentNode = node.parentNode;
+				while (parentNode !== topParentNode) {
+					parents.push(parentNode);
+					parentNode = parentNode.parentNode;
+				}
+				parents.push(topParentNode); // push that topParentNode you wanted to stop at
+			}
+			return parents;
+		}
 
-        function removeValue(array, value) {
-            var index = -1;
-            if (array) {
-                var i = 0,
-                    t = array.length;
-                while (i < t) {
-                    if (array[i] === value) {
-                        index = i;
-                        break;
-                    }
-                    i++;
-                }
-            }
-            if (index !== -1) {
-                array.splice(index, 1);
-                return value;
-            } else {
-                return null;
-            }
-        }
+		function indexOf(array, object, key) {
+			key = key || 'id';
+			var index = -1;
+			if (array) {
+				var i = 0,
+					t = array.length;
+				while (i < t) {
+					if (array[i] && array[i][key] === object[key]) {
+						index = i;
+						break;
+					}
+					i++;
+				}
+			}
+			return index;
+		}
 
-        function throttle(func, wait, options) {
-            // Returns a function, that, when invoked, will only be triggered at most once
-            // during a given window of time. Normally, the throttled function will run
-            // as much as it can, without ever going more than once per `wait` duration;
-            // but if you'd like to disable the execution on the leading edge, pass
-            // `{leading: false}`. To disable execution on the trailing edge, ditto.
-            var context, args, result;
-            var timeout = null;
-            var previous = 0;
-            if (!options) options = {};
-            var later = function() {
-                previous = options.leading === false ? 0 : getNow();
-                timeout = null;
-                result = func.apply(context, args);
-                if (!timeout) context = args = null;
-            };
-            return function() {
-                var now = getNow();
-                if (!previous && options.leading === false) previous = now;
-                var remaining = wait - (now - previous);
-                context = this;
-                args = arguments;
-                if (remaining <= 0 || remaining > wait) {
-                    if (timeout) {
-                        clearTimeout(timeout);
-                        timeout = null;
-                    }
-                    previous = now;
-                    result = func.apply(context, args);
-                    if (!timeout) context = args = null;
-                } else if (!timeout && options.trailing !== false) {
-                    timeout = setTimeout(later, remaining);
-                }
-                return result;
-            };
-        }
+		function removeValue(array, value) {
+			var index = -1;
+			if (array) {
+				var i = 0,
+					t = array.length;
+				while (i < t) {
+					if (array[i] === value) {
+						index = i;
+						break;
+					}
+					i++;
+				}
+			}
+			if (index !== -1) {
+				array.splice(index, 1);
+				return value;
+			} else {
+				return null;
+			}
+		}
 
-        function where(array, query) {
-            var found = null;
-            if (array) {
-                angular.forEach(array, function(item) {
-                    var has = true;
-                    angular.forEach(query, function(value, key) {
-                        has = has && item[key] === value;
-                    });
-                    if (has) {
-                        found = item;
-                    }
-                });
-            }
-            return found;
-        }
+		function throttle(func, wait, options) {
+			// Returns a function, that, when invoked, will only be triggered at most once
+			// during a given window of time. Normally, the throttled function will run
+			// as much as it can, without ever going more than once per `wait` duration;
+			// but if you'd like to disable the execution on the leading edge, pass
+			// `{leading: false}`. To disable execution on the trailing edge, ditto.
+			var context, args, result;
+			var timeout = null;
+			var previous = 0;
+			if (!options) options = {};
+			var later = function () {
+				previous = options.leading === false ? 0 : getNow();
+				timeout = null;
+				result = func.apply(context, args);
+				if (!timeout) context = args = null;
+			};
+			return function () {
+				var now = getNow();
+				if (!previous && options.leading === false) previous = now;
+				var remaining = wait - (now - previous);
+				context = this;
+				args = arguments;
+				if (remaining <= 0 || remaining > wait) {
+					if (timeout) {
+						clearTimeout(timeout);
+						timeout = null;
+					}
+					previous = now;
+					result = func.apply(context, args);
+					if (!timeout) context = args = null;
+				} else if (!timeout && options.trailing !== false) {
+					timeout = setTimeout(later, remaining);
+				}
+				return result;
+			};
+		}
 
-        function compileController(scope, element, html, data) {
-            // console.log('Utils.compileController', element);
-            element.html(html);
-            var link = $compile(element.contents());
-            if (data.controller) {
-                var $scope = scope.$new();
-                angular.extend($scope, data);
-                var controller = $controller(data.controller, {
-                    $scope: $scope
-                });
-                if (data.controllerAs) {
-                    scope[data.controllerAs] = controller;
-                }
-                element.data('$ngControllerController', controller);
-                element.children().data('$ngControllerController', controller);
-                scope = $scope;
-            }
-            link(scope);
-        }
+		function where(array, query) {
+			var found = null;
+			if (array) {
+				angular.forEach(array, function (item) {
+					var has = true;
+					angular.forEach(query, function (value, key) {
+						has = has && item[key] === value;
+					});
+					if (has) {
+						found = item;
+					}
+				});
+			}
+			return found;
+		}
 
-        function reverseSortOn(key) {
-            return function(a, b) {
-                if (a[key] < b[key]) {
-                    return 1;
-                }
-                if (a[key] > b[key]) {
-                    return -1;
-                }
-                // a must be equal to b
-                return 0;
-            };
-        }
+		function compileController(scope, element, html, data) {
+			// console.log('Utils.compileController', element);
+			element.html(html);
+			var link = $compile(element.contents());
+			if (data.controller) {
+				var $scope = scope.$new();
+				angular.extend($scope, data);
+				var controller = $controller(data.controller, {
+					$scope: $scope
+				});
+				if (data.controllerAs) {
+					scope[data.controllerAs] = controller;
+				}
+				element.data('$ngControllerController', controller);
+				element.children().data('$ngControllerController', controller);
+				scope = $scope;
+			}
+			link(scope);
+		}
 
-        function format(string, prepend, expression) {
-            string = string || '';
-            prepend = prepend || '';
-            var splitted = string.split(',');
-            if (splitted.length > 1) {
-                var formatted = splitted.shift();
-                angular.forEach(splitted, function(value, index) {
-                    if (expression) {
-                        formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
-                    } else {
-                        formatted = formatted.split('{' + index + '}').join(prepend + value);
-                    }
-                });
-                if (expression) {
-                    return '\'' + formatted + '\'';
-                } else {
-                    return formatted;
-                }
-            } else {
-                return prepend + string;
-            }
-        }
+		function reverseSortOn(key) {
+			return function (a, b) {
+				if (a[key] < b[key]) {
+					return 1;
+				}
+				if (a[key] > b[key]) {
+					return -1;
+				}
+				// a must be equal to b
+				return 0;
+			};
+		}
 
-        function reducer(o, key) {
-            return o[key];
-        }
+		function format(string, prepend, expression) {
+			string = string || '';
+			prepend = prepend || '';
+			var splitted = string.split(',');
+			if (splitted.length > 1) {
+				var formatted = splitted.shift();
+				angular.forEach(splitted, function (value, index) {
+					if (expression) {
+						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
+					} else {
+						formatted = formatted.split('{' + index + '}').join(prepend + value);
+					}
+				});
+				if (expression) {
+					return '\'' + formatted + '\'';
+				} else {
+					return formatted;
+				}
+			} else {
+				return prepend + string;
+			}
+		}
 
-        function reducerSetter(o, key, value) {
-            if (typeof key == 'string') {
-                return reducerSetter(o, key.split('.'), value);
-            } else if (key.length == 1 && value !== undefined) {
-                return (o[key[0]] = value);
-            } else if (key.length === 0) {
-                return o;
-            } else {
-                return reducerSetter(o[key[0]], key.slice(1), value);
-            }
-        }
+		function reducer(o, key) {
+			return o[key];
+		}
 
-        function reducerAdder(o, key, value) {
-            if (typeof key == 'string') {
-                return reducerAdder(o, key.split('.'), value);
-            } else if (key.length == 1 && value !== undefined) {
-                return (o[key[0]] += value);
-            } else if (key.length === 0) {
-                return o;
-            } else {
-                return reducerAdder(o[key[0]], key.slice(1), value);
-            }
-        }
+		function reducerSetter(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerSetter(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] = value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerSetter(o[key[0]], key.slice(1), value);
+			}
+		}
 
-        function downloadFile(content, name, type) {
-            type = type || 'application/octet-stream';
-            var base64 = null;
-            var blob = new Blob([content], {
-                type: type
-            });
-            var reader = new window.FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = function() {
-                base64 = reader.result;
-                download();
-            };
+		function reducerAdder(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerAdder(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] += value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerAdder(o[key[0]], key.slice(1), value);
+			}
+		}
 
-            function download() {
-                // If in Chrome or Safari - download via virtual link click
-                // if (isChrome || isSafari) {
-                //Creating new link node.
-                if (document.createEvent) {
-                    var anchor = document.createElement('a');
-                    anchor.href = base64;
-                    if (anchor.download !== undefined) {
-                        //Set HTML5 download attribute. This will prevent file from opening if supported.
-                        var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
-                        anchor.download = downloadName;
-                    }
-                    //Dispatching click event.
-                    var event = document.createEvent('MouseEvents');
-                    event.initEvent('click', true, true);
-                    anchor.dispatchEvent(event);
-                    return true;
-                }
-                // }
-                // Force file download (whether supported by server).
-                var query = '?download';
-                window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
-            }
+		function downloadFile(content, name, type) {
+			type = type || 'application/octet-stream';
+			var base64 = null;
+			var blob = new Blob([content], {
+				type: type
+			});
+			var reader = new window.FileReader();
+			reader.readAsDataURL(blob);
+			reader.onloadend = function () {
+				base64 = reader.result;
+				download();
+			};
 
-            function __download() {
-                var supportsDownloadAttribute = 'download' in document.createElement('a');
-                if (supportsDownloadAttribute) {
-                    var anchor = document.createElement('a');
-                    anchor.href = 'data:attachment/text;base64,' + encodeURI(window.btoa(content));
-                    anchor.target = '_blank';
-                    anchor.download = name;
-                    //Dispatching click event.
-                    if (document.createEvent) {
-                        var event = document.createEvent('MouseEvents');
-                        event.initEvent('click', true, true);
-                        anchor.dispatchEvent(event);
-                        return true;
-                    }
-                } else if (window.Blob !== undefined && window.saveAs !== undefined) {
-                    var blob = new Blob([content], {
-                        type: type
-                    });
-                    saveAs(blob, filename);
-                } else {
-                    window.open('data:attachment/text;charset=utf-8,' + encodeURI(content));
-                }
-            }
-            /*
-            var headers = response.headers();
-            // console.log(response);
-            var blob = new Blob([response.data], { type: "application/octet-stream" }); // { type: headers['content-type'] });
-            var windowUrl = (window.URL || window.webkitURL);
-            var downloadUrl = windowUrl.createObjectURL(blob);
-            var anchor = document.createElement("a");
-            anchor.href = downloadUrl;
-            var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
-            document.body.appendChild(anchor);
-            anchor.click();
-            windowUrl.revokeObjectURL(blob);
-            anchor.remove();
-            */
-            /*
-            //Dispatching click event.
-            if (document.createEvent) {
-                var e = document.createEvent('MouseEvents');
-                e.initEvent('click', true, true);
-                link.dispatchEvent(e);
-                return true;
-            }
-            */
-        }
+			function download() {
+				// If in Chrome or Safari - download via virtual link click
+				// if (isChrome || isSafari) {
+				//Creating new link node.
+				if (document.createEvent) {
+					var anchor = document.createElement('a');
+					anchor.href = base64;
+					if (anchor.download !== undefined) {
+						//Set HTML5 download attribute. This will prevent file from opening if supported.
+						var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
+						anchor.download = downloadName;
+					}
+					//Dispatching click event.
+					var event = document.createEvent('MouseEvents');
+					event.initEvent('click', true, true);
+					anchor.dispatchEvent(event);
+					return true;
+				}
+				// }
+				// Force file download (whether supported by server).
+				var query = '?download';
+				window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
+			}
 
-        function serverDownload(options) {
-            var defaults = {
-                uri: '/api/reports/download',
-                name: 'Filename',
-                extension: 'txt',
-                type: 'text/plain',
-                content: 'Hello!',
-            };
-            options = angular.extend(defaults, options);
-            var content = JSON.stringify(options); // unescape(encodeURIComponent(JSON.stringify(download)));
-            var form = document.createElement('form');
-            var input = document.createElement('input');
-            input.name = 'download';
-            input.value = content;
-            form.appendChild(input);
-            form.action = options.uri;
-            form.method = 'POST';
-            form.target = 'ProjectDownloads';
-            form.enctype = 'application/x-www-form-urlencoded';
-            // form.enctype = 'multipart/form-data';
-            // form.enctype = 'text/plain';
-            document.body.appendChild(form);
-            form.submit();
-            setTimeout(function() {
-                document.body.removeChild(form);
-            }, 100);
-            // angular.element(form).find('button')[0].click();
-            return Utils;
-        }
+			function __download() {
+				var supportsDownloadAttribute = 'download' in document.createElement('a');
+				if (supportsDownloadAttribute) {
+					var anchor = document.createElement('a');
+					anchor.href = 'data:attachment/text;base64,' + encodeURI(window.btoa(content));
+					anchor.target = '_blank';
+					anchor.download = name;
+					//Dispatching click event.
+					if (document.createEvent) {
+						var event = document.createEvent('MouseEvents');
+						event.initEvent('click', true, true);
+						anchor.dispatchEvent(event);
+						return true;
+					}
+				} else if (window.Blob !== undefined && window.saveAs !== undefined) {
+					var blob = new Blob([content], {
+						type: type
+					});
+					saveAs(blob, filename);
+				} else {
+					window.open('data:attachment/text;charset=utf-8,' + encodeURI(content));
+				}
+			}
+			/*
+			var headers = response.headers();
+			// console.log(response);
+			var blob = new Blob([response.data], { type: "application/octet-stream" }); // { type: headers['content-type'] });
+			var windowUrl = (window.URL || window.webkitURL);
+			var downloadUrl = windowUrl.createObjectURL(blob);
+			var anchor = document.createElement("a");
+			anchor.href = downloadUrl;
+			var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+			anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
+			document.body.appendChild(anchor);
+			anchor.click();
+			windowUrl.revokeObjectURL(blob);
+			anchor.remove();
+			*/
+			/*
+			//Dispatching click event.
+			if (document.createEvent) {
+			    var e = document.createEvent('MouseEvents');
+			    e.initEvent('click', true, true);
+			    link.dispatchEvent(e);
+			    return true;
+			}
+			*/
+		}
+
+		function serverDownload(options) {
+			var defaults = {
+				uri: '/api/reports/download',
+				name: 'Filename',
+				extension: 'txt',
+				type: 'text/plain',
+				content: 'Hello!',
+			};
+			options = angular.extend(defaults, options);
+			var content = JSON.stringify(options); // unescape(encodeURIComponent(JSON.stringify(download)));
+			var form = document.createElement('form');
+			var input = document.createElement('input');
+			input.name = 'download';
+			input.value = content;
+			form.appendChild(input);
+			form.action = options.uri;
+			form.method = 'POST';
+			form.target = 'ProjectDownloads';
+			form.enctype = 'application/x-www-form-urlencoded';
+			// form.enctype = 'multipart/form-data';
+			// form.enctype = 'text/plain';
+			document.body.appendChild(form);
+			form.submit();
+			setTimeout(function () {
+				document.body.removeChild(form);
+			}, 100);
+			// angular.element(form).find('button')[0].click();
+			return Utils;
+		}
     }]);
 
-    (function() {
-        // POLYFILL Array.prototype.reduce
-        // Production steps of ECMA-262, Edition 5, 15.4.4.21
-        // Reference: http://es5.github.io/#x15.4.4.21
-        // https://tc39.github.io/ecma262/#sec-array.prototype.reduce
-        if (!Array.prototype.reduce) {
-            Object.defineProperty(Array.prototype, 'reduce', {
-                value: function(callback) { // , initialvalue
-                    if (this === null) {
-                        throw new TypeError('Array.prototype.reduce called on null or undefined');
-                    }
-                    if (typeof callback !== 'function') {
-                        throw new TypeError(callback + ' is not a function');
-                    }
-                    var o = Object(this);
-                    var len = o.length >>> 0;
-                    var k = 0;
-                    var value;
-                    if (arguments.length == 2) {
-                        value = arguments[1];
-                    } else {
-                        while (k < len && !(k in o)) {
-                            k++;
-                        }
-                        if (k >= len) {
-                            throw new TypeError('Reduce of empty array with no initial value');
-                        }
-                        value = o[k++];
-                    }
-                    while (k < len) {
-                        if (k in o) {
-                            value = callback(value, o[k], k, o);
-                        }
-                        k++;
-                    }
-                    return value;
-                }
-            });
-        }
-    }());
+	(function () {
+		// POLYFILL Array.prototype.reduce
+		// Production steps of ECMA-262, Edition 5, 15.4.4.21
+		// Reference: http://es5.github.io/#x15.4.4.21
+		// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
+		if (!Array.prototype.reduce) {
+			Object.defineProperty(Array.prototype, 'reduce', {
+				value: function (callback) { // , initialvalue
+					if (this === null) {
+						throw new TypeError('Array.prototype.reduce called on null or undefined');
+					}
+					if (typeof callback !== 'function') {
+						throw new TypeError(callback + ' is not a function');
+					}
+					var o = Object(this);
+					var len = o.length >>> 0;
+					var k = 0;
+					var value;
+					if (arguments.length == 2) {
+						value = arguments[1];
+					} else {
+						while (k < len && !(k in o)) {
+							k++;
+						}
+						if (k >= len) {
+							throw new TypeError('Reduce of empty array with no initial value');
+						}
+						value = o[k++];
+					}
+					while (k < len) {
+						if (k in o) {
+							value = callback(value, o[k], k, o);
+						}
+						k++;
+					}
+					return value;
+				}
+			});
+		}
+	}());
 
 }());
 /* global angular */
@@ -3825,476 +3896,399 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    window.ondragstart = function() {
-        return false;
-    };
+	window.ondragstart = function () {
+		return false;
+	};
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('scrollableX', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
-        return {
-            restrict: 'A',
-            template: '<div class="content" ng-transclude></div>',
-            transclude: true,
-            link: function(scope, element, attributes, model) {
+	app.directive('scrollableX', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
 
-                var onLeft, onRight, showIndicatorFor, scrollableWhen;
-                if (attributes.onLeft) {
-                    onLeft = $parse(attributes.onLeft);
-                }
-                if (attributes.onRight) {
-                    onRight = $parse(attributes.onRight);
-                }
-                if (attributes.showIndicatorFor) {
-                    showIndicatorFor = $parse(attributes.showIndicatorFor);
-                }
-                if (attributes.scrollableWhen) {
-                    scrollableWhen = $parse(attributes.scrollableWhen);
-                }
+				var onLeft, onRight, showIndicatorFor, scrollableWhen;
+				if (attributes.onLeft) {
+					onLeft = $parse(attributes.onLeft);
+				}
+				if (attributes.onRight) {
+					onRight = $parse(attributes.onRight);
+				}
+				if (attributes.showIndicatorFor) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor);
+				}
+				if (attributes.scrollableWhen) {
+					scrollableWhen = $parse(attributes.scrollableWhen);
+				}
 
-                // ELEMENTS & STYLESHEETS;
-                element.attr('unselectable', 'on').addClass('unselectable');
-                var containerNode = element[0];
-                var contentNode = containerNode.querySelector('.content');
-                var content = angular.element(content);
-                var contentStyle = new Style();
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var containerNode = element[0];
+				var contentNode = containerNode.querySelector('.content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
 
-                var animate = new Animate(render);
+				var animate = new Animate(render);
 
-                var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
-                link(scrollable);
+				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
+				link(scrollable);
 
-                function link(scrollable) {
-                    scrollable.link({
-                        getItems: function() {
-                            if (attributes.scrollableItem) {
-                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
-                                return items;
-                            }
-                        },
-                        prev: function() {
-                            scrollable.scrollPrev();
-                            animate.play();
-                        },
-                        next: function() {
-                            scrollable.scrollNext();
-                            animate.play();
-                        },
-                        reset: function() {
-                            scrollable.doReset();
-                            animate.play();
-                        },
-                        onLeft: onLeft,
-                        onRight: onRight,
-                    });
-                }
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
+						},
+						reset: function () {
+							scrollable.doReset();
+							animate.play();
+						},
+						onLeft: onLeft,
+						onRight: onRight,
+					});
+				}
 
-                /*
-                scope.$watch(attributes.scrollableX, function (newValue) {
-                	console.log(newValue);
-                });
-                */
+				/*
+				scope.$watch(attributes.scrollableX, function (newValue) {
+					console.log(newValue);
+				});
+				*/
 
-                /*
-                var indicator = null,
-                	indicatorNode = null,
-                	indicatorStyle;
-                showIndicatorFor = false;
-                if (showIndicatorFor) {
-                	indicator = angular.element('<div class="indicator"></div>');
-                	indicatorNode = indicator[0];
-                	indicatorStyle = new Style();
-                	element.append(indicator);
-                	$compile(indicator.contents())(scope);
-                	var i = scrollbar.getIndicator();
-                	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-                	indicatorStyle.set(indicatorNode);
-                }
-                */
+				/*
+				var indicator = null,
+					indicatorNode = null,
+					indicatorStyle;
+				showIndicatorFor = false;
+				if (showIndicatorFor) {
+					indicator = angular.element('<div class="indicator"></div>');
+					indicatorNode = indicator[0];
+					indicatorStyle = new Style();
+					element.append(indicator);
+					$compile(indicator.contents())(scope);
+					var i = scrollbar.getIndicator();
+					indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+					indicatorStyle.set(indicatorNode);
+				}
+				*/
 
-                function render(time) {
-                    scrollable.setContainer(containerNode);
-                    scrollable.setContent(contentNode);
-                    scrollable.setEnabled(isEnabled());
-                    var animating = scrollable.renderX();
-                    if (!animating) {
-                        // animate.pause();
-                    }
-                    var current = scrollable.getCurrent();
-                    contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
-                    contentStyle.set(contentNode);
-                    /*
-                    if (showIndicatorFor) {
-                    	if (dragging || wheeling || speed) {
-                    		var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
-                    		percent = Math.max(0, Math.min(1, percent));
-                    		i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
-                    		i.y += (0 - i.y) / 4;
-                    		// var count = Math.round(contentNode.offsetWidth / 315);
-                    		var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
-                    		indicator.html(index + '/' + showIndicatorFor.count);
-                    		// indicator.html((percent * 100).toFixed(2).toString());
-                    	} else {
-                    		i.y += (45 - i.y) / 4;
-                    	}
-                    	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-                    	indicatorStyle.set(indicatorNode);
-                    }
-                    */
-                }
+				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
+					scrollable.setEnabled(isEnabled());
+					var animating = scrollable.renderX();
+					if (!animating) {
+						// animate.pause();
+					}
+					var current = scrollable.getCurrent();
+					contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
+					contentStyle.set(contentNode);
+					/*
+					if (showIndicatorFor) {
+						if (dragging || wheeling || speed) {
+							var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
+							percent = Math.max(0, Math.min(1, percent));
+							i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
+							i.y += (0 - i.y) / 4;
+							// var count = Math.round(contentNode.offsetWidth / 315);
+							var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+							indicator.html(index + '/' + showIndicatorFor.count);
+							// indicator.html((percent * 100).toFixed(2).toString());
+						} else {
+							i.y += (45 - i.y) / 4;
+						}
+						indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+						indicatorStyle.set(indicatorNode);
+					}
+					*/
+				}
 
-                function undrag() {
-                    scrollable.off();
-                    dragOff();
-                }
+				function undrag() {
+					scrollable.off();
+					dragOff();
+				}
 
-                function onDown(event) {
-                    if (event.type == 'touchstart') {
-                        element.off('mousedown', onDown);
-                    }
-                    if (scrollable.dragStart(Utils.getTouch(event))) {
-                        dragOn();
-                        animate.play();
-                    }
-                }
+				function onDown(event) {
+					if (scrollable.dragStart(event.relative)) {
+						dragOn();
+						animate.play();
+					}
+					console.log(event, event.originalEvent);
+				}
 
-                function onMove(event) {
-                    if (event.type == 'touchmove') {
-                        angular.element($window).off('mousemove', onMove);
-                    }
-                    scrollable.dragMove(Utils.getTouch(event));
-                }
+				function onMove(event) {
+					scrollable.dragMove(event.relative);
+				}
 
-                function onUp(event) {
-                    if (event.type == 'touchend') {
-                        angular.element($window).off('mouseup', onUp);
-                    }
-                    scrollable.dragEnd();
-                    dragOff();
-                }
+				function onUp(event) {
+					scrollable.dragEnd(event.relative);
+					dragOff();
+				}
 
-                function _onScrollX(dir, trackpad) {
-                    return scrollable.wheelX(dir, trackpad);
-                }
+				function _onScrollX(dir, trackpad) {
+					return scrollable.wheelX(dir, trackpad);
+				}
 
-                var onScrollX = _onScrollX;
-                // var onScrollX = Utils.throttle(_onScrollX, 25);
+				var onScrollX = _onScrollX;
+				// var onScrollX = Utils.throttle(_onScrollX, 25);
 
-                var trackpad, lastime;
+				function onWheel(event) {
+					if (!event) event = $window.event;
+					var e = event.originalEvent ? event.originalEvent : event;
+					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
+					if (scrollable.wheelXCheck(dir)) {
+						onScrollX(dir);
+						animate.play();
+						e.preventDefault();
+					}
+					console.log(event, e);
+				}
 
-                function onWheel(e) {
-                    if (!e) e = $window.event;
-                    e = e.originalEvent ? e.originalEvent : e;
-                    var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
+				function off() {
+					dragOff();
+					// animate.pause();
+					scrollable.off();
+				}
 
-                    if (trackpad === undefined) {
-                        if (lastime) {
-                            trackpad = new Date().getTime() - lastime < 100;
-                        } else {
-                            lastime = new Date().getTime();
-                        }
-                    }
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && $window.innerWidth >= 1024;
+					enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
+					return enabled;
+				}
 
-                    if (scrollable.wheelXCheck(dir)) {
-                        onScrollX(dir);
-                        animate.play();
-                        e.preventDefault();
-                    }
-                }
+				function onResize() {
+					var enabled = isEnabled();
+					if (!enabled) {
+						off();
+					}
+					render();
+				}
 
-                function off() {
-                    dragOff();
-                    // animate.pause();
-                    scrollable.off();
-                }
+				scope.$watch(function () {
+					return contentNode.offsetWidth;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
 
-                function isEnabled() {
-                    var enabled = true;
-                    if (scrollableWhen) {
-                        enabled = enabled && scrollableWhen(scope);
-                    }
-                    enabled = enabled && $window.innerWidth >= 1024;
-                    enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
-                    return enabled;
-                }
+				var events = new Events(element).add({
+					down: onDown,
+					wheel: onWheel,
+				}, scope);
 
-                function onResize() {
-                    var enabled = isEnabled();
-                    if (!enabled) {
-                        off();
-                    }
-                    render();
-                }
+				var windowEvents = new Events($window).add({
+					resize: onResize,
+				}, scope);
 
-                scope.$watch(function() {
-                    return contentNode.offsetWidth;
-                }, function(newValue, oldValue) {
-                    onResize();
-                });
+				function dragOn() {
+					windowEvents.add({
+						move: onMove,
+						up: onUp,
+					}, scope);
+				}
 
-                function addListeners() {
-                    angular.element($window).on('resize', onResize);
-                    element.on('touchstart mousedown', onDown);
-                    // element.on('wheel', onWheel);
-                    element[0].addEventListener('DOMMouseScroll', onWheel, {
-                        passive: false
-                    }); // for Firefox
-                    element[0].addEventListener('mousewheel', onWheel, {
-                        passive: false
-                    }); // for everyone else
-                }
+				function dragOff() {
+					windowEvents.remove({
+						move: onMove,
+						up: onUp,
+					});
+				}
 
-                function removeListeners() {
-                    angular.element($window).off('resize', onResize);
-                    element.off('touchstart mousedown', onDown);
-                    // element.off('wheel', onWheel);
-                    element[0].removeEventListener('DOMMouseScroll', onWheel); // for Firefox
-                    element[0].removeEventListener('mousewheel', onWheel);
-                }
+				scope.$on('$destroy', function () {
+					animate.pause();
+				});
 
-                function dragOn() {
-                    angular.element($window).on('touchmove mousemove', onMove);
-                    angular.element($window).on('touchend mouseup', onUp);
-                }
-
-                function dragOff() {
-                    angular.element($window).off('touchmove mousemove', onMove);
-                    angular.element($window).off('touchend mouseup', onUp);
-                }
-
-                scope.$on('$destroy', function() {
-                    removeListeners();
-                    animate.pause();
-                });
-
-                addListeners();
-
-                /*
-                var events = new Events(element).add({
-                	down: onDown,
-                	wheel: onWheel,
-                }, scope);
-
-                var windowEvents = new Events($window).add({
-                	resize: onResize,
-                }, scope);
-
-                function dragOn() {
-                	windowEvents.add({
-                		move: onMove,
-                		up: onUp,
-                	});
-                }
-
-                function dragOff() {
-                	windowEvents.remove({
-                		move: onMove,
-                		up: onUp,
-                	});
-                }
-
-                scope.$on('$destroy', function () {
-                	animate.pause();
-                });
-                */
-
-            },
-        };
+			},
+		};
     }]);
 
-    app.directive('scrollableY', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
-        return {
-            restrict: 'A',
-            template: '<div class="content" ng-transclude></div>',
-            transclude: true,
-            link: function(scope, element, attributes, model) {
+	app.directive('scrollableY', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
 
-                var onTop, onBottom, showIndicatorFor, scrollableWhen;
-                if (attributes.onTop) {
-                    onTop = $parse(attributes.onTop);
-                }
-                if (attributes.onBottom) {
-                    onBottom = $parse(attributes.onBottom);
-                }
-                if (attributes.showIndicatorFor) {
-                    showIndicatorFor = $parse(attributes.showIndicatorFor);
-                }
-                if (attributes.scrollableWhen) {
-                    scrollableWhen = $parse(attributes.scrollableWhen);
-                }
+				var onTop, onBottom, showIndicatorFor, scrollableWhen;
+				if (attributes.onTop) {
+					onTop = $parse(attributes.onTop);
+				}
+				if (attributes.onBottom) {
+					onBottom = $parse(attributes.onBottom);
+				}
+				if (attributes.showIndicatorFor) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor);
+				}
+				if (attributes.scrollableWhen) {
+					scrollableWhen = $parse(attributes.scrollableWhen);
+				}
 
-                // ELEMENTS & STYLESHEETS;
-                element.attr('unselectable', 'on').addClass('unselectable');
-                var containerNode = element[0];
-                var contentNode = containerNode.querySelector('.content');
-                var content = angular.element(content);
-                var contentStyle = new Style();
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var containerNode = element[0];
+				var contentNode = containerNode.querySelector('.content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
 
-                var animate = new Animate(render);
+				var animate = new Animate(render);
 
-                var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
-                link(scrollable);
+				var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
+				link(scrollable);
 
-                function link(scrollable) {
-                    scrollable.link({
-                        getItems: function() {
-                            if (attributes.scrollableItem) {
-                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
-                                return items;
-                            }
-                        },
-                        prev: function() {
-                            scrollable.scrollPrev();
-                            animate.play();
-                        },
-                        next: function() {
-                            scrollable.scrollNext();
-                            animate.play();
-                        },
-                        reset: function() {
-                            scrollable.doReset();
-                            animate.play();
-                        },
-                        onTop: onTop,
-                        onBottom: onBottom,
-                    });
-                }
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
+						},
+						reset: function () {
+							scrollable.doReset();
+							animate.play();
+						},
+						onTop: onTop,
+						onBottom: onBottom,
+					});
+				}
 
-                function render(time) {
-                    scrollable.setContainer(containerNode);
-                    scrollable.setContent(contentNode);
-                    scrollable.setEnabled(isEnabled());
-                    var animating = scrollable.renderY();
-                    if (!animating) {
-                        // animate.pause();
-                    }
-                    var current = scrollable.getCurrent();
-                    contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
-                    contentStyle.set(contentNode);
-                }
+				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
+					scrollable.setEnabled(isEnabled());
+					var animating = scrollable.renderY();
+					if (!animating) {
+						// animate.pause();
+					}
+					var current = scrollable.getCurrent();
+					contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
+					contentStyle.set(contentNode);
+				}
 
-                function undrag() {
-                    scrollable.off();
-                    dragOff();
-                }
+				function undrag() {
+					scrollable.off();
+					dragOff();
+				}
 
-                function onDown(event) {
-                    if (event.type == 'touchstart') {
-                        element.off('mousedown', onDown);
-                    }
-                    if (scrollable.dragStart(Utils.getTouch(event))) {
-                        dragOn();
-                        animate.play();
-                    }
-                }
+				function onDown(event) {
+					if (scrollable.dragStart(event.relative)) {
+						dragOn();
+						animate.play();
+					}
+				}
 
-                function onMove(event) {
-                    if (event.type == 'touchmove') {
-                        angular.element($window).off('mousemove', onMove);
-                    }
-                    scrollable.dragMove(Utils.getTouch(event));
-                }
+				function onMove(event) {
+					scrollable.dragMove(event.relative);
+				}
 
-                function onUp(event) {
-                    if (event.type == 'touchend') {
-                        angular.element($window).off('mouseup', onUp);
-                    }
-                    scrollable.dragEnd();
-                    dragOff();
-                }
+				function onUp(event) {
+					scrollable.dragEnd(event.relative);
+					dragOff();
+				}
 
-                function _onScrollY(dir) {
-                    return scrollable.wheelY(dir);
-                }
+				function _onScrollY(dir) {
+					return scrollable.wheelY(dir);
+				}
 
-                var onScrollY = _onScrollY;
-                // var onScrollY = Utils.throttle(_onScrollY, 25);
+				var onScrollY = _onScrollY;
+				// var onScrollY = Utils.throttle(_onScrollY, 25);
 
-                function onWheel(e) {
-                    if (!e) e = $window.event;
-                    e = e.originalEvent ? e.originalEvent : e;
-                    var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
-                    // console.log('onWheel', dir, scrollable.wheelYCheck(dir), e);
-                    if (scrollable.wheelYCheck(dir)) {
-                        onScrollY(dir);
-                        animate.play();
-                        e.stopPropagation();
-                        e.preventDefault();
-                    }
-                }
+				function onWheel(e) {
+					if (!e) e = $window.event;
+					e = e.originalEvent ? e.originalEvent : e;
+					var dir = (((e.deltaY < 0 || e.wheelDelta > 0) || e.deltaY < 0) ? 1 : -1);
+					// console.log('onWheel', dir, scrollable.wheelYCheck(dir), e);
+					if (scrollable.wheelYCheck(dir)) {
+						onScrollY(dir);
+						animate.play();
+						e.preventDefault();
+					}
+				}
 
-                function off() {
-                    dragOff();
-                    // animate.pause();
-                    scrollable.off();
-                }
+				function off() {
+					dragOff();
+					// animate.pause();
+					scrollable.off();
+				}
 
-                function isEnabled() {
-                    var enabled = true;
-                    if (scrollableWhen) {
-                        enabled = enabled && scrollableWhen(scope);
-                    }
-                    enabled = enabled && $window.innerWidth >= 1024;
-                    enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
-                    return enabled;
-                }
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && $window.innerWidth >= 1024;
+					enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
+					return enabled;
+				}
 
-                function onResize() {
-                    var enabled = isEnabled();
-                    if (!enabled) {
-                        off();
-                    }
-                    render();
-                }
+				function onResize() {
+					var enabled = isEnabled();
+					if (!enabled) {
+						off();
+					}
+					render();
+				}
 
-                scope.$watch(function() {
-                    return contentNode.offsetHeight;
-                }, function(newValue, oldValue) {
-                    onResize();
-                });
+				scope.$watch(function () {
+					return contentNode.offsetHeight;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
 
-                function addListeners() {
-                    angular.element($window).on('resize', onResize);
-                    element.on('touchstart mousedown', onDown);
-                    // element.on('wheel', onWheel);
-                    element[0].addEventListener('DOMMouseScroll', onWheel, {
-                        passive: false
-                    }); // for Firefox
-                    element[0].addEventListener('mousewheel', onWheel, {
-                        passive: false
-                    }); // for everyone else
-                }
+				var events = new Events(element).add({
+					down: onDown,
+					wheel: onWheel,
+				}, scope);
 
-                function removeListeners() {
-                    angular.element($window).off('resize', onResize);
-                    element.off('touchstart mousedown', onDown);
-                    // element.off('wheel', onWheel);
-                    element[0].removeEventListener('DOMMouseScroll', onWheel); // for Firefox
-                    element[0].removeEventListener('mousewheel', onWheel);
-                }
+				var windowEvents = new Events($window).add({
+					resize: onResize,
+				}, scope);
 
-                function dragOn() {
-                    angular.element($window).on('touchmove mousemove', onMove);
-                    angular.element($window).on('touchend mouseup', onUp);
-                }
+				function dragOn() {
+					windowEvents.add({
+						move: onMove,
+						up: onUp,
+					}, scope);
+				}
 
-                function dragOff() {
-                    angular.element($window).off('touchmove mousemove', onMove);
-                    angular.element($window).off('touchend mouseup', onUp);
-                }
+				function dragOff() {
+					windowEvents.remove({
+						move: onMove,
+						up: onUp,
+					});
+				}
 
-                scope.$on('$destroy', function() {
-                    removeListeners();
-                    animate.pause();
-                });
+				scope.$on('$destroy', function () {
+					animate.pause();
+				});
 
-                addListeners();
-
-            },
-        };
+			},
+		};
     }]);
 
 }());
