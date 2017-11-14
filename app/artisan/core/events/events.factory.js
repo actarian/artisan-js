@@ -48,6 +48,7 @@
 				e = e.originalEvent ? e.originalEvent : e;
 				var deltaX = e.deltaX || e.wheelDeltaX;
 				var deltaY = e.deltaY || e.wheelDeltaY;
+				// console.log(e.deltaX, e.deltaY, e.wheelDeltaX, e.wheelDeltaY);
 				if (Math.abs(deltaX) > Math.abs(deltaY)) {
 					this.dir = deltaX < 0 ? 1 : -1;
 				} else {
@@ -181,13 +182,16 @@
 					callback: onMouseScroll
 				},
 			};
-			this.setTimestamp = function (event) {
+			this.timestamp = new Date().getTime();
+			this.setTimestamp = setTimestamp;
+
+			function setTimestamp(event) {
 				if (event) {
-					event.interval = event.timestamp - events.timestamp;
+					event.interval = Math.min(250, event.timestamp - events.timestamp);
+					// console.log(event.interval, event.timestamp, events.timestamp);
 				}
 				events.timestamp = new Date().getTime();
-			};
-			this.setTimestamp();
+			}
 
 			function onClick(e) {
 				// console.log('onClick', e, events);

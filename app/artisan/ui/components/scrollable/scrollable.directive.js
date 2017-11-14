@@ -155,6 +155,7 @@
 					if (scrollable.wheelXCheck(event.dir)) {
 						onScrollX(event.dir, event.interval);
 						animate.play();
+						event.originalEvent.stopPropagation();
 						event.originalEvent.preventDefault();
 					}
 				}
@@ -323,6 +324,7 @@
 					if (scrollable.wheelYCheck(event.dir)) {
 						onScrollY(event.dir, event.interval);
 						animate.play();
+						event.originalEvent.stopPropagation();
 						event.originalEvent.preventDefault();
 					}
 				}

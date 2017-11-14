@@ -290,6 +290,19 @@
 				}
 			}
 
+			function wheelXCheck(dir) {
+				// console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
+				if (!busy && enabled) {
+					if (dir < 0) {
+						return end.x - overflow.width;
+					} else {
+						return end.x - overflow.x;
+					}
+				} else {
+					return false;
+				}
+			}
+
 			function wheelXIncrement(dir, interval) {
 				var increment = 100;
 				if (snappable) {
@@ -303,21 +316,10 @@
 			}
 
 			function wheelX(dir, interval) {
-				end.x += dir * wheelXIncrement(dir, interval);
-				speed.x += dir * 5;
+				// end.x += dir * wheelXIncrement(dir, interval);
+				end.x += dir * 200 / 1000 * interval;
+				speed.x += dir * 200 / 1000 * interval;
 				wheeling = true;
-			}
-
-			function wheelXCheck(dir) {
-				if (!busy && enabled) {
-					if (dir < 0) {
-						return (end.x > overflow.width);
-					} else {
-						return (end.x < overflow.x);
-					}
-				} else {
-					return false;
-				}
 			}
 
 			function scrollToX(value) {
@@ -444,6 +446,19 @@
 				}
 			}
 
+			function wheelYCheck(dir) {
+				// console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
+				if (!busy && enabled) {
+					if (dir < 0) {
+						return end.y - overflow.height;
+					} else {
+						return end.y - overflow.y;
+					}
+				} else {
+					return false;
+				}
+			}
+
 			function wheelYIncrement(dir, interval) {
 				var increment = 100;
 				if (snappable) {
@@ -457,21 +472,10 @@
 			}
 
 			function wheelY(dir, interval) {
-				end.y += dir * wheelYIncrement(dir, interval);
-				speed.y += dir * 5;
+				// end.y += dir * wheelYIncrement(dir, interval);
+				end.y += dir * 200 / 1000 * interval;
+				speed.y += dir * 200 / 1000 * interval;
 				wheeling = true;
-			}
-
-			function wheelYCheck(dir) {
-				if (!busy && enabled) {
-					if (dir < 0) {
-						return (end.y > overflow.height);
-					} else {
-						return (end.y < overflow.y);
-					}
-				} else {
-					return false;
-				}
 			}
 
 			function scrollToY(value) {
