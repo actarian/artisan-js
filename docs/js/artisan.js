@@ -13,6 +13,156 @@
 
 	var app = angular.module('artisan');
 
+	app.service('FacebookService', ['$promise', '$window', '$document', 'environment', function ($promise, $window, $document, environment) {
+
+		var service = this;
+
+		var statics = {
+			login: FacebookLogin,
+			logout: FacebookLogout,
+			status: FacebookStatus,
+			getMe: FacebookGetMe,
+			getMyPicture: FacebookGetMyPicture,
+		};
+
+		angular.extend(service, statics);
+
+		// private vars
+
+		if (!environment.addons || !environment.addons.facebook) {
+			trhow('FacebookService.error missing environment.addons.facebook');
+		}
+
+		var config = environment.addons.facebook;
+
+		// statics methods
+
+		function Facebook() {
+			return $promise(function (promise) {
+				if ($window.FB !== undefined) {
+					promise.resolve($window.FB);
+				} else {
+					FacebookInit().then(function (success) {
+						promise.resolve($window.FB);
+					}, function (error) {
+						promise.reject(error);
+					});
+				}
+			});
+		}
+
+		function FacebookStatus(response, promise, init) {
+			service.authResponse = null;
+			if (response.status === 'connected') {
+				service.authResponse = response.authResponse;
+				promise.resolve(response);
+			} else if (response.status === 'not_authorized') {
+				if (init) {
+					promise.resolve(response);
+				} else {
+					promise.reject(response);
+				}
+			} else {
+				promise.reject(response);
+			}
+		}
+
+		function FacebookGetMe() {
+			return $promise(function (promise) {
+				Facebook().then(function (facebook) {
+					facebook.api('/me', {
+						fields: 'id,name,first_name,last_name,email,gender,picture,cover,link'
+					}, function (response) {
+						if (!response || response.error) {
+							promise.reject('Error occured');
+						} else {
+							promise.resolve(response);
+						}
+					});
+				});
+			});
+		}
+
+		function FacebookGetMyPicture() {
+			return $promise(function (promise) {
+				Facebook().then(function (facebook) {
+					facebook.api('/me/picture', {
+						width: 300,
+						height: 300,
+						type: 'square'
+					}, function (response) {
+						if (!response || response.error) {
+							promise.reject('Error occured');
+						} else {
+							promise.resolve(response);
+						}
+					});
+				});
+			});
+		}
+
+		function FacebookLogin() {
+			return $promise(function (promise) {
+				Facebook().then(function (facebook) {
+					facebook.login(function (response) {
+						FacebookStatus(response, promise);
+					}, {
+						scope: 'public_profile, email' // publish_stream,
+					});
+				});
+			});
+		}
+
+		function FacebookLogout() {
+			return $promise(function (promise) {
+				Facebook().then(function (facebook) {
+					facebook.logout(function (response) {
+						promise.resolve(response);
+					});
+				});
+			});
+		}
+
+		function FacebookInit() {
+			return $promise(function (promise) {
+				$window.fbAsyncInit = function () {
+					$window.FB.init({
+						appId: config.app_id,
+						status: true,
+						cookie: true,
+						xfbml: true,
+						version: 'v2.10'
+					});
+					promise.resolve($window.FB);
+					// $window.fbAsyncInit = null;
+				};
+				try {
+					(function (d, s, id) {
+						var js, fjs = d.getElementsByTagName(s)[0];
+						if (d.getElementById(id)) {
+							return;
+						}
+						js = d.createElement(s);
+						js.id = id;
+						js.src = "//connect.facebook.net/en_US/sdk.js";
+						fjs.parentNode.insertBefore(js, fjs);
+					}(document, 'script', 'facebook-jssdk'));
+				} catch (error) {
+					promise.reject(error);
+				}
+			});
+		}
+
+    }]);
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
 	app.factory('Animate', [function () {
 
 		function Animate(callback) {
@@ -20,37 +170,54 @@
 			this.key = null;
 			this.ticks = 0;
 		}
-		Animate.prototype = {
-			play: function () {
-				var _this = this;
 
-				function loop(time) {
-					_this.ticks++;
-					_this.callback(time, _this.ticks);
-					_this.key = window.requestAnimationFrame(loop);
-				}
-				if (!this.key) {
-					loop();
-				}
-			},
-			pause: function () {
-				if (this.key) {
-					window.cancelAnimationFrame(this.key);
-					this.key = null;
-				}
-			},
-			playpause: function () {
-				if (this.key) {
-					this.pause();
-				} else {
-					this.play();
-				}
-			},
-			doNOTPlay: function () {
-				this.pause();
-			},
-		}
+		var statics = {};
+
+		var methods = {
+			pause: pause,
+			play: play,
+			toggle: toggle,
+		};
+
+		angular.extend(Animate, statics);
+		angular.extend(Animate.prototype, methods);
+
 		return Animate;
+
+		// static methods
+
+		// prototype methods
+
+		function pause() {
+			var animate = this;
+			if (animate.key) {
+				window.cancelAnimationFrame(animate.key);
+				animate.key = null;
+			}
+		}
+
+		function play() {
+			var animate = this;
+
+			function loop(time) {
+				animate.ticks++;
+				animate.callback(time, animate.ticks);
+				animate.key = window.requestAnimationFrame(loop);
+			}
+			if (!animate.key) {
+				loop();
+			}
+		}
+
+		function toggle() {
+			var animate = this;
+			if (animate.key) {
+				animate.pause();
+			} else {
+				animate.play();
+			}
+		}
+
     }]);
 
 	(function () {
@@ -80,6 +247,17 @@
 	}());
 
 }());
+/*
+// handle transition on resizing
+var resizingTimeout;
+$(window).on('resize', function () {
+    clearTimeout(resizingTimeout);
+    $('body').addClass('resizing');
+    resizingTimeout = setTimeout(function () {
+        $('body').removeClass('resizing');
+    }, 100);
+})
+*/
 
 /* global angular */
 
@@ -88,105 +266,264 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Events', ['$window', '$document', 'EventsService', 'Utils', function ($window, $document, EventsService, Utils) {
+	app.service('Dom', ['$window', '$document', function ($window, $document) {
+
+		var service = this;
+
+		var statics = {
+			ua: getUA(),
+			getNode: getNode,
+			getElement: getElement,
+			getClosest: getClosest,
+			getClosestElement: getClosestElement,
+			getParents: getParents,
+			getDocumentNode: getDocumentNode,
+			compileController: compileController,
+			downloadFile: downloadFile,
+		};
+
+		angular.extend(service, statics);
+
+		function getUA() {
+			var agent = window.navigator.userAgent.toLowerCase();
+			var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
+			var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
+			var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
+			var mobile = agent.indexOf('mobile') !== -1;
+			var mac = agent.indexOf('macintosh') !== -1;
+			var ua = {
+				agent: agent,
+				safari: safari,
+				msie: msie,
+				chrome: chrome,
+				mobile: mobile,
+				mac: mac,
+			};
+			angular.forEach(ua, function (value, key) {
+				if (value) {
+					angular.element(document.getElementsByTagName('body')).addClass(key);
+				}
+			});
+			return ua;
+		}
+
+		function getNode(element) {
+			return element.length ? element[0] : element;
+		}
+
+		function getElement(element) {
+			return element.length ? element : angular.element(element);
+		}
+
+		function getClosest(el, selector) {
+			var matchesFn, parent;
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+				if (typeof document.body[fn] == 'function') {
+					matchesFn = fn;
+					return true;
+				}
+				return false;
+			});
+			if (el[matchesFn](selector)) {
+				return el;
+			}
+			while (el !== null) {
+				parent = el.parentElement;
+				if (parent !== null && parent[matchesFn](selector)) {
+					return parent;
+				}
+				el = parent;
+			}
+			return null;
+		}
+
+		function getClosestElement(el, target) {
+			var matchesFn, parent;
+			if (el === target) {
+				return el;
+			}
+			while (el !== null) {
+				parent = el.parentElement;
+				if (parent !== null && parent === target) {
+					return parent;
+				}
+				el = parent;
+			}
+			return null;
+		}
+
+		function getDocumentNode() {
+			var documentNode = (document.documentElement || document.body.parentNode || document.body);
+			return documentNode;
+		}
+
+		function getParents(node, topParentNode) {
+			// if no topParentNode defined will bubble up all the way to *document*
+			topParentNode = topParentNode || getDocumentNode();
+			var parents = [];
+			if (node) {
+				parents.push(node);
+				var parentNode = node.parentNode;
+				while (parentNode !== topParentNode) {
+					parents.push(parentNode);
+					parentNode = parentNode.parentNode;
+				}
+				parents.push(topParentNode); // push that topParentNode you wanted to stop at
+			}
+			return parents;
+		}
+
+		function compileController(scope, element, html, data) {
+			// console.log('Dom.compileController', element);
+			element.html(html);
+			var link = $compile(element.contents());
+			if (data.controller) {
+				var $scope = scope.$new();
+				angular.extend($scope, data);
+				var controller = $controller(data.controller, {
+					$scope: $scope
+				});
+				if (data.controllerAs) {
+					scope[data.controllerAs] = controller;
+				}
+				element.data('$ngControllerController', controller);
+				element.children().data('$ngControllerController', controller);
+				scope = $scope;
+			}
+			link(scope);
+		}
+
+		function downloadFile(content, name, type) {
+			type = type || 'application/octet-stream';
+			var base64 = null;
+			var blob = new Blob([content], {
+				type: type
+			});
+			var reader = new window.FileReader();
+			reader.readAsDataURL(blob);
+			reader.onloadend = function () {
+				base64 = reader.result;
+				download();
+			};
+
+			function download() {
+				if (document.createEvent) {
+					var anchor = document.createElement('a');
+					anchor.href = base64;
+					if (anchor.download !== undefined) {
+						var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
+						anchor.download = downloadName;
+					}
+					var event = document.createEvent('MouseEvents');
+					event.initEvent('click', true, true);
+					anchor.dispatchEvent(event);
+					return true;
+				}
+				var query = '?download';
+				window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
+			}
+		}
+
+    }]);
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.factory('Event', ['$window', '$document', 'EventsService', 'Dom', 'Point', 'Rect', function ($window, $document, EventsService, Dom, Point, Rect) {
 
 		function Event(e, element) {
+			var event = this;
 			e = e || $window.event;
-			var documentNode = Utils.getDocumentNode();
-			var scroll = {
-				x: $window.pageXOffset || documentNode.scrollLeft,
-				y: $window.pageYOffset || documentNode.scrollTop
-			};
-			var node = getNode(element);
-			var offset = {
-				x: node.offsetLeft,
-				y: node.offsetTop,
-			};
+			var documentNode = Dom.getDocumentNode();
+			var scroll = new Point(
+				$window.pageXOffset || documentNode.scrollLeft,
+				$window.pageYOffset || documentNode.scrollTop
+			);
+			var node = Dom.getNode(element);
+			var offset = new Point(
+				node.offsetLeft,
+				node.offsetTop
+			);
 			var boundNode = node === $window ? documentNode : node;
 			var rect = boundNode.getBoundingClientRect();
-			var page = this.getPage(e);
+			var page = event.getPage(e);
 			if (page) {
-				var relative = {
-					x: page.x - scroll.x - rect.left,
-					y: page.y - scroll.y - rect.top,
-				};
-				var absolute = {
-					x: page.x - scroll.x,
-					y: page.y - scroll.y,
-				};
-				this.relative = relative;
-				this.absolute = absolute;
+				var relative = new Point(
+					page.x - scroll.x - rect.left,
+					page.y - scroll.y - rect.top
+				);
+				var absolute = new Point(
+					page.x - scroll.x,
+					page.y - scroll.y
+				);
+				event.relative = relative;
+				event.absolute = absolute;
 			}
 			if (e.type === 'resize') {
 				var view = {
-					w: this.getWidth(),
-					h: this.getHeight(),
+					w: event.getWidth(),
+					h: event.getHeight(),
 				};
-				this.view = view;
+				event.view = view;
 			}
 			if (e.type === 'mousewheel' || e.type === 'DOMMouseScroll') {
 				e = e.originalEvent ? e.originalEvent : e;
 				var deltaX = e.deltaX || e.wheelDeltaX;
 				var deltaY = e.deltaY || e.wheelDeltaY;
 				if (Math.abs(deltaX) > Math.abs(deltaY)) {
-					this.dir = deltaX < 0 ? 1 : -1;
+					event.dir = deltaX < 0 ? 1 : -1;
 				} else {
-					this.dir = deltaY < 0 ? 1 : -1;
+					event.dir = deltaY < 0 ? 1 : -1;
 				}
-				// console.log(element, this.dir, e.deltaX, e.deltaY, e.wheelDeltaX, e.wheelDeltaY);
 			}
-			this.originalEvent = e;
-			this.element = element;
-			this.node = node;
-			this.offset = offset;
-			this.rect = rect;
-			this.timestamp = new Date().getTime();
-			// console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
-			// console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
+			event.originalEvent = e;
+			event.element = element;
+			event.node = node;
+			event.offset = offset;
+			event.rect = rect;
+			event.timestamp = new Date().getTime();
 		}
-		Event.prototype = {
+
+		var methods = {
 			getPage: getPage,
 			getWidth: getWidth,
 			getHeight: getHeight,
 			stop: stop,
 		};
 
+		var statics = {};
+
+		angular.extend(Event.prototype, methods);
+		angular.extend(Event, statics);
+		return Event;
+
+		// prototype methods
+
 		function getWidth() {
 			if (self.innerWidth) {
 				return self.innerWidth;
 			}
-			var documentNode = Utils.getDocumentNode();
+			var documentNode = Dom.getDocumentNode();
 			return documentNode.clientWidth;
-			/*
-			if ($document.documentElement && $document.documentElement.clientWidth) {
-				return $document.documentElement.clientWidth;
-			}
-			if ($document.body) {
-				return $document.body.clientWidth;
-            }
-            */
 		}
 
 		function getHeight() {
 			if (self.innerHeight) {
 				return self.innerHeight;
 			}
-			var documentNode = Utils.getDocumentNode();
+			var documentNode = Dom.getDocumentNode();
 			return documentNode.clientHeight;
-			/*
-            if ($document.documentElement && $document.documentElement.clientHeight) {
-				return $document.documentElement.clientHeight;
-			}
-			if ($document.body) {
-				return $document.body.clientHeight;
-            }
-            */
 		}
 
 		function getPage(e) {
+			var page = null;
 			var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
 			var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
-			var page = null;
 			if (touchEvents.indexOf(e.type) !== -1) {
 				var t = null;
 				var event = e.originalEvent ? e.originalEvent : e;
@@ -195,16 +532,16 @@
 					t = touches[0];
 				}
 				if (t) {
-					page = {
-						x: t.pageX,
-						y: t.pageY,
-					};
+					page = new Point(
+						t.pageX,
+						t.pageY
+					);
 				}
 			} else if (standardEvents.indexOf(e.type) !== -1) {
-				page = {
-					x: e.pageX,
-					y: e.pageY,
-				};
+				page = new Point(
+					e.pageX,
+					e.pageY
+				);
 			}
 			this.type = e.type;
 			return page;
@@ -214,6 +551,10 @@
 			this.originalEvent.stopPropagation();
 			this.originalEvent.preventDefault();
 		}
+
+	}]);
+
+	app.factory('Events', ['$window', '$document', 'EventsService', 'Event', 'Dom', function ($window, $document, EventsService, Event, Dom) {
 
 		function Events(element) {
 			var events = this;
@@ -353,7 +694,8 @@
 				events.listeners.up.apply(this, [event]);
 			}
 		}
-		Events.prototype = {
+
+		var methods = {
 			add: add,
 			remove: remove,
 			removeStandardEvents: removeStandardEvents,
@@ -361,15 +703,17 @@
 			removeWheelEvents: removeWheelEvents,
 			removeScrollEvents: removeScrollEvents,
 		};
+
+		var statics = {
+			getTouch: getTouch,
+			getRelativeTouch: getRelativeTouch,
+		};
+
+		angular.extend(Events.prototype, methods);
+		angular.extend(Events, statics);
 		return Events;
 
-		function getNode(element) {
-			return element.length ? element[0] : element;
-		}
-
-		function getElement(element) {
-			return element.length ? element : angular.element(element);
-		}
+		// prototype methods
 
 		function add(listeners, scope) {
 			var events = this,
@@ -377,7 +721,7 @@
 				touch = this.touchEvents,
 				wheel = this.wheelEvents,
 				scroll = this.scrollEvents;
-			var element = getElement(this.element),
+			var element = Dom.getElement(this.element),
 				windowElement = angular.element($window);
 
 			angular.forEach(listeners, function (callback, key) {
@@ -403,7 +747,6 @@
 				if (scroll[key]) {
 					element.on(scroll[key].key, scroll[key].callback);
 				}
-				// console.log('add', key, element);
 			});
 
 			if (scope) {
@@ -421,7 +764,7 @@
 				touch = this.touchEvents,
 				wheel = this.wheelEvents,
 				scroll = this.scrollEvents;
-			var element = getElement(this.element),
+			var element = Dom.getElement(this.element),
 				windowElement = angular.element($window);
 			angular.forEach(listeners, function (callback, key) {
 				if (standard[key]) {
@@ -449,7 +792,7 @@
 			var events = this,
 				standard = events.standardEvents,
 				touch = events.touchEvents;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('mousedown', standard.down.callback);
 			element.off('mousemove', standard.move.callback);
 			element.off('mouseup', standard.up.callback);
@@ -459,7 +802,7 @@
 			var events = this,
 				standard = events.standardEvents,
 				touch = events.touchEvents;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('touchstart', touch.down.callback);
 			element.off('touchmove', touch.move.callback);
 			element.off('touchend', touch.up.callback);
@@ -467,26 +810,68 @@
 
 		function removeWheelEvents() {
 			var events = this;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('mousewheel', events.mouseEvents.wheel.callback);
 		}
 
 		function removeScrollEvents() {
 			var events = this;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('DOMMouseScroll', events.scrollEvents.wheel.callback);
+		}
+
+		// statics methods
+
+		function getTouch(e, previous) {
+			var point = new Point();
+			if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
+				var touch = null;
+				var event = e.originalEvent ? e.originalEvent : e;
+				var touches = event.touches.length ? event.touches : event.changedTouches;
+				if (touches && touches.length) {
+					touch = touches[0];
+				}
+				if (touch) {
+					point.x = touch.pageX;
+					point.y = touch.pageY;
+				}
+			} else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
+				point.x = e.pageX;
+				point.y = e.pageY;
+			}
+			if (previous) {
+				point.s = Point.difference(t, previous);
+			}
+			point.type = e.type;
+			return point;
+		}
+
+		function getRelativeTouch(node, point) {
+			node = angular.isArray(node) ? node[0] : node;
+			return Point.difference(point, {
+				x: node.offsetLeft,
+				y: node.offsetTop
+			});
 		}
 
     }]);
 
-	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
+	app.service('EventsService', ['$window', 'Dom', function ($window, Dom) {
 
 		var service = this;
 
-		service.hasPassiveEvents = hasPassiveEvents;
-		service.addEventListener = getAddEventListener();
+		var statics = {
+			hasPassiveEvents: hasPassiveEvents,
+			addEventListener: getAddEventListener(),
+		};
+
+		angular.extend(service, statics);
+
+		// prevent history back on mac os
 
 		preventHistoryNavigation();
+
+		// static methods
 
 		function hasPassiveEvents() {
 			var supported = false;
@@ -518,26 +903,13 @@
 
 			function getModifiedAddEventListener(original) {
 				function addEventListener(type, listener, options) {
-					if (options === true) {
+					if (typeof options !== 'object') {
+						var capture = options === true;
 						options = angular.copy(defaults);
-						options.capture = true;
-					} else if (options === undefined) {
-						options = angular.copy(defaults);
+						options.capture = capture;
+					} else {
+						options = angular.extend(angular.copy(defaults), options);
 					}
-					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-					options.capture = options.capture !== undefined ? options.capture : defaults.capture;
-					// console.log(type, options);
-					/*
-					var usesListenerOptions = typeof options === 'object';
-					options = usesListenerOptions ? options : {};
-					var descriptor = Object.getOwnPropertyDescriptor(options, 'passive');
-					if (!descriptor || descriptor.writable) {
-						var capture = usesListenerOptions ? options.capture : options;
-						options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-						options.capture = capture !== undefined ? capture : defaults.capture;
-						// console.log(this, type);
-					}
-					*/
 					original.call(this, type, listener, options);
 				}
 				return addEventListener;
@@ -545,17 +917,15 @@
 
 			var original = EventTarget.prototype.addEventListener;
 			var modified = getModifiedAddEventListener(original);
-
 			EventTarget.prototype.addEventListener = modified;
-
 			return modified;
 		}
 
 		function preventHistoryNavigation() {
-			if (!Utils.ua.mac) {
+			if (!Dom.ua.mac) {
 				return;
 			}
-			if (Utils.ua.chrome || Utils.ua.safari || Utils.ua.firefox) {
+			if (Dom.ua.chrome || Dom.ua.safari || Dom.ua.firefox) {
 				$window.addEventListener('mousewheel', onScroll, {
 					passive: false
 				});
@@ -566,10 +936,10 @@
 					return;
 				}
 				if (
-					(e.deltaX < 0 && (Utils.getParents(e.target).filter(function (node) {
+					(e.deltaX < 0 && (Dom.getParents(e.target).filter(function (node) {
 						return node.scrollLeft > 0;
 					}).length === 0)) ||
-					(e.deltaX > 0 && (Utils.getParents(e.target).filter(function (node) {
+					(e.deltaX > 0 && (Dom.getParents(e.target).filter(function (node) {
 						return node.scrollWidth - node.scrollLeft > node.clientWidth;
 					}).length === 0))
 				) {
@@ -589,6 +959,7 @@
 	var app = angular.module('artisan');
 
 	app.filter('notIn', ['$filter', function ($filter) {
+
 		return function (array, filters, element) {
 			if (filters) {
 				return $filter("filter")(array, function (item) {
@@ -599,10 +970,10 @@
 				});
 			}
 		};
+
     }]);
 
 }());
-
 /* global angular, firebase */
 
 (function () {
@@ -611,54 +982,95 @@
 	var app = angular.module('artisan');
 
 	app.factory('Point', [function () {
+
 		function Point(x, y) {
 			this.x = x || 0;
 			this.y = y || 0;
 		}
-		Point.mult = function (point, value) {
+
+		var statics = {
+			difference: PointDifference,
+			multiply: PointMultiply,
+		};
+
+		var methods = {
+			clone: clone,
+			copy: copy,
+			difference: difference,
+			mult: mult,
+			offset: offset,
+			setPos: setPos,
+			setX: setX,
+			setY: setY,
+			toString: toString,
+		};
+
+		angular.extend(Point, statics);
+		angular.extend(Point.prototype, methods);
+
+		return Point;
+
+		// static methods
+
+		function PointDifference(a, b) {
+			return new Point(a.x - b.x, a.y - b.y);
+		}
+
+		function PointMultiply(point, value) {
 			point.x *= value;
 			point.y *= value;
 			return point;
-		};
-		Point.prototype = {
-			mult: function (value) {
-				return Point.mult(this, value);
-			},
-			offset: function (x, y) {
-				this.x += x;
-				this.y += y;
-				return this;
-			},
-			setX: function (x) {
-				this.x = x;
-				return this;
-			},
-			setY: function (y) {
-				this.y = y;
-				return this;
-			},
-			setPos: function (x, y) {
-				this.x = x;
-				this.y = y;
-				return this;
-			},
-			copy: function (point) {
-				this.x = point.x;
-				this.y = point.y;
-				return this;
-			},
-			clone: function () {
-				return new Point(this.x, this.y);
-			},
-			toString: function () {
-				return '{' + this.x + ',' + this.y + '}';
-			},
-		};
-		return Point;
+		}
+
+		// prototype methods
+
+		function clone() {
+			return new Point(this.x, this.y);
+		}
+
+		function copy(point) {
+			this.x = point.x;
+			this.y = point.y;
+			return this;
+		}
+
+		function difference(b) {
+			return PointDifference(this, b);
+		}
+
+		function mult(value) {
+			return PointMultiply(this, value);
+		}
+
+		function offset(x, y) {
+			this.x += x;
+			this.y += y;
+			return this;
+		}
+
+		function setPos(x, y) {
+			this.x = x;
+			this.y = y;
+			return this;
+		}
+
+		function setX(x) {
+			this.x = x;
+			return this;
+		}
+
+		function setY(y) {
+			this.y = y;
+			return this;
+		}
+
+		function toString() {
+			return '{' + this.x + ',' + this.y + '}';
+		}
+
     }]);
 
 }());
-
 /* global angular, firebase */
 
 (function () {
@@ -667,643 +1079,816 @@
 	var app = angular.module('artisan');
 
 	app.factory('Rect', [function () {
+
 		function Rect(x, y, w, h) {
 			this.x = x || 0;
 			this.y = y || 0;
 			this.w = w || 0;
 			this.h = h || 0;
 		}
-		Rect.mult = function (rect, value) {
+
+		var statics = {
+			mult: RectMultiply,
+		};
+
+		var methods = {
+			bottom: bottom,
+			bottomLeft: bottomLeft,
+			bottomRight: bottomRight,
+			center: center,
+			clone: clone,
+			copy: copy,
+			expand: expand,
+			expandRect: expandRect,
+			intersect: intersect,
+			left: left,
+			mult: mult,
+			offset: offset,
+			reduce: reduce,
+			reduceRect: reduceRect,
+			right: right,
+			setH: setH,
+			setPos: setPos,
+			setSize: setSize,
+			setX: setX,
+			setY: setY,
+			setW: setW,
+			top: top,
+			topLeft: topLeft,
+			topRight: topRight,
+			toString: toString,
+		};
+
+		angular.extend(Rect, statics);
+		angular.extend(Rect.prototype, methods);
+
+		return Rect;
+
+		// static methods
+
+		function RectMultiply(rect, value) {
 			rect.x *= value;
 			rect.y *= value;
 			rect.w *= value;
 			rect.h *= value;
 			return rect;
-		};
-		Rect.prototype = {
-			mult: function (value) {
-				return Rect.mult(this, value);
-			},
-			offset: function (x, y) {
-				this.x += x;
-				this.y += y;
-				return this;
-			},
-			reduce: function (size) {
-				return this.offset(-size);
-			},
-			reduceRect: function (rect) {
-				return this.offsetRect(Rect.mult(rect, -1));
-			},
-			expandRect: function (rect) {
-				this.x -= rect.x || 0;
-				this.y -= rect.y || 0;
-				this.w += rect.w || 0;
-				this.h += rect.h || 0;
-				return this;
-			},
-			expand: function (size) {
-				return this.expandRect({
-					x: size,
-					y: size,
-					w: size * 2,
-					h: size * 2
-				});
-			},
-			intersect: function (rect) {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return !(rect.x > x + w || rect.x + rect.w < x || rect.y > y + h || rect.y + rect.h < y);
-			},
-			top: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x + w / 2,
-					y: y
-				};
-			},
-			right: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x + w,
-					y: y + h / 2
-				};
-			},
-			bottom: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x + w / 2,
-					y: y + h
-				};
-			},
-			left: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x,
-					y: y + h / 2
-				};
-			},
-			center: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x + w / 2,
-					y: y + h / 2
-				};
-			},
-			topLeft: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x,
-					y: y
-				};
-			},
-			topRight: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x + w,
-					y: y
-				};
-			},
-			bottomRight: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x + w,
-					y: y + h
-				};
-			},
-			bottomLeft: function () {
-				var x = this.x,
-					y = this.y,
-					w = this.w,
-					h = this.h;
-				return {
-					x: x,
-					y: y + h
-				};
-			},
-			setX: function (x) {
-				this.x = x;
-				return this;
-			},
-			setY: function (y) {
-				this.y = y;
-				return this;
-			},
-			setW: function (w) {
-				this.w = w;
-				return this;
-			},
-			setH: function (h) {
-				this.h = h;
-				return this;
-			},
-			setPos: function (x, y) {
-				this.x = x;
-				this.y = y;
-				return this;
-			},
-			setSize: function (w, h) {
-				this.w = w;
-				this.h = h;
-				return this;
-			},
-			copy: function (rect) {
-				this.x = rect.x;
-				this.y = rect.y;
-				this.w = rect.w;
-				this.h = rect.h;
-				return this;
-			},
-			clone: function () {
-				return new Rect(this.x, this.y, this.w, this.h);
-			},
-			toString: function () {
-				return '{' + this.x + ',' + this.y + ',' + this.w + ',' + this.h + '}';
-			},
-		};
-		return Rect;
+		}
+
+		// prototype methods
+
+		function bottom() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x + w / 2,
+				y: y + h
+			};
+		}
+
+		function bottomLeft() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x,
+				y: y + h
+			};
+		}
+
+		function bottomRight() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x + w,
+				y: y + h
+			};
+		}
+
+		function center() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x + w / 2,
+				y: y + h / 2
+			};
+		}
+
+		function clone() {
+			return new Rect(this.x, this.y, this.w, this.h);
+		}
+
+		function copy(rect) {
+			this.x = rect.x;
+			this.y = rect.y;
+			this.w = rect.w;
+			this.h = rect.h;
+			return this;
+		}
+
+		function expand(size) {
+			return this.expandRect({
+				x: size,
+				y: size,
+				w: size * 2,
+				h: size * 2
+			});
+		}
+
+		function expandRect(rect) {
+			this.x -= rect.x || 0;
+			this.y -= rect.y || 0;
+			this.w += rect.w || 0;
+			this.h += rect.h || 0;
+			return this;
+		}
+
+		function intersect(rect) {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return !(rect.x > x + w || rect.x + rect.w < x || rect.y > y + h || rect.y + rect.h < y);
+		}
+
+		function left() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x,
+				y: y + h / 2
+			};
+		}
+
+		function mult(value) {
+			return RectMultiply(this, value);
+		}
+
+		function offset(x, y) {
+			this.x += x;
+			this.y += y;
+			return this;
+		}
+
+		function reduce(size) {
+			return this.offset(-size);
+		}
+
+		function reduceRect(rect) {
+			return this.offsetRect(RectMultiply(rect, -1));
+		}
+
+		function right() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x + w,
+				y: y + h / 2
+			};
+		}
+
+		function setH(h) {
+			this.h = h;
+			return this;
+		}
+
+		function setPos(x, y) {
+			this.x = x;
+			this.y = y;
+			return this;
+		}
+
+		function setSize(w, h) {
+			this.w = w;
+			this.h = h;
+			return this;
+		}
+
+		function setX(x) {
+			this.x = x;
+			return this;
+		}
+
+		function setY(y) {
+			this.y = y;
+			return this;
+		}
+
+		function setW(w) {
+			this.w = w;
+			return this;
+		}
+
+		function top() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x + w / 2,
+				y: y
+			};
+		}
+
+		function topLeft() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x,
+				y: y
+			};
+		}
+
+		function topRight() {
+			var x = this.x,
+				y = this.y,
+				w = this.w,
+				h = this.h;
+			return {
+				x: x + w,
+				y: y
+			};
+		}
+
+		function toString() {
+			return '{' + this.x + ',' + this.y + ',' + this.w + ',' + this.h + '}';
+		}
+
     }]);
 
 }());
-
 /* global angular, firebase */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Vector', function() {
-        function Vector(x, y) {
-            this.x = x || 0;
-            this.y = y || 0;
-        }
-        Vector.make = function(a, b) {
-            return new Vector(b.x - a.x, b.y - a.y);
-        };
-        Vector.size = function(a) {
-            return Math.sqrt(a.x * a.x + a.y * a.y);
-        };
-        Vector.normalize = function(a) {
-            var l = Vector.size(a);
-            a.x /= l;
-            a.y /= l;
-            return a;
-        };
-        Vector.incidence = function(a, b) {
-            var angle = Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x);
-            // if (angle < 0) angle += 2 * Math.PI;
-            // angle = Math.min(angle, (Math.PI * 2 - angle));
-            return angle;
-        };
-        Vector.distance = function(a, b) {
-            return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
-        };
-        Vector.cross = function(a, b) {
-            return (a.x * b.y) - (a.y * b.x);
-        };
-        Vector.difference = function(a, b) {
-            return new Vector(a.x - b.x, a.y - b.y);
-        };
-        Vector.power = function(a, b) {
-            var x = Math.abs(b.x - a.x);
-            var y = Math.abs(b.y - a.y);
-            return (x + y) / 2;
-        };
-        Vector.prototype = {
-            size: function() {
-                return Vector.size(this);
-            },
-            normalize: function() {
-                return Vector.normalize(this);
-            },
-            incidence: function(b) {
-                return Vector.incidence(this, b);
-            },
-            cross: function(b) {
-                return Vector.cross(this, b);
-            },
-            distance: function(b) {
-                return Vector.distance(this, b);
-            },
-            difference: function(b) {
-                return Vector.difference(this, b);
-            },
-            power: function() {
-                return (Math.abs(this.x) + Math.abs(this.y)) / 2;
-            },
-            towards: function(b, friction) {
-                friction = friction || 0.125;
-                this.x += (b.x - this.x) * friction;
-                this.y += (b.y - this.y) * friction;
-                return this;
-            },
-            add: function(b) {
-                this.x += b.x;
-                this.y += b.y;
-                return this;
-            },
-            friction: function(b) {
-                this.x *= b;
-                this.y *= b;
-                return this;
-            },
-            copy: function(b) {
-                return new Vector(this.x, this.y);
-            },
-            toString: function() {
-                return '{' + this.x + ',' + this.y + '}';
-            },
-        };
-        return Vector;
-    });
+	app.factory('Vector', function () {
+		function Vector(x, y) {
+			this.x = x || 0;
+			this.y = y || 0;
+		}
+
+		var statics = {
+			cross: VectorCross,
+			difference: VectorDifference,
+			distance: VectorDistance,
+			incidence: VectorIncidence,
+			make: VectorMake,
+			normalize: VectorNormalize,
+			power: VectorPower,
+			size: VectorSize,
+		};
+
+		var methods = {
+			add: add,
+			copy: copy,
+			cross: cross,
+			difference: difference,
+			distance: distance,
+			friction: friction,
+			incidence: incidence,
+			normalize: normalize,
+			power: power,
+			size: size,
+			towards: towards,
+			toString: toString,
+		};
+
+		angular.extend(Vector, statics);
+		angular.extend(Vector.prototype, methods);
+
+		return Vector;
+
+		// statics methods
+
+		function VectorCross(a, b) {
+			return (a.x * b.y) - (a.y * b.x);
+		}
+
+		function VectorDifference(a, b) {
+			return new Vector(a.x - b.x, a.y - b.y);
+		}
+
+		function VectorDistance(a, b) {
+			return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+		}
+
+		function VectorIncidence(a, b) {
+			var angle = Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x);
+			return angle;
+		}
+
+		function VectorMake(a, b) {
+			return new Vector(b.x - a.x, b.y - a.y);
+		}
+
+		function VectorNormalize(a) {
+			var l = Vector.size(a);
+			a.x /= l;
+			a.y /= l;
+			return a;
+		}
+
+		function VectorPower(a, b) {
+			var x = Math.abs(b.x - a.x);
+			var y = Math.abs(b.y - a.y);
+			return (x + y) / 2;
+		}
+
+		function VectorSize(a) {
+			return Math.sqrt(a.x * a.x + a.y * a.y);
+		}
+
+		// prototype methods
+
+		function add(b) {
+			this.x += b.x;
+			this.y += b.y;
+			return this;
+		}
+
+		function copy(b) {
+			return new Vector(this.x, this.y);
+		}
+
+		function cross(b) {
+			return VectorCross(this, b);
+		}
+
+		function difference(b) {
+			return VectorDifference(this, b);
+		}
+
+		function distance(b) {
+			return VectorDistance(this, b);
+		}
+
+		function friction(b) {
+			this.x *= b;
+			this.y *= b;
+			return this;
+		}
+
+		function incidence(b) {
+			return VectorIncidence(this, b);
+		}
+
+		function normalize() {
+			return VectorNormalize(this);
+		}
+
+		function power() {
+			return (Math.abs(this.x) + Math.abs(this.y)) / 2;
+		}
+
+		function size() {
+			return VectorSize(this);
+		}
+
+		function towards(b, friction) {
+			friction = friction || 0.125;
+			this.x += (b.x - this.x) * friction;
+			this.y += (b.y - this.y) * friction;
+			return this;
+		}
+
+		function toString() {
+			return '{' + this.x + ',' + this.y + '}';
+		}
+
+	});
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Hash', [function() {
-        var pools = {};
+	app.factory('Hash', [function () {
 
-        function Hash(key, pool) {
-            key = key || 'id';
-            pool = pool ? Hash.get(pool) : {};
-            Object.defineProperties(this, {
-                key: {
-                    value: key,
-                    enumerable: false,
-                    writable: false
-                },
-                pool: {
-                    value: pool,
-                    enumerable: false,
-                    writable: false
-                },
-                length: {
-                    value: 0,
-                    enumerable: false,
-                    writable: true
-                }
-            });
-        }
-        Hash.get = function(pool) {
-            return (pools[pool] = pools[pool] || {});
-        };
-        Hash.prototype = new Array;
-        Hash.prototype.has = has;
-        Hash.prototype.getId = getId;
-        Hash.prototype.get = get;
-        Hash.prototype.set = set;
-        Hash.prototype.add = add;
-        Hash.prototype.remove = remove;
-        Hash.prototype.each = each;
-        Hash.prototype.addMany = addMany;
-        Hash.prototype.removeMany = removeMany;
-        Hash.prototype.removeAll = removeAll;
-        Hash.prototype.forward = forward;
-        Hash.prototype.backward = backward;
-        Hash.prototype.differs = differs;
-        Hash.prototype.updatePool = updatePool;
-        return Hash;
+		function Hash(key, pool) {
+			key = key || 'id';
+			pool = pool ? HashGet(pool) : {};
+			Object.defineProperties(this, {
+				key: {
+					value: key,
+					enumerable: false,
+					writable: false
+				},
+				pool: {
+					value: pool,
+					enumerable: false,
+					writable: false
+				},
+				length: {
+					value: 0,
+					enumerable: false,
+					writable: true
+				}
+			});
+		}
 
-        function has(id) {
-            return this.pool[id] !== undefined;
-        }
+		var pools = {};
 
-        function getId(id) {
-            return this.pool[id];
-        }
+		var statics = {
+			get: HashGet,
+		};
 
-        function get(item) {
-            var hash = this,
-                key = this.key;
-            return item ? hash.getId(item[key]) : null;
-        }
+		var methods = {
+			has: has,
+			getId: getId,
+			get: get,
+			set: set,
+			add: add,
+			remove: remove,
+			each: each,
+			addMany: addMany,
+			removeMany: removeMany,
+			removeAll: removeAll,
+			forward: forward,
+			backward: backward,
+			differs: differs,
+			updatePool: updatePool,
+		};
 
-        function set(item) {
-            var hash = this,
-                pool = this.pool,
-                key = this.key;
-            pool[item[key]] = item;
-            hash.push(item);
-            return item;
-        }
+		Hash.prototype = new Array;
 
-        function add(newItem) {
-            var hash = this;
-            var item = hash.get(newItem);
-            if (item) {
-                for (var i = 0, keys = Object.keys(newItem), p; i < keys.length; i++) {
-                    p = keys[i];
-                    item[p] = newItem[p];
-                }
-            } else {
-                item = hash.set(newItem);
-            }
-            return item;
-        }
+		angular.extend(Hash, statics);
+		angular.extend(Hash.prototype, methods);
 
-        function remove(oldItem) {
-            var hash = this,
-                pool = this.pool,
-                key = this.key;
-            var item = hash.get(oldItem);
-            if (item) {
-                var index = hash.indexOf(item);
-                if (index !== -1) {
-                    hash.splice(index, 1);
-                }
-                delete pool[item[key]];
-            }
-            return hash;
-        }
+		return Hash;
 
-        function addMany(items) {
-            var hash = this;
-            if (!items) {
-                return hash;
-            }
-            var i = 0;
-            while (i < items.length) {
-                hash.add(items[i]);
-                i++;
-            }
-            return hash;
-        }
+		// static methods
 
-        function removeMany(items) {
-            var hash = this;
-            if (!items) {
-                return hash;
-            }
-            var i = 0;
-            while (i < items.length) {
-                hash.remove(items[i]);
-                i++;
-            }
-            return hash;
-        }
+		function HashGet(pool) {
+			return (pools[pool] = pools[pool] || {});
+		}
 
-        function removeAll() {
-            var hash = this,
-                key = hash.key,
-                pool = hash.pool;
-            var i = 0,
-                t = hash.length,
-                item;
-            while (hash.length) {
-                item = hash.shift();
-                delete pool[item[key]];
-                i++;
-            }
-            return hash;
-        }
+		function has(id) {
+			return this.pool[id] !== undefined;
+		}
 
-        function each(callback) {
-            var hash = this;
-            if (callback) {
-                var i = 0;
-                while (i < hash.length) {
-                    callback(hash[i], i);
-                    i++;
-                }
-            }
-            return hash;
-        }
+		function getId(id) {
+			return this.pool[id];
+		}
 
-        function forward(key, reverse) {
-            var hash = this;
-            key = (key || this.key);
-            hash.sort(function(c, d) {
-                var a = reverse ? d : c;
-                var b = reverse ? c : d;
-                return a[key] - b[key];
-            });
-            return hash;
-        }
+		function get(item) {
+			var hash = this,
+				key = this.key;
+			return item ? hash.getId(item[key]) : null;
+		}
 
-        function backward(key) {
-            return this.forward(key, true);
-        }
+		function set(item) {
+			var hash = this,
+				pool = this.pool,
+				key = this.key;
+			pool[item[key]] = item;
+			hash.push(item);
+			return item;
+		}
 
-        function differs(hash) {
-            if (hash.key !== this.key || hash.length !== this.length) {
-                return true;
-            } else {
-                var differs = false,
-                    i = 0,
-                    t = this.length,
-                    key = this.key;
-                while (differs && i < t) {
-                    differs = this[i][key] !== hash[i][key];
-                    i++;
-                }
-            }
-        }
+		function add(newItem) {
+			var hash = this;
+			var item = hash.get(newItem);
+			if (item) {
+				for (var i = 0, keys = Object.keys(newItem), p; i < keys.length; i++) {
+					p = keys[i];
+					item[p] = newItem[p];
+				}
+			} else {
+				item = hash.set(newItem);
+			}
+			return item;
+		}
 
-        function updatePool() {
-            var hash = this,
-                pool = this.pool,
-                key = this.key;
-            Object.keys(pool).forEach(function(key) {
-                delete pool[key];
-            });
-            angular.forEach(hash, function(item) {
-                pool[item[key]] = item;
-            });
-        }
+		function remove(oldItem) {
+			var hash = this,
+				pool = this.pool,
+				key = this.key;
+			var item = hash.get(oldItem);
+			if (item) {
+				var index = hash.indexOf(item);
+				if (index !== -1) {
+					hash.splice(index, 1);
+				}
+				delete pool[item[key]];
+			}
+			return hash;
+		}
+
+		function addMany(items) {
+			var hash = this;
+			if (!items) {
+				return hash;
+			}
+			var i = 0;
+			while (i < items.length) {
+				hash.add(items[i]);
+				i++;
+			}
+			return hash;
+		}
+
+		function removeMany(items) {
+			var hash = this;
+			if (!items) {
+				return hash;
+			}
+			var i = 0;
+			while (i < items.length) {
+				hash.remove(items[i]);
+				i++;
+			}
+			return hash;
+		}
+
+		function removeAll() {
+			var hash = this,
+				key = hash.key,
+				pool = hash.pool;
+			var i = 0,
+				t = hash.length,
+				item;
+			while (hash.length) {
+				item = hash.shift();
+				delete pool[item[key]];
+				i++;
+			}
+			return hash;
+		}
+
+		function each(callback) {
+			var hash = this;
+			if (callback) {
+				var i = 0;
+				while (i < hash.length) {
+					callback(hash[i], i);
+					i++;
+				}
+			}
+			return hash;
+		}
+
+		function forward(key, reverse) {
+			var hash = this;
+			key = (key || this.key);
+			hash.sort(function (c, d) {
+				var a = reverse ? d : c;
+				var b = reverse ? c : d;
+				return a[key] - b[key];
+			});
+			return hash;
+		}
+
+		function backward(key) {
+			return this.forward(key, true);
+		}
+
+		function differs(hash) {
+			if (hash.key !== this.key || hash.length !== this.length) {
+				return true;
+			} else {
+				var differs = false,
+					i = 0,
+					t = this.length,
+					key = this.key;
+				while (differs && i < t) {
+					differs = this[i][key] !== hash[i][key];
+					i++;
+				}
+			}
+		}
+
+		function updatePool() {
+			var hash = this,
+				pool = this.pool,
+				key = this.key;
+			Object.keys(pool).forEach(function (key) {
+				delete pool[key];
+			});
+			angular.forEach(hash, function (item) {
+				pool[item[key]] = item;
+			});
+		}
 
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('$promise', ['$q', function($q) {
-        function $promise(callback) {
-            if (typeof callback !== 'function') {
-                throw ('promise resolve callback missing');
-            }
-            var deferred = $q.defer();
-            callback(deferred);
-            return deferred.promise;
-        }
-        var statics = {
-            all: function(promises) {
-                return $q.all(promises);
-            },
-        };
-        angular.extend($promise, statics);
-        return $promise;
+	app.factory('$promise', ['$q', function ($q) {
+
+		function $promise(callback) {
+			if (typeof callback !== 'function') {
+				throw ('promise resolve callback missing');
+			}
+			var deferred = $q.defer();
+			callback(deferred);
+			return deferred.promise;
+		}
+
+		var statics = {
+			all: $promiseAll,
+		};
+
+		var methods = {};
+
+		angular.extend($promise, statics);
+		angular.extend($promise.prototype, methods);
+
+		return $promise;
+
+		function $promiseAll(promises) {
+			return $q.all(promises);
+		}
+
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('State', ['$timeout', function($timeout) {
-        var DELAY = 2000;
+	app.factory('State', ['$timeout', function ($timeout) {
 
-        function State() {
-            this.errors = [];
-            this.isReady = false;
-            this.idle();
-        }
+		function State() {
+			this.errors = [];
+			this.isReady = false;
+			this.idle();
+		}
 
-        State.prototype = {
-            idle: function() {
-                var state = this;
-                state.isBusy = false;
-                state.isError = false;
-                state.isErroring = false;
-                state.isSuccess = false;
-                state.isSuccessing = false;
-                state.button = null;
-                state.errors = [];
-            },
-            busy: function() {
-                var state = this;
-                if (!state.isBusy) {
-                    state.isBusy = true;
-                    state.isError = false;
-                    state.isErroring = false;
-                    state.isSuccess = false;
-                    state.isSuccessing = false;
-                    state.errors = [];
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            error: function error(error) {
-                console.log('State.error', error);
-                var state = this;
-                state.isBusy = false;
-                state.isError = true;
-                state.isErroring = true;
-                state.isSuccess = false;
-                state.isSuccessing = false;
-                state.errors.push(error);
-                $timeout(function() {
-                    state.isErroring = false;
-                }, DELAY);
-            },
-            ready: function ready() {
-                var state = this;
-                state.idle();
-                state.isReady = true;
-            },
-            success: function success() {
-                var state = this;
-                state.isBusy = false;
-                state.isError = false;
-                state.isErroring = false;
-                state.isSuccess = true;
-                state.isSuccessing = true;
-                state.errors = [];
-                $timeout(function() {
-                    state.isSuccessing = false;
-                }, DELAY);
-            },
-            enabled: function enabled() {
-                var state = this;
-                return !state.isBusy && !state.isErroring && !state.isSuccessing;
-            },
-            errorMessage: function errorMessage() {
-                var state = this;
-                return state.isError ? state.errors[state.errors.length - 1] : null;
-            },
-            submitClass: function submitClass() {
-                var state = this;
-                return {
-                    busy: state.isBusy,
-                    ready: state.isReady,
-                    successing: state.isSuccessing,
-                    success: state.isSuccess,
-                    errorring: state.isErroring,
-                    error: state.isError,
-                };
-            },
-            labels: function labels(addons) {
-                var state = this;
-                var defaults = {
-                    ready: 'submit',
-                    busy: 'sending',
-                    error: 'error',
-                    success: 'success',
-                };
-                if (addons) {
-                    angular.extend(defaults, addons);
-                }
-                var label = defaults.ready;
-                if (state.isBusy) {
-                    label = defaults.busy;
-                } else if (state.isSuccess) {
-                    label = defaults.success;
-                } else if (state.isError) {
-                    label = defaults.error;
-                }
-                return label;
-            },
-            classes: function classes(addons) {
-                var state = this,
-                    classes = null;
-                classes = {
-                    ready: state.isReady,
-                    busy: state.isBusy,
-                    successing: state.isSuccessing,
-                    success: state.isSuccess,
-                    errorring: state.isErroring,
-                    error: state.isError,
-                };
-                if (addons) {
-                    angular.forEach(addons, function(value, key) {
-                        classes[value] = classes[key];
-                    });
-                }
-                return classes;
-            }
-        };
+		var DELAY = 2000;
 
-        return State;
+		var statics = {};
+
+		var methods = {
+			busy: busy,
+			classes: classes,
+			enabled: enabled,
+			error: error,
+			errorMessage: errorMessage,
+			idle: idle,
+			labels: labels,
+			ready: ready,
+			submitClass: submitClass,
+			success: success,
+		};
+
+		angular.extend(State, statics);
+		angular.extend(State.prototype, methods);
+
+		return State;
+
+		// static methods
+
+		// prototype methods
+
+		function busy() {
+			var state = this;
+			if (!state.isBusy) {
+				state.isBusy = true;
+				state.isError = false;
+				state.isErroring = false;
+				state.isSuccess = false;
+				state.isSuccessing = false;
+				state.errors = [];
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		function classes(addons) {
+			var state = this,
+				classes = null;
+			classes = {
+				ready: state.isReady,
+				busy: state.isBusy,
+				successing: state.isSuccessing,
+				success: state.isSuccess,
+				errorring: state.isErroring,
+				error: state.isError,
+			};
+			if (addons) {
+				angular.forEach(addons, function (value, key) {
+					classes[value] = classes[key];
+				});
+			}
+			return classes;
+		}
+
+		function enabled() {
+			var state = this;
+			return !state.isBusy && !state.isErroring && !state.isSuccessing;
+		}
+
+		function error(error) {
+			console.log('State.error', error);
+			var state = this;
+			state.isBusy = false;
+			state.isError = true;
+			state.isErroring = true;
+			state.isSuccess = false;
+			state.isSuccessing = false;
+			state.errors.push(error);
+			$timeout(function () {
+				state.isErroring = false;
+			}, DELAY);
+		}
+
+		function errorMessage() {
+			var state = this;
+			return state.isError ? state.errors[state.errors.length - 1] : null;
+		}
+
+		function idle() {
+			var state = this;
+			state.isBusy = false;
+			state.isError = false;
+			state.isErroring = false;
+			state.isSuccess = false;
+			state.isSuccessing = false;
+			state.button = null;
+			state.errors = [];
+		}
+
+		function labels(addons) {
+			var state = this;
+			var defaults = {
+				ready: 'submit',
+				busy: 'sending',
+				error: 'error',
+				success: 'success',
+			};
+			if (addons) {
+				angular.extend(defaults, addons);
+			}
+			var label = defaults.ready;
+			if (state.isBusy) {
+				label = defaults.busy;
+			} else if (state.isSuccess) {
+				label = defaults.success;
+			} else if (state.isError) {
+				label = defaults.error;
+			}
+			return label;
+		}
+
+		function ready() {
+			var state = this;
+			state.idle();
+			state.isReady = true;
+		}
+
+		function submitClass() {
+			var state = this;
+			return {
+				busy: state.isBusy,
+				ready: state.isReady,
+				successing: state.isSuccessing,
+				success: state.isSuccess,
+				errorring: state.isErroring,
+				error: state.isError,
+			};
+		}
+
+		function success() {
+			var state = this;
+			state.isBusy = false;
+			state.isError = false;
+			state.isErroring = false;
+			state.isSuccess = true;
+			state.isSuccessing = true;
+			state.errors = [];
+			$timeout(function () {
+				state.isSuccessing = false;
+			}, DELAY);
+		}
+
     }]);
 
 }());
@@ -1317,6 +1902,7 @@
 	var app = angular.module('artisan');
 
 	app.factory('Style', [function () {
+
 		function Style() {
 			this.props = {
 				scale: 1,
@@ -1325,26 +1911,42 @@
 			};
 		}
 
-		Style.prototype = {
-			set: function (element) {
-				var styles = [];
-				for (var key in this) {
-					if (key !== 'props') {
-						styles.push(key + ':' + this[key]);
-					}
-				}
-				element.style.cssText = styles.join(';') + ';';
-			},
-			transform: function (transform) {
-				this[transformProperty] = transform;
-			},
-			transformOrigin: function (x, y) {
-				this[transformProperty + '-origin-x'] = (Math.round(x * 1000) / 1000) + '%';
-				this[transformProperty + '-origin-y'] = (Math.round(y * 1000) / 1000) + '%';
-			},
+		var statics = {};
+
+		var methods = {
+			set: set,
+			transform: transform,
+			transformOrigin: transformOrigin,
 		};
 
+		angular.extend(Style, statics);
+		angular.extend(Style.prototype, methods);
+
 		return Style;
+
+		// static methods
+
+		// prototype methods
+
+		function set(element) {
+			var styles = [];
+			for (var key in this) {
+				if (key !== 'props') {
+					styles.push(key + ':' + this[key]);
+				}
+			}
+			element.style.cssText = styles.join(';') + ';';
+		}
+
+		function transform(transform) {
+			this[transformProperty] = transform;
+		}
+
+		function transformOrigin(x, y) {
+			this[transformProperty + '-origin-x'] = (Math.round(x * 1000) / 1000) + '%';
+			this[transformProperty + '-origin-y'] = (Math.round(y * 1000) / 1000) + '%';
+		}
+
     }]);
 
 	function detectTransformProperty() {
@@ -1369,7 +1971,6 @@
 	}
 
 }());
-
 /* global angular */
 
 (function () {
@@ -1379,159 +1980,69 @@
 
 	app.service('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
 
-		this.ua = getUA();
-		this.reverseSortOn = reverseSortOn;
-		this.getTouch = getTouch;
-		this.getRelativeTouch = getRelativeTouch;
-		this.getClosest = getClosest;
-		this.getClosestElement = getClosestElement;
-		this.getParents = getParents;
-		this.getDocumentNode = getDocumentNode;
-		this.indexOf = indexOf;
-		this.removeValue = removeValue;
-		this.throttle = throttle;
-		this.where = where;
-		this.format = format;
-		this.compileController = compileController;
-		this.reducer = reducer;
-		this.reducerSetter = reducerSetter;
-		this.reducerAdder = reducerAdder;
-		this.downloadFile = downloadFile;
-		this.serverDownload = serverDownload;
-		this.toMd5 = toMd5;
+		var service = this;
+
+		var statics = {
+			compileController: compileController,
+			format: format,
+			indexOf: indexOf,
+			reducer: reducer,
+			reducerAdder: reducerAdder,
+			reducerSetter: reducerSetter,
+			removeValue: removeValue,
+			reverseSortOn: reverseSortOn,
+			throttle: throttle,
+			toMd5: toMd5,
+			where: where,
+		};
+
+		angular.extend(service, statics);
 
 		var getNow = Date.now || function () {
 			return new Date().getTime();
 		};
 
-		function getUA() {
-			var agent = window.navigator.userAgent.toLowerCase();
-			var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
-			var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
-			var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
-			var mobile = agent.indexOf('mobile') !== -1;
-			var mac = agent.indexOf('macintosh') !== -1;
-			var ua = {
-				agent: agent,
-				safari: safari,
-				msie: msie,
-				chrome: chrome,
-				mobile: mobile,
-				mac: mac,
-			};
-			angular.forEach(ua, function (value, key) {
-				if (value) {
-					angular.element(document.getElementsByTagName('body')).addClass(key);
+		function compileController(scope, element, html, data) {
+			// console.log('Utils.compileController', element);
+			element.html(html);
+			var link = $compile(element.contents());
+			if (data.controller) {
+				var $scope = scope.$new();
+				angular.extend($scope, data);
+				var controller = $controller(data.controller, {
+					$scope: $scope
+				});
+				if (data.controllerAs) {
+					scope[data.controllerAs] = controller;
 				}
-			});
-			return ua;
-		}
-
-		function toMd5(string) {
-			// return Md5.encode(string);
-		}
-
-		var _isTouch;
-
-		function isTouch() {
-			if (!_isTouch) {
-				_isTouch = {
-					value: ('ontouchstart' in window || 'onmsgesturechange' in window)
-				};
+				element.data('$ngControllerController', controller);
+				element.children().data('$ngControllerController', controller);
+				scope = $scope;
 			}
-			// console.log(_isTouch);
-			return _isTouch.value;
+			link(scope);
 		}
 
-		function getTouch(e, previous) {
-			var t = new Vector();
-			if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
-				var touch = null;
-				var event = e.originalEvent ? e.originalEvent : e;
-				var touches = event.touches.length ? event.touches : event.changedTouches;
-				if (touches && touches.length) {
-					touch = touches[0];
+		function format(string, prepend, expression) {
+			string = string || '';
+			prepend = prepend || '';
+			var splitted = string.split(',');
+			if (splitted.length > 1) {
+				var formatted = splitted.shift();
+				angular.forEach(splitted, function (value, index) {
+					if (expression) {
+						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
+					} else {
+						formatted = formatted.split('{' + index + '}').join(prepend + value);
+					}
+				});
+				if (expression) {
+					return '\'' + formatted + '\'';
+				} else {
+					return formatted;
 				}
-				if (touch) {
-					t.x = touch.pageX;
-					t.y = touch.pageY;
-				}
-			} else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
-				t.x = e.pageX;
-				t.y = e.pageY;
+			} else {
+				return prepend + string;
 			}
-			if (previous) {
-				t.s = Vector.difference(t, previous);
-			}
-			t.type = e.type;
-			return t;
-		}
-
-		function getRelativeTouch(node, point) {
-			var element = angular.element(node); // passing through jqlite for accepting both
-			node = element[0];
-			var rect = node.getBoundingClientRect();
-			// var e = new Vector(rect.left + node.scrollLeft, rect.top + node.scrollTop);
-			var e = new Vector(rect.left, rect.top);
-			return Vector.difference(point, e);
-		}
-
-		function getClosest(el, selector) {
-			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
-				if (typeof document.body[fn] == 'function') {
-					matchesFn = fn;
-					return true;
-				}
-				return false;
-			});
-			if (el[matchesFn](selector)) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent[matchesFn](selector)) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getClosestElement(el, target) {
-			var matchesFn, parent;
-			if (el === target) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent === target) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getDocumentNode() {
-			var documentNode = (document.documentElement || document.body.parentNode || document.body);
-			return documentNode;
-		}
-
-		function getParents(node, topParentNode) {
-			// if no topParentNode defined will bubble up all the way to *document*
-			topParentNode = topParentNode || getDocumentNode();
-			var parents = [];
-			if (node) {
-				parents.push(node);
-				var parentNode = node.parentNode;
-				while (parentNode !== topParentNode) {
-					parents.push(parentNode);
-					parentNode = parentNode.parentNode;
-				}
-				parents.push(topParentNode); // push that topParentNode you wanted to stop at
-			}
-			return parents;
 		}
 
 		function indexOf(array, object, key) {
@@ -1549,6 +2060,34 @@
 				}
 			}
 			return index;
+		}
+
+		function reducer(o, key) {
+			return o[key];
+		}
+
+		function reducerAdder(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerAdder(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] += value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerAdder(o[key[0]], key.slice(1), value);
+			}
+		}
+
+		function reducerSetter(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerSetter(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] = value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerSetter(o[key[0]], key.slice(1), value);
+			}
 		}
 
 		function removeValue(array, value) {
@@ -1570,6 +2109,19 @@
 			} else {
 				return null;
 			}
+		}
+
+		function reverseSortOn(key) {
+			return function (a, b) {
+				if (a[key] < b[key]) {
+					return 1;
+				}
+				if (a[key] > b[key]) {
+					return -1;
+				}
+				// a must be equal to b
+				return 0;
+			};
 		}
 
 		function throttle(func, wait, options) {
@@ -1609,6 +2161,10 @@
 			};
 		}
 
+		function toMd5(string) {
+			// return Md5.encode(string);
+		}
+
 		function where(array, query) {
 			var found = null;
 			if (array) {
@@ -1625,205 +2181,6 @@
 			return found;
 		}
 
-		function compileController(scope, element, html, data) {
-			// console.log('Utils.compileController', element);
-			element.html(html);
-			var link = $compile(element.contents());
-			if (data.controller) {
-				var $scope = scope.$new();
-				angular.extend($scope, data);
-				var controller = $controller(data.controller, {
-					$scope: $scope
-				});
-				if (data.controllerAs) {
-					scope[data.controllerAs] = controller;
-				}
-				element.data('$ngControllerController', controller);
-				element.children().data('$ngControllerController', controller);
-				scope = $scope;
-			}
-			link(scope);
-		}
-
-		function reverseSortOn(key) {
-			return function (a, b) {
-				if (a[key] < b[key]) {
-					return 1;
-				}
-				if (a[key] > b[key]) {
-					return -1;
-				}
-				// a must be equal to b
-				return 0;
-			};
-		}
-
-		function format(string, prepend, expression) {
-			string = string || '';
-			prepend = prepend || '';
-			var splitted = string.split(',');
-			if (splitted.length > 1) {
-				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
-					if (expression) {
-						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
-					} else {
-						formatted = formatted.split('{' + index + '}').join(prepend + value);
-					}
-				});
-				if (expression) {
-					return '\'' + formatted + '\'';
-				} else {
-					return formatted;
-				}
-			} else {
-				return prepend + string;
-			}
-		}
-
-		function reducer(o, key) {
-			return o[key];
-		}
-
-		function reducerSetter(o, key, value) {
-			if (typeof key == 'string') {
-				return reducerSetter(o, key.split('.'), value);
-			} else if (key.length == 1 && value !== undefined) {
-				return (o[key[0]] = value);
-			} else if (key.length === 0) {
-				return o;
-			} else {
-				return reducerSetter(o[key[0]], key.slice(1), value);
-			}
-		}
-
-		function reducerAdder(o, key, value) {
-			if (typeof key == 'string') {
-				return reducerAdder(o, key.split('.'), value);
-			} else if (key.length == 1 && value !== undefined) {
-				return (o[key[0]] += value);
-			} else if (key.length === 0) {
-				return o;
-			} else {
-				return reducerAdder(o[key[0]], key.slice(1), value);
-			}
-		}
-
-		function downloadFile(content, name, type) {
-			type = type || 'application/octet-stream';
-			var base64 = null;
-			var blob = new Blob([content], {
-				type: type
-			});
-			var reader = new window.FileReader();
-			reader.readAsDataURL(blob);
-			reader.onloadend = function () {
-				base64 = reader.result;
-				download();
-			};
-
-			function download() {
-				// If in Chrome or Safari - download via virtual link click
-				// if (isChrome || isSafari) {
-				//Creating new link node.
-				if (document.createEvent) {
-					var anchor = document.createElement('a');
-					anchor.href = base64;
-					if (anchor.download !== undefined) {
-						//Set HTML5 download attribute. This will prevent file from opening if supported.
-						var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
-						anchor.download = downloadName;
-					}
-					//Dispatching click event.
-					var event = document.createEvent('MouseEvents');
-					event.initEvent('click', true, true);
-					anchor.dispatchEvent(event);
-					return true;
-				}
-				// }
-				// Force file download (whether supported by server).
-				var query = '?download';
-				window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
-			}
-
-			function __download() {
-				var supportsDownloadAttribute = 'download' in document.createElement('a');
-				if (supportsDownloadAttribute) {
-					var anchor = document.createElement('a');
-					anchor.href = 'data:attachment/text;base64,' + encodeURI(window.btoa(content));
-					anchor.target = '_blank';
-					anchor.download = name;
-					//Dispatching click event.
-					if (document.createEvent) {
-						var event = document.createEvent('MouseEvents');
-						event.initEvent('click', true, true);
-						anchor.dispatchEvent(event);
-						return true;
-					}
-				} else if (window.Blob !== undefined && window.saveAs !== undefined) {
-					var blob = new Blob([content], {
-						type: type
-					});
-					saveAs(blob, filename);
-				} else {
-					window.open('data:attachment/text;charset=utf-8,' + encodeURI(content));
-				}
-			}
-			/*
-			var headers = response.headers();
-			// console.log(response);
-			var blob = new Blob([response.data], { type: "application/octet-stream" }); // { type: headers['content-type'] });
-			var windowUrl = (window.URL || window.webkitURL);
-			var downloadUrl = windowUrl.createObjectURL(blob);
-			var anchor = document.createElement("a");
-			anchor.href = downloadUrl;
-			var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-			anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
-			document.body.appendChild(anchor);
-			anchor.click();
-			windowUrl.revokeObjectURL(blob);
-			anchor.remove();
-			*/
-			/*
-			//Dispatching click event.
-			if (document.createEvent) {
-			    var e = document.createEvent('MouseEvents');
-			    e.initEvent('click', true, true);
-			    link.dispatchEvent(e);
-			    return true;
-			}
-			*/
-		}
-
-		function serverDownload(options) {
-			var defaults = {
-				uri: '/api/reports/download',
-				name: 'Filename',
-				extension: 'txt',
-				type: 'text/plain',
-				content: 'Hello!',
-			};
-			options = angular.extend(defaults, options);
-			var content = JSON.stringify(options); // unescape(encodeURIComponent(JSON.stringify(download)));
-			var form = document.createElement('form');
-			var input = document.createElement('input');
-			input.name = 'download';
-			input.value = content;
-			form.appendChild(input);
-			form.action = options.uri;
-			form.method = 'POST';
-			form.target = 'ProjectDownloads';
-			form.enctype = 'application/x-www-form-urlencoded';
-			// form.enctype = 'multipart/form-data';
-			// form.enctype = 'text/plain';
-			document.body.appendChild(form);
-			form.submit();
-			setTimeout(function () {
-				document.body.removeChild(form);
-			}, 100);
-			// angular.element(form).find('button')[0].click();
-			return Utils;
-		}
     }]);
 
 	(function () {
@@ -1870,170 +2227,190 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Doc', ['Api', '$promise', function(Api, $promise) {
-        function Doc(item) {
-            if (item) {
-                angular.extend(this, item);
-            }
-        }
+	app.factory('Doc', ['Api', '$promise', function (Api, $promise) {
 
-        Doc.prototype = {
+		function Doc(item) {
+			if (item) {
+				angular.extend(this, item);
+			}
+		}
 
-        };
+		var statics = {};
 
-        var statics = {};
+		var methods = {};
 
-        angular.extend(Doc, statics);
+		angular.extend(Doc, statics);
+		angular.extend(Doc.prototype, methods);
 
-        return Doc;
+		return Doc;
+
+		// static methods
+
+		// prototype methods
+
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('View', ['Api', '$promise', '$location', '$routeParams', 'environment', 'Doc', function(Api, $promise, $location, $routeParams, environment, Doc) {
-        function View(doc) {
-            var url = $location.path(),
-                params = $routeParams;
-            var view = {
-                environment: environment,
-                route: {
-                    url: url,
-                    params: params,
-                },
-                doc: doc,
-            };
-            angular.extend(this, view);
-        }
+	app.factory('View', ['Api', '$promise', '$location', '$routeParams', 'environment', 'Doc', function (Api, $promise, $location, $routeParams, environment, Doc) {
 
-        View.prototype = {
+		function View(doc) {
+			var url = $location.path(),
+				params = $routeParams;
+			var view = {
+				environment: environment,
+				route: {
+					url: url,
+					params: params,
+				},
+				doc: doc,
+			};
+			angular.extend(this, view);
+		}
 
-        };
+		var statics = {
+			current: ViewCurrent,
+		};
 
-        var statics = {
-            current: function() {
-                return $promise(function(promise) {
-                    var url = $location.path();
-                    console.log('View.current', url);
-                    Api.docs.url(url).then(function(response) {
-                        var doc = new Doc(response);
-                        var view = new View(doc);
-                        promise.resolve(view);
+		var methods = {};
 
-                    }, function(error) {
-                        promise.reject(error);
+		angular.extend(View, statics);
+		angular.extend(View.prototype, methods);
 
-                    });
-                    /*
-                    Api.navs.main().then(function(items) {
-                        var doc = null,
-                            url = $location.path(),
-                            pool = getPool(items);
-                        var item = pool[url];
-                        if (item) {
-                            doc = new Doc(item);
-                        }
-                        promise.resolve(doc);
+		return View;
 
-                    }, function(error) {
-                        promise.reject(error);
+		// static methods
 
-                    });
-                    */
-                });
-            }
-        };
+		function ViewCurrent() {
+			return $promise(function (promise) {
+				var url = $location.path();
+				console.log('View.current', url);
+				Api.docs.url(url).then(function (response) {
+					var doc = new Doc(response);
+					var view = new View(doc);
+					promise.resolve(view);
 
-        angular.extend(View, statics);
+				}, function (error) {
+					promise.reject(error);
 
-        function getPool(items) {
-            var pool = {};
+				});
+				/*
+				Api.navs.main().then(function(items) {
+				    var doc = null,
+				        url = $location.path(),
+				        pool = getPool(items);
+				    var item = pool[url];
+				    if (item) {
+				        doc = new Doc(item);
+				    }
+				    promise.resolve(doc);
 
-            function _getPool(items) {
-                if (items) {
-                    angular.forEach(items, function(item) {
-                        pool[item.url] = item;
-                        _getPool(item.items);
-                    });
-                }
-            }
-            _getPool(items);
-            return pool;
-        }
+				}, function(error) {
+				    promise.reject(error);
 
-        return View;
+				});
+				*/
+			});
+		}
+
+		function ViewPool(items) {
+			var pool = {};
+
+			function _getPool(items) {
+				if (items) {
+					angular.forEach(items, function (item) {
+						pool[item.url] = item;
+						_getPool(item.items);
+					});
+				}
+			}
+			_getPool(items);
+			return pool;
+		}
+
+		// prototype methods
+
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('WebApi', ['$http', '$promise', '$timeout', 'environment',
-        function($http, $promise, $timeout, environment) {
+	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function ($http, $promise, $timeout, environment) {
 
-            function $httpPromise(method, url, data) {
-                return $promise(function(promise) {
+			var service = this;
 
-                    $http[method](environment.urls.api + url, data).then(function(response) {
-                        promise.resolve(response.data);
+			var statics = {
+				get: HttpGet,
+				post: HttpPost,
+				put: HttpPut,
+				patch: HttpPatch,
+				'delete': HttpDelete,
+				fake: HttpFake,
+			};
 
-                    }, function(e, status) {
-                        var error = (e && e.data) ? e.data : {};
-                        error.status = e.status;
-                        promise.reject(error);
+			angular.extend(service, statics);
 
-                    });
-                });
-            }
+			// statics methods
 
-            function $get(url) {
-                return $httpPromise('get', url);
-            }
+			function HttpPromise(method, url, data) {
+				return $promise(function (promise) {
+					$http[method](environment.urls.api + url, data).then(function (response) {
+						promise.resolve(response.data);
 
-            function $post(url, data) {
-                return $httpPromise('post', url, data);
-            }
+					}, function (e, status) {
+						var error = (e && e.data) ? e.data : {};
+						error.status = e.status;
+						promise.reject(error);
 
-            function $put(url, data) {
-                return $httpPromise('put', url, data);
-            }
+					});
+				});
+			}
 
-            function $patch(url, data) {
-                return $httpPromise('patch', url, data);
-            }
+			function HttpGet(url) {
+				return HttpPromise('get', url);
+			}
 
-            function $delete(url) {
-                return $httpPromise('delete', url);
-            }
+			function HttpPost(url, data) {
+				return HttpPromise('post', url, data);
+			}
 
-            function $fake(data) {
-                var deferred = $q.defer();
-                $timeout(function() {
-                    deferred.resolve({ data: data });
-                }, 1000);
-                return deferred.promise;
-            }
+			function HttpPut(url, data) {
+				return HttpPromise('put', url, data);
+			}
 
-            this.get = $get;
-            this.post = $post;
-            this.put = $put;
-            this.patch = $patch;
-            this.delete = $delete;
-            this.fake = $fake;
+			function HttpPatch(url, data) {
+				return HttpPromise('patch', url, data);
+			}
+
+			function HttpDelete(url) {
+				return HttpPromise('delete', url);
+			}
+
+			function HttpFake(data) {
+				var deferred = $q.defer();
+				$timeout(function () {
+					deferred.resolve({
+						data: data
+					});
+				}, 1000);
+				return deferred.promise;
+			}
 
         }
     ]);
@@ -2102,338 +2479,400 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('$silent', ['$rootScope', '$location', function($rootScope, $location) {
-        function $silent() {}
+	app.factory('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
 
-        var $path;
+		function Silent() {}
 
-        function unlink() {
-            var listeners = $rootScope.$$listeners.$locationChangeSuccess;
-            angular.forEach(listeners, function(value, name) {
-                if (value === listener) {
-                    return;
-                }
+		var statics = {
+			silent: SilentSilent,
+			path: SilentPath,
+		};
 
-                function relink() {
-                    listeners[name] = value;
-                }
-                listeners[name] = relink; // temporary unlinking
-            });
-        }
+		var methods = {};
 
-        function listener(e) {
-            // console.log('onLocationChangeSuccess', e);
-            if ($path === $location.path()) {
-                unlink();
-            }
-            $path = null;
-        }
+		angular.extend(Silent, statics);
+		angular.extend(Silent.prototype, methods);
 
-        var statics = {
-            silent: function(path, replace) {
-                // this.prev = $location.path(); ???
-                var location = $location.url(path);
-                if (replace) {
-                    location.replace();
-                }
-                $path = $location.path();
-            },
-            path: function(path) {
-                return $location.path(path);
-            },
-        };
+		$rootScope.$$listeners.$locationChangeSuccess.unshift(SilentListener);
+		// console.log('$rootScope.$$listeners.$locationChangeSuccess', $rootScope.$$listeners.$locationChangeSuccess);
 
-        angular.extend($silent, statics);
-        $rootScope.$$listeners.$locationChangeSuccess.unshift(listener);
-        // console.log('$rootScope.$$listeners.$locationChangeSuccess', $rootScope.$$listeners.$locationChangeSuccess);
-        return $silent;
+		// private vars
+
+		var $path;
+
+		return Silent;
+
+		// static methods
+
+		function SilentUnlink() {
+			var listeners = $rootScope.$$listeners.$locationChangeSuccess;
+			angular.forEach(listeners, function (value, name) {
+				if (value === listener) {
+					return;
+				}
+
+				function relink() {
+					listeners[name] = value;
+				}
+				listeners[name] = relink; // temporary unlinking
+			});
+		}
+
+		function SilentListener(e) {
+			// console.log('onLocationChangeSuccess', e);
+			if ($path === $location.path()) {
+				SilentUnlink();
+			}
+			$path = null;
+		}
+
+		function SilentSilent(path, replace) {
+			// this.prev = $location.path(); ???
+			var location = $location.url(path);
+			if (replace) {
+				location.replace();
+			}
+			$path = $location.path();
+		}
+
+		function SilentPath(path) {
+			return $location.path(path);
+		}
+
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Cookie', ['$q', '$window', function($q, $window) {
-        function Cookie() {}
-        Cookie.TIMEOUT = 5 * 60 * 1000; // five minutes
-        Cookie._set = function(name, value, days) {
-            var expires;
-            if (days) {
-                var date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = '; expires=' + date.toGMTString();
-            } else {
-                expires = '';
-            }
-            $window.document.cookie = name + '=' + value + expires + '; path=/';
-        };
-        Cookie.exists = function(name) {
-            return $window.document.cookie.indexOf(';' + name + '=') !== -1 || $window.document.cookie.indexOf(name + '=') === 0;
-        };
-        Cookie.get = function(name) {
-            var cookieName = name + "=";
-            var ca = $window.document.cookie.split(';');
-            for (var i = 0; i < ca.length; i++) {
-                var c = ca[i];
-                while (c.charAt(0) == ' ') {
-                    c = c.substring(1, c.length);
-                }
-                if (c.indexOf(cookieName) === 0) {
-                    var value = c.substring(cookieName.length, c.length);
-                    var model = null;
-                    try {
-                        model = JSON.parse(decodeURIComponent(atob(value)));
-                    } catch (e) {
-                        console.log('Cookie.get.error parsing', key, e);
-                    }
-                    return model;
-                }
-            }
-            return null;
-        };
-        Cookie.set = function(name, value, days) {
-            try {
-                var cache = [];
-                var json = JSON.stringify(value, function(key, value) {
-                    if (key === 'pool') {
-                        return;
-                    }
-                    if (typeof value === 'object' && value !== null) {
-                        if (cache.indexOf(value) !== -1) {
-                            // Circular reference found, discard key
-                            return;
-                        }
-                        cache.push(value);
-                    }
-                    return value;
-                });
-                cache = null;
-                Cookie._set(name, btoa(encodeURIComponent(json)), days);
-            } catch (e) {
-                console.log('Cookie.set.error serializing', name, value, e);
-            }
-        };
-        Cookie.delete = function(name) {
-            Cookie._set(name, "", -1);
-        };
-        Cookie.on = function(name) {
-            var deferred = $q.defer();
-            var i, interval = 1000,
-                elapsed = 0,
-                timeout = Cookie.TIMEOUT;
+	var TIMEOUT = 5 * 60 * 1000; // five minutes
 
-            function checkCookie() {
-                if (elapsed > timeout) {
-                    deferred.reject('timeout');
-                } else {
-                    var c = Cookie.get(name);
-                    if (c) {
-                        deferred.resolve(c);
-                    } else {
-                        elapsed += interval;
-                        i = setTimeout(checkCookie, interval);
-                    }
-                }
-            }
-            checkCookie();
-            return deferred.promise;
-        };
-        return Cookie;
+	app.service('Cookie', ['$promise', '$window', function ($promise, $window) {
+
+		var service = {
+			TIMEOUT: TIMEOUT,
+			delete: CookieDelete,
+			exist: CookieExists,
+			get: CookieGet,
+			on: CookieOn,
+			set: CookieSet,
+		};
+
+		angular.extend(this, service);
+
+		function CookieDelete(name) {
+			CookieSetter(name, "", -1);
+		}
+
+		function CookieExists(name) {
+			return $window.document.cookie.indexOf(';' + name + '=') !== -1 || $window.document.cookie.indexOf(name + '=') === 0;
+		}
+
+		function CookieGet(name) {
+			var cookieName = name + "=";
+			var ca = $window.document.cookie.split(';');
+			for (var i = 0; i < ca.length; i++) {
+				var c = ca[i];
+				while (c.charAt(0) == ' ') {
+					c = c.substring(1, c.length);
+				}
+				if (c.indexOf(cookieName) === 0) {
+					var value = c.substring(cookieName.length, c.length);
+					var model = null;
+					try {
+						model = JSON.parse(decodeURIComponent(atob(value)));
+					} catch (e) {
+						console.log('Cookie.get.error parsing', key, e);
+					}
+					return model;
+				}
+			}
+			return null;
+		}
+
+		function CookieOn(name) {
+			return $promise(function (promise) {
+				var i, interval = 1000,
+					elapsed = 0,
+					timeout = Cookie.TIMEOUT;
+
+				function checkCookie() {
+					if (elapsed > timeout) {
+						promise.reject('timeout');
+					} else {
+						var c = CookieGet(name);
+						if (c) {
+							promise.resolve(c);
+						} else {
+							elapsed += interval;
+							i = setTimeout(checkCookie, interval);
+						}
+					}
+				}
+				checkCookie();
+			});
+		}
+
+		function CookieSet(name, value, days) {
+			try {
+				var cache = [];
+				var json = JSON.stringify(value, function (key, value) {
+					if (key === 'pool') {
+						return;
+					}
+					if (typeof value === 'object' && value !== null) {
+						if (cache.indexOf(value) !== -1) {
+							// Circular reference found, discard key
+							return;
+						}
+						cache.push(value);
+					}
+					return value;
+				});
+				cache = null;
+				CookieSetter(name, btoa(encodeURIComponent(json)), days);
+			} catch (e) {
+				console.log('CookieSet.error serializing', name, value, e);
+			}
+		}
+
+		function CookieSetter(name, value, days) {
+			var expires;
+			if (days) {
+				var date = new Date();
+				date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+				expires = '; expires=' + date.toGMTString();
+			} else {
+				expires = '';
+			}
+			$window.document.cookie = name + '=' + value + expires + '; path=/';
+		}
+
     }]);
 
-    app.factory('LocalStorage', ['$q', '$window', 'Cookie', function($q, $window, Cookie) {
-        function LocalStorage() {}
+	app.service('LocalStorage', ['$promise', '$window', 'Cookie', function ($promise, $window, Cookie) {
 
-        function isLocalStorageSupported() {
-            var supported = false;
-            try {
-                supported = 'localStorage' in $window && $window.localStorage !== null;
-                if (supported) {
-                    $window.localStorage.setItem('test', '1');
-                    $window.localStorage.removeItem('test');
-                } else {
-                    supported = false;
-                }
-            } catch (e) {
-                supported = false;
-            }
-            return supported;
-        }
-        LocalStorage.isSupported = isLocalStorageSupported();
-        if (LocalStorage.isSupported) {
-            LocalStorage.exists = function(name) {
-                return $window.localStorage[name] !== undefined;
-            };
-            LocalStorage.get = function(name) {
-                var value = null;
-                if ($window.localStorage[name] !== undefined) {
-                    try {
-                        value = JSON.parse($window.localStorage[name]);
-                    } catch (e) {
-                        console.log('LocalStorage.get.error parsing', name, e);
-                    }
-                }
-                return value;
-            };
-            LocalStorage.set = function(name, value) {
-                try {
-                    var cache = [];
-                    var json = JSON.stringify(value, function(key, value) {
-                        if (key === 'pool') {
-                            return;
-                        }
-                        if (typeof value === 'object' && value !== null) {
-                            if (cache.indexOf(value) !== -1) {
-                                // Circular reference found, discard key
-                                return;
-                            }
-                            cache.push(value);
-                        }
-                        return value;
-                    });
-                    cache = null;
-                    $window.localStorage.setItem(name, json);
-                } catch (e) {
-                    console.log('LocalStorage.set.error serializing', name, value, e);
-                }
-            };
-            LocalStorage.delete = function(name) {
-                $window.localStorage.removeItem(name);
-            };
-            LocalStorage.on = function(name) {
-                var deferred = $q.defer();
-                var i, timeout = Cookie.TIMEOUT;
+		var service = {
+			TIMEOUT: TIMEOUT,
+			delete: LocalDelete,
+			exist: LocalExists,
+			get: LocalGet,
+			on: LocalOn,
+			set: LocalSet,
+		};
 
-                function storageEvent(e) {
-                    // console.log('LocalStorage.on', name, e);
-                    clearTimeout(i);
-                    if (e.originalEvent.key == name) {
-                        try {
-                            var value = JSON.parse(e.originalEvent.newValue); // , e.originalEvent.oldValue
-                            deferred.resolve(value);
-                        } catch (error) {
-                            console.log('LocalStorage.on.error parsing', name, error);
-                            deferred.reject('error parsing ' + name);
-                        }
-                    }
-                }
-                angular.element($window).on('storage', storageEvent);
-                i = setTimeout(function() {
-                    deferred.reject('timeout');
-                }, timeout);
-                return deferred.promise;
-            };
-        } else {
-            console.log('LocalStorage.unsupported switching to cookies');
-            LocalStorage.exists = Cookie.exists;
-            LocalStorage.set = Cookie.set;
-            LocalStorage.get = Cookie.get;
-            LocalStorage.delete = Cookie.delete;
-            LocalStorage.on = Cookie.on;
-        }
-        return LocalStorage;
+		var supported = LocalSupported();
+
+		if (supported) {
+			angular.extend(this, service);
+		} else {
+			angular.extend(this, Cookie);
+		}
+
+		this.supported = supported;
+
+		function LocalSupported() {
+			var supported = false;
+			try {
+				supported = 'localStorage' in $window && $window.localStorage !== null;
+				if (supported) {
+					$window.localStorage.setItem('test', '1');
+					$window.localStorage.removeItem('test');
+				} else {
+					supported = false;
+				}
+			} catch (e) {
+				supported = false;
+			}
+			return supported;
+		}
+
+		function LocalExists(name) {
+			return $window.localStorage[name] !== undefined;
+		}
+
+		function LocalGet(name) {
+			var value = null;
+			if ($window.localStorage[name] !== undefined) {
+				try {
+					value = JSON.parse($window.localStorage[name]);
+				} catch (e) {
+					console.log('LocalStorage.get.error parsing', name, e);
+				}
+			}
+			return value;
+		}
+
+		function LocalSet(name, value) {
+			try {
+				var cache = [];
+				var json = JSON.stringify(value, function (key, value) {
+					if (key === 'pool') {
+						return;
+					}
+					if (typeof value === 'object' && value !== null) {
+						if (cache.indexOf(value) !== -1) {
+							// Circular reference found, discard key
+							return;
+						}
+						cache.push(value);
+					}
+					return value;
+				});
+				cache = null;
+				$window.localStorage.setItem(name, json);
+			} catch (e) {
+				console.log('LocalStorage.set.error serializing', name, value, e);
+			}
+		}
+
+		function LocalDelete(name) {
+			$window.localStorage.removeItem(name);
+		}
+
+		function LocalOn(name) {
+			return $promise(function (promise) {
+				var i, timeout = Cookie.TIMEOUT;
+
+				function storageEvent(e) {
+					// console.log('LocalStorage.on', name, e);
+					if (i) {
+						clearTimeout(i);
+					}
+					if (e.originalEvent.key == name) {
+						try {
+							var value = JSON.parse(e.originalEvent.newValue); // , e.originalEvent.oldValue
+							promise.resolve(value);
+						} catch (error) {
+							console.log('LocalStorage.on.error parsing', name, error);
+							promise.reject('error parsing ' + name);
+						}
+					}
+				}
+				angular.element($window).on('storage', storageEvent);
+				i = setTimeout(function () {
+					promise.reject('timeout');
+				}, timeout);
+			});
+		}
+
     }]);
 
-    app.factory('SessionStorage', ['$q', '$window', 'Cookie', function($q, $window, Cookie) {
-        function SessionStorage() {}
+	app.factory('SessionStorage', ['$promise', '$window', 'Cookie', function ($promise, $window, Cookie) {
 
-        function isSessionStorageSupported() {
-            var supported = false;
-            try {
-                supported = 'sessionStorage' in $window && $window.sessionStorage !== undefined;
-                if (supported) {
-                    $window.sessionStorage.setItem('test', '1');
-                    $window.sessionStorage.removeItem('test');
-                } else {
-                    supported = false;
-                }
-            } catch (e) {
-                supported = false;
-            }
-            return supported;
-        }
-        SessionStorage.isSupported = isSessionStorageSupported();
-        if (SessionStorage.isSupported) {
-            SessionStorage.exists = function(name) {
-                return $window.sessionStorage[name] !== undefined;
-            };
-            SessionStorage.get = function(name) {
-                var value = null;
-                if ($window.sessionStorage[name] !== undefined) {
-                    try {
-                        value = JSON.parse($window.sessionStorage[name]);
-                    } catch (e) {
-                        console.log('SessionStorage.get.error parsing', name, e);
-                    }
-                }
-                return value;
-            };
-            SessionStorage.set = function(name, value) {
-                try {
-                    var cache = [];
-                    var json = JSON.stringify(value, function(key, value) {
-                        if (key === 'pool') {
-                            return;
-                        }
-                        if (typeof value === 'object' && value !== null) {
-                            if (cache.indexOf(value) !== -1) {
-                                // Circular reference found, discard key
-                                return;
-                            }
-                            cache.push(value);
-                        }
-                        return value;
-                    });
-                    cache = null;
-                    $window.sessionStorage.setItem(name, json);
-                } catch (e) {
-                    console.log('SessionStorage.set.error serializing', name, value, e);
-                }
-            };
-            SessionStorage.delete = function(name) {
-                $window.sessionStorage.removeItem(name);
-            };
-            SessionStorage.on = function(name) {
-                var deferred = $q.defer();
-                var i, timeout = Cookie.TIMEOUT;
+		var service = {
+			TIMEOUT: TIMEOUT,
+			delete: LocalDelete,
+			exist: LocalExists,
+			get: LocalGet,
+			on: LocalOn,
+			set: LocalSet,
+		};
 
-                function storageEvent(e) {
-                    // console.log('SessionStorage.on', name, e);
-                    clearTimeout(i);
-                    if (e.originalEvent.key === name) {
-                        try {
-                            var value = JSON.parse(e.originalEvent.newValue); // , e.originalEvent.oldValue
-                            deferred.resolve(value);
-                        } catch (error) {
-                            console.log('SessionStorage.on.error parsing', name, error);
-                            deferred.reject('error parsing ' + name);
-                        }
-                    }
-                }
-                angular.element($window).on('storage', storageEvent);
-                i = setTimeout(function() {
-                    deferred.reject('timeout');
-                }, timeout);
-                return deferred.promise;
-            };
-        } else {
-            console.log('SessionStorage.unsupported switching to cookies');
-            SessionStorage.exists = Cookie.exists;
-            SessionStorage.set = Cookie.set;
-            SessionStorage.get = Cookie.get;
-            SessionStorage.delete = Cookie.delete;
-            SessionStorage.on = Cookie.on;
-        }
-        return SessionStorage;
+		var supported = SessionSupported();
+
+		if (supported) {
+			angular.extend(this, service);
+		} else {
+			angular.extend(this, Cookie);
+		}
+
+		this.supported = supported;
+
+		function SessionSupported() {
+			var supported = false;
+			try {
+				supported = 'sessionStorage' in $window && $window.sessionStorage !== undefined;
+				if (supported) {
+					$window.sessionStorage.setItem('test', '1');
+					$window.sessionStorage.removeItem('test');
+				} else {
+					supported = false;
+				}
+			} catch (e) {
+				supported = false;
+			}
+			return supported;
+		}
+
+		function SessionExists(name) {
+			return $window.sessionStorage[name] !== undefined;
+		}
+
+		function SessionGet(name) {
+			var value = null;
+			if ($window.sessionStorage[name] !== undefined) {
+				try {
+					value = JSON.parse($window.sessionStorage[name]);
+				} catch (e) {
+					console.log('SessionStorage.get.error parsing', name, e);
+				}
+			}
+			return value;
+		}
+
+		function SessionSet(name, value) {
+			try {
+				var cache = [];
+				var json = JSON.stringify(value, function (key, value) {
+					if (key === 'pool') {
+						return;
+					}
+					if (typeof value === 'object' && value !== null) {
+						if (cache.indexOf(value) !== -1) {
+							// Circular reference found, discard key
+							return;
+						}
+						cache.push(value);
+					}
+					return value;
+				});
+				cache = null;
+				$window.sessionStorage.setItem(name, json);
+			} catch (e) {
+				console.log('SessionStorage.set.error serializing', name, value, e);
+			}
+		}
+
+		function SessionDelete(name) {
+			$window.sessionStorage.removeItem(name);
+		}
+
+		function SessionOn(name) {
+			return $promise(function (promise) {
+				var i, timeout = Cookie.TIMEOUT;
+
+				function storageEvent(e) {
+					// console.log('SessionStorage.on', name, e);
+					if (i) {
+						clearTimeout(i);
+					}
+					if (e.originalEvent.key === name) {
+						try {
+							var value = JSON.parse(e.originalEvent.newValue); // , e.originalEvent.oldValue
+							promise.resolve(value);
+						} catch (error) {
+							console.log('SessionStorage.on.error parsing', name, error);
+							promise.reject('error parsing ' + name);
+						}
+					}
+				}
+				angular.element($window).on('storage', storageEvent);
+				i = setTimeout(function () {
+					promise.reject('timeout');
+				}, timeout);
+			});
+		}
+
     }]);
 
 }());
@@ -3489,65 +3928,67 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('modalView', ['$parse', '$templateRequest', '$compile', '$controller', 'Utils', function($parse, $templateRequest, $compile, $controller, Utils) {
+	app.directive('modalView', ['$parse', '$templateRequest', '$compile', '$controller', 'Dom', function ($parse, $templateRequest, $compile, $controller, Dom) {
 
-        function compileController(scope, element, html, data) {
-            // console.log('modalView.compileController', element);
-            element.html(html);
-            var link = $compile(element.contents());
-            if (data.controller) {
-                var $scope = scope.$new();
-                angular.extend($scope, data);
-                var controller = $controller(data.controller, { $scope: $scope });
-                if (data.controllerAs) {
-                    scope[data.controllerAs] = controller;
-                }
-                element.data('$ngControllerController', controller);
-                element.children().data('$ngControllerController', controller);
-                scope = $scope;
-            }
-            link(scope);
-        }
+		function compileController(scope, element, html, data) {
+			// console.log('modalView.compileController', element);
+			element.html(html);
+			var link = $compile(element.contents());
+			if (data.controller) {
+				var $scope = scope.$new();
+				angular.extend($scope, data);
+				var controller = $controller(data.controller, {
+					$scope: $scope
+				});
+				if (data.controllerAs) {
+					scope[data.controllerAs] = controller;
+				}
+				element.data('$ngControllerController', controller);
+				element.children().data('$ngControllerController', controller);
+				scope = $scope;
+			}
+			link(scope);
+		}
 
-        return {
-            restrict: 'A',
-            priority: -400,
-            link: function(scope, element, attributes, model) {
-                var modal = $parse(attributes.modalView);
-                modal = modal(scope);
-                modal.templateUrl = modal.templateUrl || 'artisan/modals/modal';
-                $templateRequest(modal.templateUrl).then(function(html) {
-                    compileController(scope, element, html, modal);
-                });
-                /*
-                // window.scrollTo(0, element[0].offsetTop - 100);
-                function onClick(e) {
-                    var closest = Utils.getClosestElement(e.target, element[0]);
-                    if (closest === null) {
-                        modal.reject(null);
-                    }
-                    // console.log('onClick', closest);
-                }
-                function addListeners() {
-                    angular.element(window).on('click', onClick);
-                }
-                function removeListeners() {
-                    angular.element(window).off('click', onClick);
-                }
-                scope.$on('destroy', function () {
-                    removeListeners();
-                });
-                setTimeout(function () {
-                    addListeners();
-                }, 500);
-                */
-            }
-        };
+		return {
+			restrict: 'A',
+			priority: -400,
+			link: function (scope, element, attributes, model) {
+				var modal = $parse(attributes.modalView);
+				modal = modal(scope);
+				modal.templateUrl = modal.templateUrl || 'artisan/modals/modal';
+				$templateRequest(modal.templateUrl).then(function (html) {
+					compileController(scope, element, html, modal);
+				});
+				/*
+				// window.scrollTo(0, element[0].offsetTop - 100);
+				function onClick(e) {
+				    var closest = Dom.getClosestElement(e.target, element[0]);
+				    if (closest === null) {
+				        modal.reject(null);
+				    }
+				    // console.log('onClick', closest);
+				}
+				function addListeners() {
+				    angular.element(window).on('click', onClick);
+				}
+				function removeListeners() {
+				    angular.element(window).off('click', onClick);
+				}
+				scope.$on('destroy', function () {
+				    removeListeners();
+				});
+				setTimeout(function () {
+				    addListeners();
+				}, 500);
+				*/
+			}
+		};
     }]);
 
 }());
@@ -3855,102 +4296,129 @@
 
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Nav', ['$silent', function($silent) {
-        function Nav(options) {
-            var nav = this;
-            var defaults = {
-                items: [],
-            }
-            angular.extend(nav, defaults);
-            if (options) {
-                angular.extend(nav, options);
-            }
-            nav.setNav(nav, null);
-        }
-        Nav.prototype = {
-            setItems: function(items) {
-                var nav = this;
-                nav.path = $silent.path();
-                nav.items = items;
-                nav.setNavs(items, nav);
-            },
-            setNavs: function(items, parent) {
-                var nav = this;
-                if (items) {
-                    angular.forEach(items, function(item) {
-                        nav.setNav(item, parent);
-                        nav.setNavs(item.items, item);
-                    });
-                }
-            },
-            setNav: function(item, parent) {
-                var nav = this;
-                var $nav = {
-                    parent: parent || null,
-                    level: parent ? parent.$nav.level + 1 : 0,
-                    state: {},
-                    addItems: function(x) {
-                        nav.addItems(x, item);
-                    },
-                    onNav: nav.onNav,
-                };
-                item.$nav = $nav;
-                $nav.link = nav.getLink(item);
-                if ($nav.link === nav.path) {
-                    $nav.state.active = true;
-                    $nav.state.opened = true;
-                    while ($nav.parent) {
-                        $nav = $nav.parent.$nav;
-                        $nav.state.active = true;
-                        $nav.state.opened = true;
-                    }
-                }
-            },
-            addItems: function(itemOrItems, parent) {
-                var nav = this;
-                if (angular.isArray(itemOrItems)) {
-                    angular.forEach(itemOrItems, function(item) {
-                        nav.addItem(item, parent);
-                    });
-                } else {
-                    nav.addItem(itemOrItems, parent);
-                }
-            },
-            addItem: function(item, parent) {
-                var nav = this,
-                    onLink = nav.onLink,
-                    onNav = nav.onNav;
-                nav.setNav(item, parent);
-                if (parent) {
-                    parent.items = parent.items || [];
-                    parent.items.push(item);
-                }
-            },
-            getLink: function(item) {
-                var link = null;
-                if (this.onLink) {
-                    link = this.onLink(item, item.$nav);
-                } else {
-                    link = item.link;
-                }
-                return link;
-            },
-        };
-        var statics = {
-            silent: function(path) {
-                $silent.silent(path);
-            },
-            path: function(path) {
-                $silent.path(path);
-            },
-        };
-        angular.extend(Nav, statics);
-        return Nav;
+	app.factory('Nav', ['Silent', function (Silent) {
+
+		function Nav(options) {
+			var nav = this;
+			var defaults = {
+				items: [],
+			}
+			angular.extend(nav, defaults);
+			if (options) {
+				angular.extend(nav, options);
+			}
+			nav.setNav(nav, null);
+		}
+
+		var statics = {
+			silent: NavSilent,
+			path: NavPath,
+		};
+
+		var methods = {
+			addItem: addItem,
+			addItems: addItems,
+			getLink: getLink,
+			setItems: setItems,
+			setNav: setNav,
+			setNavs: setNavs,
+		};
+
+		angular.extend(Nav, statics);
+		angular.extend(Nav.prototype, methods);
+
+		return Nav;
+
+		// static methods
+
+		function NavSilent(path) {
+			Silent.silent(path);
+		}
+
+		function NavPath(path) {
+			Silent.path(path);
+		}
+
+		// prototype methods
+
+		function setItems(items) {
+			var nav = this;
+			nav.path = Silent.path();
+			nav.items = items;
+			nav.setNavs(items, nav);
+		}
+
+		function setNavs(items, parent) {
+			var nav = this;
+			if (items) {
+				angular.forEach(items, function (item) {
+					nav.setNav(item, parent);
+					nav.setNavs(item.items, item);
+				});
+			}
+		}
+
+		function setNav(item, parent) {
+			var nav = this;
+			var $nav = {
+				parent: parent || null,
+				level: parent ? parent.$nav.level + 1 : 0,
+				state: {},
+				addItems: function (x) {
+					nav.addItems(x, item);
+				},
+				onNav: nav.onNav,
+			};
+			item.$nav = $nav;
+			$nav.link = nav.getLink(item);
+			if ($nav.link === nav.path) {
+				$nav.state.active = true;
+				$nav.state.opened = true;
+				while ($nav.parent) {
+					$nav = $nav.parent.$nav;
+					$nav.state.active = true;
+					$nav.state.opened = true;
+				}
+			}
+		}
+
+		function addItems(itemOrItems, parent) {
+			var nav = this;
+			if (angular.isArray(itemOrItems)) {
+				angular.forEach(itemOrItems, function (item) {
+					nav.addItem(item, parent);
+				});
+			} else {
+				nav.addItem(itemOrItems, parent);
+			}
+		}
+
+		function addItem(item, parent) {
+			var nav = this,
+				onLink = nav.onLink,
+				onNav = nav.onNav;
+			nav.setNav(item, parent);
+			if (parent) {
+				parent.items = parent.items || [];
+				parent.items.push(item);
+			}
+		}
+
+		function getLink(item) {
+			var link = null;
+			if (this.onLink) {
+				link = this.onLink(item, item.$nav);
+			} else {
+				link = item.link;
+			}
+			return link;
+		}
+
     }]);
 
 }());
@@ -4361,539 +4829,541 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Scrollable', ['Utils', 'Point', 'Rect', function(Utils, Point, Rect) {
+	app.factory('Scrollable', ['Utils', 'Point', 'Rect', function (Utils, Point, Rect) {
 
-        function Scrollable() {
+		function Scrollable() {
 
-            var padding = 150;
-            var enabled, snappable, busy, dragging, wheeling, down, move, prev;
-            var currentIndex = 0;
+			var padding = 150;
+			var enabled, snappable, busy, dragging, wheeling, down, move, prev;
+			var currentIndex = 0;
 
-            snappable = true;
+			snappable = true;
 
-            var start = new Point(),
-                end = new Point(),
-                current = new Point(),
-                drag = new Point(),
-                indicator = new Point(),
-                offset = new Point(),
-                speed = new Point(),
-                container = new Rect(),
-                content = new Rect(),
-                overflow = new Rect();
+			var start = new Point(),
+				end = new Point(),
+				current = new Point(),
+				drag = new Point(),
+				indicator = new Point(),
+				offset = new Point(),
+				speed = new Point(),
+				container = new Rect(),
+				content = new Rect(),
+				overflow = new Rect();
 
-            var scrollable = {
-                // properties
-                start: start,
-                end: end,
-                current: current,
-                indicator: indicator,
-                speed: speed,
-                overflow: overflow,
-                container: container,
-                content: content,
-                // methods
-                setContainer: setContainer,
-                setContent: setContent,
-                setEnabled: setEnabled,
-                getCurrent: getCurrent,
-                getDrag: getDrag,
-                getIndicator: getIndicator,
-                scrollToIndex: scrollToIndex,
-                scrollPrev: scrollPrev,
-                scrollNext: scrollNext,
-                dragStart: dragStart,
-                dragMove: dragMove,
-                dragEnd: dragEnd,
-                doReset: doReset,
-                off: off,
-                // x direction
-                doLeft: doLeft,
-                doRight: doRight,
-                renderX: renderX,
-                scrollToX: scrollToX,
-                wheelX: wheelX,
-                wheelXCheck: wheelXCheck,
-                // y direction
-                doTop: doTop,
-                doBottom: doBottom,
-                renderY: renderY,
-                scrollToY: scrollToY,
-                wheelY: wheelY,
-                wheelYCheck: wheelYCheck,
-            };
+			var scrollable = {
+				// properties
+				start: start,
+				end: end,
+				current: current,
+				indicator: indicator,
+				speed: speed,
+				overflow: overflow,
+				container: container,
+				content: content,
+				// methods
+				setContainer: setContainer,
+				setContent: setContent,
+				setEnabled: setEnabled,
+				getCurrent: getCurrent,
+				getDrag: getDrag,
+				getIndicator: getIndicator,
+				scrollToIndex: scrollToIndex,
+				scrollPrev: scrollPrev,
+				scrollNext: scrollNext,
+				dragStart: dragStart,
+				dragMove: dragMove,
+				dragEnd: dragEnd,
+				doReset: doReset,
+				off: off,
+				// x direction
+				doLeft: doLeft,
+				doRight: doRight,
+				renderX: renderX,
+				scrollToX: scrollToX,
+				wheelX: wheelX,
+				wheelXCheck: wheelXCheck,
+				// y direction
+				doTop: doTop,
+				doBottom: doBottom,
+				renderY: renderY,
+				scrollToY: scrollToY,
+				wheelY: wheelY,
+				wheelYCheck: wheelYCheck,
+			};
 
-            angular.extend(this, scrollable);
+			angular.extend(this, scrollable);
 
-            scrollable = this;
+			scrollable = this;
 
-            function setContainer(node) {
-                container.width = node.offsetWidth;
-                container.height = node.offsetHeight;
-            }
+			function setContainer(node) {
+				container.width = node.offsetWidth;
+				container.height = node.offsetHeight;
+			}
 
-            function setContent(node) {
-                content.width = node.offsetWidth;
-                content.height = node.offsetHeight;
-            }
+			function setContent(node) {
+				content.width = node.offsetWidth;
+				content.height = node.offsetHeight;
+			}
 
-            function setEnabled(flag) {
-                enabled = flag;
-            }
+			function setEnabled(flag) {
+				enabled = flag;
+			}
 
-            function getCurrent() {
-                return current;
-            }
+			function getCurrent() {
+				return current;
+			}
 
-            function getDrag() {
-                return drag;
-            }
+			function getDrag() {
+				return drag;
+			}
 
-            function getIndicator() {
-                return indicator;
-            }
+			function getIndicator() {
+				return indicator;
+			}
 
-            function scrollToIndex(index) {
-                if (index !== currentIndex) {
-                    currentIndex = index;
-                    var item = getItemAtIndex(index);
-                    if (item) {
-                        offset = new Point(
-                            item.offsetLeft,
-                            item.offsetTop
-                        );
-                        // console.log('scrollToIndex', index, offset);
-                    }
-                    return true;
-                }
-            }
+			function scrollToIndex(index) {
+				if (index !== currentIndex) {
+					currentIndex = index;
+					var item = getItemAtIndex(index);
+					if (item) {
+						offset = new Point(
+							item.offsetLeft,
+							item.offsetTop
+						);
+						// console.log('scrollToIndex', index, offset);
+					}
+					return true;
+				}
+			}
 
-            function dragStart(point) {
-                if (!busy) {
-                    start.x = end.x = current.x;
-                    start.y = end.y = current.y;
-                    speed.x = 0;
-                    speed.y = 0;
-                    down = point;
-                    currentIndex = -1;
-                    wheeling = false;
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+			function dragStart(point) {
+				if (!busy) {
+					start.x = end.x = current.x;
+					start.y = end.y = current.y;
+					speed.x = 0;
+					speed.y = 0;
+					down = point;
+					currentIndex = -1;
+					wheeling = false;
+					return true;
+				} else {
+					return false;
+				}
+			}
 
-            function dragMove(point) {
-                prev = move;
-                move = point;
-                drag.x = move.x - down.x;
-                drag.y = move.y - down.y;
-                dragging = true;
-            }
+			function dragMove(point) {
+				prev = move;
+				move = point;
+				drag.x = move.x - down.x;
+				drag.y = move.y - down.y;
+				dragging = true;
+			}
 
-            function dragEnd() {
-                if (move && prev) {
-                    speed.x += (move.x - prev.x) * 4;
-                    speed.y += (move.y - prev.y) * 4;
-                }
-                start.x = end.x = current.x;
-                start.y = end.y = current.y;
-                dragging = false;
-                move = null;
-                down = null;
-                prev = null;
-            }
+			function dragEnd() {
+				if (move && prev) {
+					speed.x += (move.x - prev.x) * 4;
+					speed.y += (move.y - prev.y) * 4;
+				}
+				start.x = end.x = current.x;
+				start.y = end.y = current.y;
+				dragging = false;
+				move = null;
+				down = null;
+				prev = null;
+			}
 
-            function getItemAtIndex(index) {
-                var item = null;
-                var items = scrollable.getItems();
-                if (items) {
-                    if (index >= 0 && index < items.length) {
-                        item = items[index];
-                    }
-                }
-                // console.log('getItemAtIndex', index, items.length, item);
-                return item;
-            }
+			function getItemAtIndex(index) {
+				var item = null;
+				var items = scrollable.getItems();
+				if (items) {
+					if (index >= 0 && index < items.length) {
+						item = items[index];
+					}
+				}
+				// console.log('getItemAtIndex', index, items.length, item);
+				return item;
+			}
 
-            function scrollPrev() {
-                var index = Math.max(0, currentIndex - 1);
-                // console.log('scrollPrev', index);
-                scrollToIndex(index);
-            }
+			function scrollPrev() {
+				var index = Math.max(0, currentIndex - 1);
+				// console.log('scrollPrev', index);
+				scrollToIndex(index);
+			}
 
-            function scrollNext() {
-                var items = scrollable.getItems();
-                var index = Math.min(items.length - 1, currentIndex + 1);
-                // console.log('scrollNext', index);
-                scrollToIndex(index);
-            }
+			function scrollNext() {
+				var items = scrollable.getItems();
+				var index = Math.min(items.length - 1, currentIndex + 1);
+				// console.log('scrollNext', index);
+				scrollToIndex(index);
+			}
 
-            function doReset() {
-                end.x = current.x = 0;
-            }
+			function doReset() {
+				end.x = current.x = 0;
+			}
 
-            function off() {
-                dragging = false;
-                wheeling = false;
-                move = null;
-                down = null;
-            }
+			function off() {
+				dragging = false;
+				wheeling = false;
+				move = null;
+				down = null;
+			}
 
-            // x - direction
+			// x - direction
 
-            function doLeft(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onLeft) {
-                    return;
-                }
-                busy = true;
-                scrollable.onLeft(scope).then().finally(function() {
-                    scrollToX(0);
-                });
-            }
+			function doLeft(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onLeft) {
+					return;
+				}
+				busy = true;
+				scrollable.onLeft(scope).then().finally(function () {
+					scrollToX(0);
+				});
+			}
 
-            function doRight(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onRight) {
-                    return;
-                }
-                busy = true;
-                scrollable.onRight(scope).then().finally(function() {
-                    var right = container.width - content.width;
-                    if (right > overflow.width) {
-                        start.x = end.x = overflow.width;
-                    } else {
-                        start.x = end.x = overflow.width + padding;
-                    }
-                    scrollToX(0);
-                });
-            }
+			function doRight(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onRight) {
+					return;
+				}
+				busy = true;
+				scrollable.onRight(scope).then().finally(function () {
+					var right = container.width - content.width;
+					if (right > overflow.width) {
+						start.x = end.x = overflow.width;
+					} else {
+						start.x = end.x = overflow.width + padding;
+					}
+					scrollToX(0);
+				});
+			}
 
-            function renderX() {
-                var animating = true;
-                if (enabled) {
-                    overflow.x = 0;
-                    overflow.width = container.width - content.width;
-                    if (dragging) {
-                        end.x = start.x + move.x - down.x;
-                        if (extendX()) {
-                            start.x = end.x;
-                            down.x = move.x;
-                        }
-                    } else if (speed.x) {
-                        end.x += speed.x;
-                        speed.x *= 0.75;
-                        if (wheeling) {
-                            extendX();
-                        }
-                        if (Math.abs(speed.x) < 2.05) {
-                            speed.x = 0;
-                            scrollable.wheeling = wheeling = false;
-                            snapToNearestX();
-                        }
-                    } else if (offset) {
-                        end.x = -offset.x;
-                        offset = null;
-                    }
-                    end.x = Math.round(end.x * 10000) / 10000;
-                    end.x = Math.min(overflow.x, end.x);
-                    end.x = Math.max(overflow.width, end.x);
-                    current.x += (end.x - current.x) / 4;
-                    if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
-                        current.x = end.x;
-                        if (!snapToNearestX()) {
-                            animating = false;
-                        }
-                    }
-                    // console.log('renderX', current.x, end.x, overflow.x);
-                } else {
-                    current.x = end.x = 0;
-                    animating = false;
-                }
-                return animating;
-            }
+			function renderX() {
+				var animating = true;
+				if (enabled) {
+					overflow.x = 0;
+					overflow.width = container.width - content.width;
+					if (dragging) {
+						end.x = start.x + move.x - down.x;
+						if (extendX()) {
+							start.x = end.x;
+							down.x = move.x;
+						}
+					} else if (speed.x) {
+						end.x += speed.x;
+						speed.x *= 0.75;
+						if (wheeling) {
+							extendX();
+						}
+						if (Math.abs(speed.x) < 2.05) {
+							speed.x = 0;
+							scrollable.wheeling = wheeling = false;
+							snapToNearestX();
+						}
+					} else if (offset) {
+						end.x = -offset.x;
+						offset = null;
+					}
+					end.x = Math.round(end.x * 10000) / 10000;
+					end.x = Math.min(overflow.x, end.x);
+					end.x = Math.max(overflow.width, end.x);
+					current.x += (end.x - current.x) / 4;
+					if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
+						current.x = end.x;
+						if (!snapToNearestX()) {
+							animating = false;
+						}
+					}
+					// console.log('renderX', current.x, end.x, overflow.x);
+				} else {
+					current.x = end.x = 0;
+					animating = false;
+				}
+				return animating;
+			}
 
-            function extendX() {
-                var extending = false;
-                overflow.x += padding;
-                overflow.width -= padding;
-                if (end.x > overflow.x) {
-                    extending = true;
-                    doLeft();
-                } else if (end.x < overflow.width) {
-                    extending = true;
-                    doRight();
-                }
-                return extending;
-            }
+			function extendX() {
+				var extending = false;
+				overflow.x += padding;
+				overflow.width -= padding;
+				if (end.x > overflow.x) {
+					extending = true;
+					doLeft();
+				} else if (end.x < overflow.width) {
+					extending = true;
+					doRight();
+				}
+				return extending;
+			}
 
-            function snapToNearestX() {
-                var items = scrollable.getItems();
-                if (items) {
-                    var index = -1;
-                    var min = Number.POSITIVE_INFINITY;
-                    angular.forEach(items, function(item, i) {
-                        var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
-                        if (distance < min) {
-                            min = distance;
-                            index = i;
-                        }
-                    });
-                    if (index !== -1) {
-                        if (snappable) { // && !Utils.ua.mac) {
-                            return scrollToIndex(index);
-                        } else {
-                            currentIndex = index;
-                        }
-                    }
-                }
-            }
+			function snapToNearestX() {
+				var items = scrollable.getItems();
+				if (items) {
+					var index = -1;
+					var min = Number.POSITIVE_INFINITY;
+					angular.forEach(items, function (item, i) {
+						var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
+						if (distance < min) {
+							min = distance;
+							index = i;
+						}
+					});
+					if (index !== -1) {
+						if (snappable) {
+							return scrollToIndex(index);
+						} else {
+							currentIndex = index;
+						}
+					}
+				}
+			}
 
-            function wheelXCheck(dir) {
-                // console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
-                if (!busy && enabled) {
-                    if (dir < 0) {
-                        return end.x - overflow.width;
-                    } else {
-                        return end.x - overflow.x;
-                    }
-                } else {
-                    return false;
-                }
-            }
+			function wheelXCheck(dir) {
+				// console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
+				if (!busy && enabled) {
+					if (dir < 0) {
+						return end.x - overflow.width;
+					} else {
+						return end.x - overflow.x;
+					}
+				} else {
+					return false;
+				}
+			}
 
-            function wheelX(dir, interval) {
-                end.x += dir * 100 / 1000 * interval;
-                speed.x += dir * 100 / 1000 * interval;
-                wheeling = true;
-            }
+			function wheelX(dir, interval) {
+				end.x += dir * 100 / 1000 * interval;
+				speed.x += dir * 100 / 1000 * interval;
+				wheeling = true;
+			}
 
-            function scrollToX(value) {
-                start.x = end.x = value;
-                setTimeout(function() {
-                    off();
-                    busy = false;
-                }, 500);
-            }
+			function scrollToX(value) {
+				start.x = end.x = value;
+				setTimeout(function () {
+					off();
+					busy = false;
+				}, 500);
+			}
 
-            // y - direction
+			// y - direction
 
-            function doTop(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onTop) {
-                    return;
-                }
-                busy = true;
-                scrollable.onTop(scope).then().finally(function() {
-                    scrollToY(0);
-                });
-            }
+			function doTop(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onTop) {
+					return;
+				}
+				busy = true;
+				scrollable.onTop(scope).then().finally(function () {
+					scrollToY(0);
+				});
+			}
 
-            function doBottom(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onBottom) {
-                    return;
-                }
-                busy = true;
-                scrollable.onBottom(scope).then().finally(function() {
-                    var bottom = container.height - content.height;
-                    if (bottom > overflow.height) {
-                        start.y = end.y = overflow.height;
-                    } else {
-                        start.y = end.y = overflow.height + padding;
-                    }
-                    scrollToY(0);
-                });
-            }
+			function doBottom(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onBottom) {
+					return;
+				}
+				busy = true;
+				scrollable.onBottom(scope).then().finally(function () {
+					var bottom = container.height - content.height;
+					if (bottom > overflow.height) {
+						start.y = end.y = overflow.height;
+					} else {
+						start.y = end.y = overflow.height + padding;
+					}
+					scrollToY(0);
+				});
+			}
 
-            function renderY() {
-                var animating = true;
-                if (enabled) {
-                    overflow.y = 0;
-                    overflow.height = container.height - content.height;
-                    if (dragging) {
-                        end.y = start.y + move.y - down.y;
-                        if (extendY()) {
-                            start.y = end.y;
-                            down.y = move.y;
-                        }
-                    } else if (speed.y) {
-                        end.y += speed.y;
-                        speed.y *= 0.75;
-                        if (wheeling) {
-                            extendY();
-                        }
-                        if (Math.abs(speed.y) < 2.05) {
-                            speed.y = 0;
-                            scrollable.wheeling = wheeling = false;
-                            snapToNearestY();
-                        }
-                    } else if (offset) {
-                        end.y = -offset.y;
-                        offset = null;
-                    }
-                    end.y = Math.round(end.y * 10000) / 10000;
-                    end.y = Math.min(overflow.y, end.y);
-                    end.y = Math.max(overflow.height, end.y);
-                    current.y += (end.y - current.y) / 4;
-                    if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
-                        current.y = end.y;
-                        if (!snapToNearestY()) {
-                            animating = false;
-                        }
-                    }
-                    // console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
-                    // console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
-                } else {
-                    current.y = end.y = 0;
-                    animating = false;
-                }
-                return animating;
-            }
+			function renderY() {
+				var animating = true;
+				if (enabled) {
+					overflow.y = 0;
+					overflow.height = container.height - content.height;
+					if (dragging) {
+						end.y = start.y + move.y - down.y;
+						if (extendY()) {
+							start.y = end.y;
+							down.y = move.y;
+						}
+					} else if (speed.y) {
+						end.y += speed.y;
+						speed.y *= 0.75;
+						if (wheeling) {
+							extendY();
+						}
+						if (Math.abs(speed.y) < 2.05) {
+							speed.y = 0;
+							scrollable.wheeling = wheeling = false;
+							snapToNearestY();
+						}
+					} else if (offset) {
+						end.y = -offset.y;
+						offset = null;
+					}
+					end.y = Math.round(end.y * 10000) / 10000;
+					end.y = Math.min(overflow.y, end.y);
+					end.y = Math.max(overflow.height, end.y);
+					current.y += (end.y - current.y) / 4;
+					if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
+						current.y = end.y;
+						if (!snapToNearestY()) {
+							animating = false;
+						}
+					}
+					// console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
+					// console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
+				} else {
+					current.y = end.y = 0;
+					animating = false;
+				}
+				return animating;
+			}
 
-            function extendY() {
-                var extending = false;
-                overflow.y += padding;
-                overflow.height -= padding;
-                if (end.y > overflow.y) {
-                    extending = true;
-                    doTop();
-                } else if (end.y < overflow.height) {
-                    extending = true;
-                    doBottom();
-                }
-                return extending;
-            }
+			function extendY() {
+				var extending = false;
+				overflow.y += padding;
+				overflow.height -= padding;
+				if (end.y > overflow.y) {
+					extending = true;
+					doTop();
+				} else if (end.y < overflow.height) {
+					extending = true;
+					doBottom();
+				}
+				return extending;
+			}
 
-            function snapToNearestY() {
-                var items = scrollable.getItems();
-                if (items) {
-                    var index = -1;
-                    var min = Number.POSITIVE_INFINITY;
-                    angular.forEach(items, function(item, i) {
-                        var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
-                        if (distance < min) {
-                            min = distance;
-                            index = i;
-                        }
-                    });
-                    // console.log('snapToNearestY', index, min);
-                    if (index !== -1) {
-                        if (snappable) {
-                            return scrollToIndex(index);
-                        } else {
-                            currentIndex = index;
-                        }
-                    }
-                }
-            }
+			function snapToNearestY() {
+				var items = scrollable.getItems();
+				if (items) {
+					var index = -1;
+					var min = Number.POSITIVE_INFINITY;
+					angular.forEach(items, function (item, i) {
+						var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
+						if (distance < min) {
+							min = distance;
+							index = i;
+						}
+					});
+					// console.log('snapToNearestY', index, min);
+					if (index !== -1) {
+						if (snappable) {
+							return scrollToIndex(index);
+						} else {
+							currentIndex = index;
+						}
+					}
+				}
+			}
 
-            function wheelYCheck(dir) {
-                // console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
-                if (!busy && enabled) {
-                    if (dir < 0) {
-                        return end.y - overflow.height;
-                    } else {
-                        return end.y - overflow.y;
-                    }
-                } else {
-                    return false;
-                }
-            }
+			function wheelYCheck(dir) {
+				// console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
+				if (!busy && enabled) {
+					if (dir < 0) {
+						return end.y - overflow.height;
+					} else {
+						return end.y - overflow.y;
+					}
+				} else {
+					return false;
+				}
+			}
 
-            function wheelY(dir, interval) {
-                end.y += dir * 100 / 1000 * interval;
-                speed.y += dir * 100 / 1000 * interval;
-                wheeling = true;
-            }
+			function wheelY(dir, interval) {
+				end.y += dir * 100 / 1000 * interval;
+				speed.y += dir * 100 / 1000 * interval;
+				wheeling = true;
+			}
 
-            function scrollToY(value) {
-                start.y = end.y = value;
-                setTimeout(function() {
-                    off();
-                    busy = false;
-                }, 500);
-            }
+			function scrollToY(value) {
+				start.y = end.y = value;
+				setTimeout(function () {
+					off();
+					busy = false;
+				}, 500);
+			}
 
-        }
+		}
 
-        function link(methods) {
-            angular.extend(this, methods);
-        }
+		function link(methods) {
+			angular.extend(this, methods);
+		}
 
-        Scrollable.prototype = {
-            link: link,
-            getItems: function() {
-                return [content];
-            },
-        };
-        return Scrollable;
+		Scrollable.prototype = {
+			link: link,
+			getItems: function () {
+				return [content];
+			},
+		};
+		return Scrollable;
     }]);
 
 }());
 /* global angular */
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    // micro interactions
+	// micro interactions
 
-    function tap(Events) {
-        return {
-            restrict: 'A',
-            priority: 0,
-            link: link
-        };
+	function tap(Events) {
+		return {
+			restrict: 'A',
+			priority: 0,
+			link: link
+		};
 
-        function link(scope, element, attributes, model) {
-            if (attributes.ngBind) {
-                return;
+		function link(scope, element, attributes, model) {
+			if (attributes.ngBind) {
+				return;
+			}
+			/*
+			if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
+				return;
             }
-            if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
-                return;
-            }
+            */
 
-            element.addClass('interaction-tap');
-            var node = document.createElement('interaction');
-            element[0].appendChild(node);
+			element.addClass('interaction-tap');
+			var node = document.createElement('interaction');
+			element[0].appendChild(node);
 
-            function onDown(e) {
-                element.removeClass('interaction-animate');
-                void element.offsetWidth;
-                // node.style.animationPlayState = "paused";
-                node.style.left = e.relative.x + 'px';
-                node.style.top = e.relative.y + 'px';
-                setTimeout(function() {
-                    element.addClass('interaction-animate');
-                    setTimeout(function() {
-                        element.removeClass('interaction-animate');
-                    }, 1000);
-                }, 10);
+			function onDown(e) {
+				element.removeClass('interaction-animate');
+				void element.offsetWidth;
+				// node.style.animationPlayState = "paused";
+				node.style.left = e.relative.x + 'px';
+				node.style.top = e.relative.y + 'px';
+				setTimeout(function () {
+					element.addClass('interaction-animate');
+					setTimeout(function () {
+						element.removeClass('interaction-animate');
+					}, 1000);
+				}, 10);
 
-                // console.log('tap.onDown', node, node.parentElement);
-            }
-            var listeners = { // down, move, up, click
-                down: onDown,
-            };
-            var events = new Events(element).add(listeners, scope); // passing scope to add remove listeners automatically on $destroy
-        }
-    }
-    app.directive('href', ['Events', tap]);
-    app.directive('ngClick', ['Events', tap]);
+				// console.log('tap.onDown', node, node.parentElement);
+			}
+			var listeners = { // down, move, up, click
+				down: onDown,
+			};
+			var events = new Events(element).add(listeners, scope); // passing scope to add remove listeners automatically on $destroy
+		}
+	}
+	app.directive('ngHref', ['Events', tap]);
+	app.directive('ngClick', ['Events', tap]);
 
 }());

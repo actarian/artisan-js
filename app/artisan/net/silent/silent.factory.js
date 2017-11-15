@@ -1,55 +1,70 @@
 ﻿/* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('$silent', ['$rootScope', '$location', function($rootScope, $location) {
-        function $silent() {}
+	app.factory('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
 
-        var $path;
+		function Silent() {}
 
-        function unlink() {
-            var listeners = $rootScope.$$listeners.$locationChangeSuccess;
-            angular.forEach(listeners, function(value, name) {
-                if (value === listener) {
-                    return;
-                }
+		var statics = {
+			silent: SilentSilent,
+			path: SilentPath,
+		};
 
-                function relink() {
-                    listeners[name] = value;
-                }
-                listeners[name] = relink; // temporary unlinking
-            });
-        }
+		var methods = {};
 
-        function listener(e) {
-            // console.log('onLocationChangeSuccess', e);
-            if ($path === $location.path()) {
-                unlink();
-            }
-            $path = null;
-        }
+		angular.extend(Silent, statics);
+		angular.extend(Silent.prototype, methods);
 
-        var statics = {
-            silent: function(path, replace) {
-                // this.prev = $location.path(); ???
-                var location = $location.url(path);
-                if (replace) {
-                    location.replace();
-                }
-                $path = $location.path();
-            },
-            path: function(path) {
-                return $location.path(path);
-            },
-        };
+		$rootScope.$$listeners.$locationChangeSuccess.unshift(SilentListener);
+		// console.log('$rootScope.$$listeners.$locationChangeSuccess', $rootScope.$$listeners.$locationChangeSuccess);
 
-        angular.extend($silent, statics);
-        $rootScope.$$listeners.$locationChangeSuccess.unshift(listener);
-        // console.log('$rootScope.$$listeners.$locationChangeSuccess', $rootScope.$$listeners.$locationChangeSuccess);
-        return $silent;
+		// private vars
+
+		var $path;
+
+		return Silent;
+
+		// static methods
+
+		function SilentUnlink() {
+			var listeners = $rootScope.$$listeners.$locationChangeSuccess;
+			angular.forEach(listeners, function (value, name) {
+				if (value === listener) {
+					return;
+				}
+
+				function relink() {
+					listeners[name] = value;
+				}
+				listeners[name] = relink; // temporary unlinking
+			});
+		}
+
+		function SilentListener(e) {
+			// console.log('onLocationChangeSuccess', e);
+			if ($path === $location.path()) {
+				SilentUnlink();
+			}
+			$path = null;
+		}
+
+		function SilentSilent(path, replace) {
+			// this.prev = $location.path(); ???
+			var location = $location.url(path);
+			if (replace) {
+				location.replace();
+			}
+			$path = $location.path();
+		}
+
+		function SilentPath(path) {
+			return $location.path(path);
+		}
+
     }]);
 
 }());

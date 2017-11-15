@@ -8,103 +8,73 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.service('Api', ['WebApi', '$promise',
-        function(WebApi, $promise) {
+	app.service('Api', ['Http', function (Http) {
 
-            var service = {
-                navs: {
-                    main: function() {
-                        return WebApi.get('/navs/main.js'); // promise
-                    },
-                },
-                docs: {
-                    id: function(id) {
-                        return WebApi.get('/docs/' + id + '.js'); // promise
-                    },
-                    url: function(url) {
-                        url = url.split('/').join('-');
-                        return WebApi.get('/docs/' + url + '.js'); // promise
-                    },
-                },
-            };
+		var api = {
+			navs: {
+				main: function () {
+					return Http.get('/navs/main.js');
+				},
+			},
+			docs: {
+				id: function (id) {
+					return Http.get('/docs/' + id + '.js');
+				},
+				url: function (url) {
+					url = url.split('/').join('-');
+					return Http.get('/docs/' + url + '.js');
+				},
+			},
+		};
 
-            angular.extend(this, service);
+		angular.extend(this, api);
 
-            // var args = Array.prototype.slice.call(arguments);
-        }
-    ]);
-
-    /*
-    app.provider('$api', [function $apiProvider() {
-
-        var routes = {};
-
-        this.routes = routes;
-        this.when = when;
-
-        function when(path, callback) {
-            var api = this;
-            routes[path] = callback;
-            return api;
-        }
-
-        this.$get = ['$q', '$timeout', function $apiFactory($q, $timeout) {
-
-            var api = {};
-
-            angular.extend(api, routes);
-
-            return api;
-
-        }];
-
-    }]);
-    */
+	}]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.constant('environment', getEnvironment());
+	app.constant('environment', getEnvironment());
 
-    app.config(['$locationProvider', function($locationProvider) {
-        // HTML5 MODE url writing method (false: #/anchor/use, true: /html5/url/use)
-        $locationProvider.html5Mode(false);
-        // $locationProvider.hashPrefix(''); // default '!' hashbang    
+	app.config(['$locationProvider', function ($locationProvider) {
+		// HTML5 MODE url writing method (false: #/anchor/use, true: /html5/url/use)
+		$locationProvider.html5Mode(false);
+		// $locationProvider.hashPrefix(''); // default '!' hashbang    
     }]);
 
-    app.config(['$httpProvider', 'environment', function($httpProvider, environment) {
-        $httpProvider.defaults.headers.common["Accept-Language"] = environment.lang;
-        // $httpProvider.defaults.withCredentials = true;
-        // $httpProvider.interceptors.push('AuthInterceptorService');
+	app.config(['$httpProvider', 'environment', function ($httpProvider, environment) {
+		$httpProvider.defaults.headers.common["Accept-Language"] = environment.lang;
+		// $httpProvider.defaults.withCredentials = true;
+		// $httpProvider.interceptors.push('AuthInterceptorService');
     }]);
 
-    function getEnvironment() {
-        var environment = {
-            language: 'en',
-            urls: {
-                api: 'api',
-            },
-            apis: {
-                facebook: {
-                    app_id: 156171878319496,
-                }
-            }
-        };
-        if (window.environment) {
-            angular.extend(environment, window.environment);
-        }
-        return environment;
-    }
+	function getEnvironment() {
+		var environment = {
+			language: 'en',
+			urls: {
+				api: 'api',
+			},
+			addons: {
+				facebook: {
+					app_id: 156171878319496,
+				}
+			}
+		};
+		if (window.environment) {
+			angular.extend(environment, window.environment);
+		}
+		return environment;
+	}
 
 }());
 /* global angular */
@@ -245,88 +215,92 @@
 
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable',
-        function($scope, $timeout, $promise, Nav, Api, Scrollable) {
+	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', function ($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService) {
 
-            var nav = new Nav({
-                onLink: onLink,
-                onNav: onNav,
-            });
+		var nav = new Nav({
+			onLink: onLink,
+			onNav: onNav,
+		});
 
-            Api.navs.main().then(function(items) {
-                nav.setItems(items);
+		Api.navs.main().then(function (items) {
+			nav.setItems(items);
 
-            }, function(error) {
-                console.log('RootCtrl.error', error);
+		}, function (error) {
+			console.log('RootCtrl.error', error);
 
-            });
+		});
 
-            function onLink(item) {
-                var link = item.url;
-                console.log('RootCtrl.onLink', item.$nav.level, link);
-                return link;
-            }
+		function onLink(item) {
+			var link = item.url;
+			console.log('RootCtrl.onLink', item.$nav.level, link);
+			return link;
+		}
 
-            function onNav(item) {
-                console.log('RootCtrl.onNav', item.$nav.level, item.$nav.link);
-                Nav.path(item.$nav.link);
-                return false; // returning false disable default link behaviour;
-            }
+		function onNav(item) {
+			console.log('RootCtrl.onNav', item.$nav.level, item.$nav.link);
+			Nav.path(item.$nav.link);
+			return false; // returning false disable default link behaviour;
+		}
 
-            function onNavPromise(item) {
-                $scope.selected = item;
-                return $promise(function(promise) {
-                    console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.link);
-                    $timeout(function() {
-                        if (item.items) {
-                            item.$nav.addItems({
-                                name: "Item",
-                            });
-                        }
-                        promise.resolve();
-                    });
-                }); // a promise always disable default link behaviour;
-            }
+		function onNavPromise(item) {
+			$scope.selected = item;
+			return $promise(function (promise) {
+				console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.link);
+				$timeout(function () {
+					if (item.items) {
+						item.$nav.addItems({
+							name: "Item",
+						});
+					}
+					promise.resolve();
+				});
+			}); // a promise always disable default link behaviour;
+		}
 
-            $scope.nav = nav;
+		$scope.nav = nav;
 
-            ////////////
+		////////////
 
-            var items = new Array(20).fill(null).map(function(value, index) {
-                return {
-                    id: index + 1,
-                    name: 'Item',
-                    items: new Array(3).fill(null).map(function(value, index) {
-                        return {
-                            id: index + 1,
-                            name: 'Item',
-                        };
-                    }),
-                };
-            });
+		var items = new Array(20).fill(null).map(function (value, index) {
+			return {
+				id: index + 1,
+				name: 'Item',
+				items: new Array(3).fill(null).map(function (value, index) {
+					return {
+						id: index + 1,
+						name: 'Item',
+					};
+				}),
+			};
+		});
 
-            var scrollable = new Scrollable();
+		var scrollable = new Scrollable();
 
-            function scrollPrev() {
-                scrollable.prev();
-            }
+		function scrollPrev() {
+			scrollable.prev();
+		}
 
-            function scrollNext() {
-                scrollable.next();
-            }
+		function scrollNext() {
+			scrollable.next();
+		}
 
-            $scope.items = items;
-            $scope.scrollPrev = scrollPrev;
-            $scope.scrollNext = scrollNext;
-            $scope.scrollable = scrollable;
+		$scope.items = items;
+		$scope.scrollPrev = scrollPrev;
+		$scope.scrollNext = scrollNext;
+		$scope.scrollable = scrollable;
 
-        }
-    ]);
+		//////////////
+
+		FacebookService.getMe().then(function (user) {
+			console.log('FacebookService.getMe', user);
+		});
+
+    }]);
 
 }());
 /* global angular */

@@ -12,37 +12,54 @@
 			this.key = null;
 			this.ticks = 0;
 		}
-		Animate.prototype = {
-			play: function () {
-				var _this = this;
 
-				function loop(time) {
-					_this.ticks++;
-					_this.callback(time, _this.ticks);
-					_this.key = window.requestAnimationFrame(loop);
-				}
-				if (!this.key) {
-					loop();
-				}
-			},
-			pause: function () {
-				if (this.key) {
-					window.cancelAnimationFrame(this.key);
-					this.key = null;
-				}
-			},
-			playpause: function () {
-				if (this.key) {
-					this.pause();
-				} else {
-					this.play();
-				}
-			},
-			doNOTPlay: function () {
-				this.pause();
-			},
-		}
+		var statics = {};
+
+		var methods = {
+			pause: pause,
+			play: play,
+			toggle: toggle,
+		};
+
+		angular.extend(Animate, statics);
+		angular.extend(Animate.prototype, methods);
+
 		return Animate;
+
+		// static methods
+
+		// prototype methods
+
+		function pause() {
+			var animate = this;
+			if (animate.key) {
+				window.cancelAnimationFrame(animate.key);
+				animate.key = null;
+			}
+		}
+
+		function play() {
+			var animate = this;
+
+			function loop(time) {
+				animate.ticks++;
+				animate.callback(time, animate.ticks);
+				animate.key = window.requestAnimationFrame(loop);
+			}
+			if (!animate.key) {
+				loop();
+			}
+		}
+
+		function toggle() {
+			var animate = this;
+			if (animate.key) {
+				animate.pause();
+			} else {
+				animate.play();
+			}
+		}
+
     }]);
 
 	(function () {

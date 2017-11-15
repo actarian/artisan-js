@@ -7,159 +7,69 @@
 
 	app.service('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
 
-		this.ua = getUA();
-		this.reverseSortOn = reverseSortOn;
-		this.getTouch = getTouch;
-		this.getRelativeTouch = getRelativeTouch;
-		this.getClosest = getClosest;
-		this.getClosestElement = getClosestElement;
-		this.getParents = getParents;
-		this.getDocumentNode = getDocumentNode;
-		this.indexOf = indexOf;
-		this.removeValue = removeValue;
-		this.throttle = throttle;
-		this.where = where;
-		this.format = format;
-		this.compileController = compileController;
-		this.reducer = reducer;
-		this.reducerSetter = reducerSetter;
-		this.reducerAdder = reducerAdder;
-		this.downloadFile = downloadFile;
-		this.serverDownload = serverDownload;
-		this.toMd5 = toMd5;
+		var service = this;
+
+		var statics = {
+			compileController: compileController,
+			format: format,
+			indexOf: indexOf,
+			reducer: reducer,
+			reducerAdder: reducerAdder,
+			reducerSetter: reducerSetter,
+			removeValue: removeValue,
+			reverseSortOn: reverseSortOn,
+			throttle: throttle,
+			toMd5: toMd5,
+			where: where,
+		};
+
+		angular.extend(service, statics);
 
 		var getNow = Date.now || function () {
 			return new Date().getTime();
 		};
 
-		function getUA() {
-			var agent = window.navigator.userAgent.toLowerCase();
-			var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
-			var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
-			var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
-			var mobile = agent.indexOf('mobile') !== -1;
-			var mac = agent.indexOf('macintosh') !== -1;
-			var ua = {
-				agent: agent,
-				safari: safari,
-				msie: msie,
-				chrome: chrome,
-				mobile: mobile,
-				mac: mac,
-			};
-			angular.forEach(ua, function (value, key) {
-				if (value) {
-					angular.element(document.getElementsByTagName('body')).addClass(key);
+		function compileController(scope, element, html, data) {
+			// console.log('Utils.compileController', element);
+			element.html(html);
+			var link = $compile(element.contents());
+			if (data.controller) {
+				var $scope = scope.$new();
+				angular.extend($scope, data);
+				var controller = $controller(data.controller, {
+					$scope: $scope
+				});
+				if (data.controllerAs) {
+					scope[data.controllerAs] = controller;
 				}
-			});
-			return ua;
-		}
-
-		function toMd5(string) {
-			// return Md5.encode(string);
-		}
-
-		var _isTouch;
-
-		function isTouch() {
-			if (!_isTouch) {
-				_isTouch = {
-					value: ('ontouchstart' in window || 'onmsgesturechange' in window)
-				};
+				element.data('$ngControllerController', controller);
+				element.children().data('$ngControllerController', controller);
+				scope = $scope;
 			}
-			// console.log(_isTouch);
-			return _isTouch.value;
+			link(scope);
 		}
 
-		function getTouch(e, previous) {
-			var t = new Vector();
-			if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
-				var touch = null;
-				var event = e.originalEvent ? e.originalEvent : e;
-				var touches = event.touches.length ? event.touches : event.changedTouches;
-				if (touches && touches.length) {
-					touch = touches[0];
+		function format(string, prepend, expression) {
+			string = string || '';
+			prepend = prepend || '';
+			var splitted = string.split(',');
+			if (splitted.length > 1) {
+				var formatted = splitted.shift();
+				angular.forEach(splitted, function (value, index) {
+					if (expression) {
+						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
+					} else {
+						formatted = formatted.split('{' + index + '}').join(prepend + value);
+					}
+				});
+				if (expression) {
+					return '\'' + formatted + '\'';
+				} else {
+					return formatted;
 				}
-				if (touch) {
-					t.x = touch.pageX;
-					t.y = touch.pageY;
-				}
-			} else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
-				t.x = e.pageX;
-				t.y = e.pageY;
+			} else {
+				return prepend + string;
 			}
-			if (previous) {
-				t.s = Vector.difference(t, previous);
-			}
-			t.type = e.type;
-			return t;
-		}
-
-		function getRelativeTouch(node, point) {
-			var element = angular.element(node); // passing through jqlite for accepting both
-			node = element[0];
-			var rect = node.getBoundingClientRect();
-			// var e = new Vector(rect.left + node.scrollLeft, rect.top + node.scrollTop);
-			var e = new Vector(rect.left, rect.top);
-			return Vector.difference(point, e);
-		}
-
-		function getClosest(el, selector) {
-			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
-				if (typeof document.body[fn] == 'function') {
-					matchesFn = fn;
-					return true;
-				}
-				return false;
-			});
-			if (el[matchesFn](selector)) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent[matchesFn](selector)) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getClosestElement(el, target) {
-			var matchesFn, parent;
-			if (el === target) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent === target) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getDocumentNode() {
-			var documentNode = (document.documentElement || document.body.parentNode || document.body);
-			return documentNode;
-		}
-
-		function getParents(node, topParentNode) {
-			// if no topParentNode defined will bubble up all the way to *document*
-			topParentNode = topParentNode || getDocumentNode();
-			var parents = [];
-			if (node) {
-				parents.push(node);
-				var parentNode = node.parentNode;
-				while (parentNode !== topParentNode) {
-					parents.push(parentNode);
-					parentNode = parentNode.parentNode;
-				}
-				parents.push(topParentNode); // push that topParentNode you wanted to stop at
-			}
-			return parents;
 		}
 
 		function indexOf(array, object, key) {
@@ -177,6 +87,34 @@
 				}
 			}
 			return index;
+		}
+
+		function reducer(o, key) {
+			return o[key];
+		}
+
+		function reducerAdder(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerAdder(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] += value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerAdder(o[key[0]], key.slice(1), value);
+			}
+		}
+
+		function reducerSetter(o, key, value) {
+			if (typeof key == 'string') {
+				return reducerSetter(o, key.split('.'), value);
+			} else if (key.length == 1 && value !== undefined) {
+				return (o[key[0]] = value);
+			} else if (key.length === 0) {
+				return o;
+			} else {
+				return reducerSetter(o[key[0]], key.slice(1), value);
+			}
 		}
 
 		function removeValue(array, value) {
@@ -198,6 +136,19 @@
 			} else {
 				return null;
 			}
+		}
+
+		function reverseSortOn(key) {
+			return function (a, b) {
+				if (a[key] < b[key]) {
+					return 1;
+				}
+				if (a[key] > b[key]) {
+					return -1;
+				}
+				// a must be equal to b
+				return 0;
+			};
 		}
 
 		function throttle(func, wait, options) {
@@ -237,6 +188,10 @@
 			};
 		}
 
+		function toMd5(string) {
+			// return Md5.encode(string);
+		}
+
 		function where(array, query) {
 			var found = null;
 			if (array) {
@@ -253,205 +208,6 @@
 			return found;
 		}
 
-		function compileController(scope, element, html, data) {
-			// console.log('Utils.compileController', element);
-			element.html(html);
-			var link = $compile(element.contents());
-			if (data.controller) {
-				var $scope = scope.$new();
-				angular.extend($scope, data);
-				var controller = $controller(data.controller, {
-					$scope: $scope
-				});
-				if (data.controllerAs) {
-					scope[data.controllerAs] = controller;
-				}
-				element.data('$ngControllerController', controller);
-				element.children().data('$ngControllerController', controller);
-				scope = $scope;
-			}
-			link(scope);
-		}
-
-		function reverseSortOn(key) {
-			return function (a, b) {
-				if (a[key] < b[key]) {
-					return 1;
-				}
-				if (a[key] > b[key]) {
-					return -1;
-				}
-				// a must be equal to b
-				return 0;
-			};
-		}
-
-		function format(string, prepend, expression) {
-			string = string || '';
-			prepend = prepend || '';
-			var splitted = string.split(',');
-			if (splitted.length > 1) {
-				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
-					if (expression) {
-						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
-					} else {
-						formatted = formatted.split('{' + index + '}').join(prepend + value);
-					}
-				});
-				if (expression) {
-					return '\'' + formatted + '\'';
-				} else {
-					return formatted;
-				}
-			} else {
-				return prepend + string;
-			}
-		}
-
-		function reducer(o, key) {
-			return o[key];
-		}
-
-		function reducerSetter(o, key, value) {
-			if (typeof key == 'string') {
-				return reducerSetter(o, key.split('.'), value);
-			} else if (key.length == 1 && value !== undefined) {
-				return (o[key[0]] = value);
-			} else if (key.length === 0) {
-				return o;
-			} else {
-				return reducerSetter(o[key[0]], key.slice(1), value);
-			}
-		}
-
-		function reducerAdder(o, key, value) {
-			if (typeof key == 'string') {
-				return reducerAdder(o, key.split('.'), value);
-			} else if (key.length == 1 && value !== undefined) {
-				return (o[key[0]] += value);
-			} else if (key.length === 0) {
-				return o;
-			} else {
-				return reducerAdder(o[key[0]], key.slice(1), value);
-			}
-		}
-
-		function downloadFile(content, name, type) {
-			type = type || 'application/octet-stream';
-			var base64 = null;
-			var blob = new Blob([content], {
-				type: type
-			});
-			var reader = new window.FileReader();
-			reader.readAsDataURL(blob);
-			reader.onloadend = function () {
-				base64 = reader.result;
-				download();
-			};
-
-			function download() {
-				// If in Chrome or Safari - download via virtual link click
-				// if (isChrome || isSafari) {
-				//Creating new link node.
-				if (document.createEvent) {
-					var anchor = document.createElement('a');
-					anchor.href = base64;
-					if (anchor.download !== undefined) {
-						//Set HTML5 download attribute. This will prevent file from opening if supported.
-						var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
-						anchor.download = downloadName;
-					}
-					//Dispatching click event.
-					var event = document.createEvent('MouseEvents');
-					event.initEvent('click', true, true);
-					anchor.dispatchEvent(event);
-					return true;
-				}
-				// }
-				// Force file download (whether supported by server).
-				var query = '?download';
-				window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
-			}
-
-			function __download() {
-				var supportsDownloadAttribute = 'download' in document.createElement('a');
-				if (supportsDownloadAttribute) {
-					var anchor = document.createElement('a');
-					anchor.href = 'data:attachment/text;base64,' + encodeURI(window.btoa(content));
-					anchor.target = '_blank';
-					anchor.download = name;
-					//Dispatching click event.
-					if (document.createEvent) {
-						var event = document.createEvent('MouseEvents');
-						event.initEvent('click', true, true);
-						anchor.dispatchEvent(event);
-						return true;
-					}
-				} else if (window.Blob !== undefined && window.saveAs !== undefined) {
-					var blob = new Blob([content], {
-						type: type
-					});
-					saveAs(blob, filename);
-				} else {
-					window.open('data:attachment/text;charset=utf-8,' + encodeURI(content));
-				}
-			}
-			/*
-			var headers = response.headers();
-			// console.log(response);
-			var blob = new Blob([response.data], { type: "application/octet-stream" }); // { type: headers['content-type'] });
-			var windowUrl = (window.URL || window.webkitURL);
-			var downloadUrl = windowUrl.createObjectURL(blob);
-			var anchor = document.createElement("a");
-			anchor.href = downloadUrl;
-			var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-			anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
-			document.body.appendChild(anchor);
-			anchor.click();
-			windowUrl.revokeObjectURL(blob);
-			anchor.remove();
-			*/
-			/*
-			//Dispatching click event.
-			if (document.createEvent) {
-			    var e = document.createEvent('MouseEvents');
-			    e.initEvent('click', true, true);
-			    link.dispatchEvent(e);
-			    return true;
-			}
-			*/
-		}
-
-		function serverDownload(options) {
-			var defaults = {
-				uri: '/api/reports/download',
-				name: 'Filename',
-				extension: 'txt',
-				type: 'text/plain',
-				content: 'Hello!',
-			};
-			options = angular.extend(defaults, options);
-			var content = JSON.stringify(options); // unescape(encodeURIComponent(JSON.stringify(download)));
-			var form = document.createElement('form');
-			var input = document.createElement('input');
-			input.name = 'download';
-			input.value = content;
-			form.appendChild(input);
-			form.action = options.uri;
-			form.method = 'POST';
-			form.target = 'ProjectDownloads';
-			form.enctype = 'application/x-www-form-urlencoded';
-			// form.enctype = 'multipart/form-data';
-			// form.enctype = 'text/plain';
-			document.body.appendChild(form);
-			form.submit();
-			setTimeout(function () {
-				document.body.removeChild(form);
-			}, 100);
-			// angular.element(form).find('button')[0].click();
-			return Utils;
-		}
     }]);
 
 	(function () {

@@ -5,105 +5,96 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Events', ['$window', '$document', 'EventsService', 'Utils', function ($window, $document, EventsService, Utils) {
+	app.factory('Event', ['$window', '$document', 'EventsService', 'Dom', 'Point', 'Rect', function ($window, $document, EventsService, Dom, Point, Rect) {
 
 		function Event(e, element) {
+			var event = this;
 			e = e || $window.event;
-			var documentNode = Utils.getDocumentNode();
-			var scroll = {
-				x: $window.pageXOffset || documentNode.scrollLeft,
-				y: $window.pageYOffset || documentNode.scrollTop
-			};
-			var node = getNode(element);
-			var offset = {
-				x: node.offsetLeft,
-				y: node.offsetTop,
-			};
+			var documentNode = Dom.getDocumentNode();
+			var scroll = new Point(
+				$window.pageXOffset || documentNode.scrollLeft,
+				$window.pageYOffset || documentNode.scrollTop
+			);
+			var node = Dom.getNode(element);
+			var offset = new Point(
+				node.offsetLeft,
+				node.offsetTop
+			);
 			var boundNode = node === $window ? documentNode : node;
 			var rect = boundNode.getBoundingClientRect();
-			var page = this.getPage(e);
+			var page = event.getPage(e);
 			if (page) {
-				var relative = {
-					x: page.x - scroll.x - rect.left,
-					y: page.y - scroll.y - rect.top,
-				};
-				var absolute = {
-					x: page.x - scroll.x,
-					y: page.y - scroll.y,
-				};
-				this.relative = relative;
-				this.absolute = absolute;
+				var relative = new Point(
+					page.x - scroll.x - rect.left,
+					page.y - scroll.y - rect.top
+				);
+				var absolute = new Point(
+					page.x - scroll.x,
+					page.y - scroll.y
+				);
+				event.relative = relative;
+				event.absolute = absolute;
 			}
 			if (e.type === 'resize') {
 				var view = {
-					w: this.getWidth(),
-					h: this.getHeight(),
+					w: event.getWidth(),
+					h: event.getHeight(),
 				};
-				this.view = view;
+				event.view = view;
 			}
 			if (e.type === 'mousewheel' || e.type === 'DOMMouseScroll') {
 				e = e.originalEvent ? e.originalEvent : e;
 				var deltaX = e.deltaX || e.wheelDeltaX;
 				var deltaY = e.deltaY || e.wheelDeltaY;
 				if (Math.abs(deltaX) > Math.abs(deltaY)) {
-					this.dir = deltaX < 0 ? 1 : -1;
+					event.dir = deltaX < 0 ? 1 : -1;
 				} else {
-					this.dir = deltaY < 0 ? 1 : -1;
+					event.dir = deltaY < 0 ? 1 : -1;
 				}
-				// console.log(element, this.dir, e.deltaX, e.deltaY, e.wheelDeltaX, e.wheelDeltaY);
 			}
-			this.originalEvent = e;
-			this.element = element;
-			this.node = node;
-			this.offset = offset;
-			this.rect = rect;
-			this.timestamp = new Date().getTime();
-			// console.log('Event', 'page', page, 'scroll', scroll, 'offset', offset, 'rect', rect, 'relative', relative, 'absolute', absolute);
-			// console.log('scroll.y', scroll.y, 'page.y', page.y, 'offset.y', offset.y, 'rect.top', rect.top);
+			event.originalEvent = e;
+			event.element = element;
+			event.node = node;
+			event.offset = offset;
+			event.rect = rect;
+			event.timestamp = new Date().getTime();
 		}
-		Event.prototype = {
+
+		var methods = {
 			getPage: getPage,
 			getWidth: getWidth,
 			getHeight: getHeight,
 			stop: stop,
 		};
 
+		var statics = {};
+
+		angular.extend(Event.prototype, methods);
+		angular.extend(Event, statics);
+		return Event;
+
+		// prototype methods
+
 		function getWidth() {
 			if (self.innerWidth) {
 				return self.innerWidth;
 			}
-			var documentNode = Utils.getDocumentNode();
+			var documentNode = Dom.getDocumentNode();
 			return documentNode.clientWidth;
-			/*
-			if ($document.documentElement && $document.documentElement.clientWidth) {
-				return $document.documentElement.clientWidth;
-			}
-			if ($document.body) {
-				return $document.body.clientWidth;
-            }
-            */
 		}
 
 		function getHeight() {
 			if (self.innerHeight) {
 				return self.innerHeight;
 			}
-			var documentNode = Utils.getDocumentNode();
+			var documentNode = Dom.getDocumentNode();
 			return documentNode.clientHeight;
-			/*
-            if ($document.documentElement && $document.documentElement.clientHeight) {
-				return $document.documentElement.clientHeight;
-			}
-			if ($document.body) {
-				return $document.body.clientHeight;
-            }
-            */
 		}
 
 		function getPage(e) {
+			var page = null;
 			var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
 			var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
-			var page = null;
 			if (touchEvents.indexOf(e.type) !== -1) {
 				var t = null;
 				var event = e.originalEvent ? e.originalEvent : e;
@@ -112,16 +103,16 @@
 					t = touches[0];
 				}
 				if (t) {
-					page = {
-						x: t.pageX,
-						y: t.pageY,
-					};
+					page = new Point(
+						t.pageX,
+						t.pageY
+					);
 				}
 			} else if (standardEvents.indexOf(e.type) !== -1) {
-				page = {
-					x: e.pageX,
-					y: e.pageY,
-				};
+				page = new Point(
+					e.pageX,
+					e.pageY
+				);
 			}
 			this.type = e.type;
 			return page;
@@ -131,6 +122,10 @@
 			this.originalEvent.stopPropagation();
 			this.originalEvent.preventDefault();
 		}
+
+	}]);
+
+	app.factory('Events', ['$window', '$document', 'EventsService', 'Event', 'Dom', function ($window, $document, EventsService, Event, Dom) {
 
 		function Events(element) {
 			var events = this;
@@ -270,7 +265,8 @@
 				events.listeners.up.apply(this, [event]);
 			}
 		}
-		Events.prototype = {
+
+		var methods = {
 			add: add,
 			remove: remove,
 			removeStandardEvents: removeStandardEvents,
@@ -278,15 +274,17 @@
 			removeWheelEvents: removeWheelEvents,
 			removeScrollEvents: removeScrollEvents,
 		};
+
+		var statics = {
+			getTouch: getTouch,
+			getRelativeTouch: getRelativeTouch,
+		};
+
+		angular.extend(Events.prototype, methods);
+		angular.extend(Events, statics);
 		return Events;
 
-		function getNode(element) {
-			return element.length ? element[0] : element;
-		}
-
-		function getElement(element) {
-			return element.length ? element : angular.element(element);
-		}
+		// prototype methods
 
 		function add(listeners, scope) {
 			var events = this,
@@ -294,7 +292,7 @@
 				touch = this.touchEvents,
 				wheel = this.wheelEvents,
 				scroll = this.scrollEvents;
-			var element = getElement(this.element),
+			var element = Dom.getElement(this.element),
 				windowElement = angular.element($window);
 
 			angular.forEach(listeners, function (callback, key) {
@@ -320,7 +318,6 @@
 				if (scroll[key]) {
 					element.on(scroll[key].key, scroll[key].callback);
 				}
-				// console.log('add', key, element);
 			});
 
 			if (scope) {
@@ -338,7 +335,7 @@
 				touch = this.touchEvents,
 				wheel = this.wheelEvents,
 				scroll = this.scrollEvents;
-			var element = getElement(this.element),
+			var element = Dom.getElement(this.element),
 				windowElement = angular.element($window);
 			angular.forEach(listeners, function (callback, key) {
 				if (standard[key]) {
@@ -366,7 +363,7 @@
 			var events = this,
 				standard = events.standardEvents,
 				touch = events.touchEvents;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('mousedown', standard.down.callback);
 			element.off('mousemove', standard.move.callback);
 			element.off('mouseup', standard.up.callback);
@@ -376,7 +373,7 @@
 			var events = this,
 				standard = events.standardEvents,
 				touch = events.touchEvents;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('touchstart', touch.down.callback);
 			element.off('touchmove', touch.move.callback);
 			element.off('touchend', touch.up.callback);
@@ -384,26 +381,68 @@
 
 		function removeWheelEvents() {
 			var events = this;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('mousewheel', events.mouseEvents.wheel.callback);
 		}
 
 		function removeScrollEvents() {
 			var events = this;
-			var element = getElement(events.element);
+			var element = Dom.getElement(events.element);
 			element.off('DOMMouseScroll', events.scrollEvents.wheel.callback);
+		}
+
+		// statics methods
+
+		function getTouch(e, previous) {
+			var point = new Point();
+			if (e.type === 'touchstart' || e.type === 'touchmove' || e.type === 'touchend' || e.type === 'touchcancel') {
+				var touch = null;
+				var event = e.originalEvent ? e.originalEvent : e;
+				var touches = event.touches.length ? event.touches : event.changedTouches;
+				if (touches && touches.length) {
+					touch = touches[0];
+				}
+				if (touch) {
+					point.x = touch.pageX;
+					point.y = touch.pageY;
+				}
+			} else if (e.type === 'click' || e.type === 'mousedown' || e.type === 'mouseup' || e.type === 'mousemove' || e.type === 'mouseover' || e.type === 'mouseout' || e.type === 'mouseenter' || e.type === 'mouseleave' || e.type === 'contextmenu') {
+				point.x = e.pageX;
+				point.y = e.pageY;
+			}
+			if (previous) {
+				point.s = Point.difference(t, previous);
+			}
+			point.type = e.type;
+			return point;
+		}
+
+		function getRelativeTouch(node, point) {
+			node = angular.isArray(node) ? node[0] : node;
+			return Point.difference(point, {
+				x: node.offsetLeft,
+				y: node.offsetTop
+			});
 		}
 
     }]);
 
-	app.service('EventsService', ['$window', 'Utils', function ($window, Utils) {
+	app.service('EventsService', ['$window', 'Dom', function ($window, Dom) {
 
 		var service = this;
 
-		service.hasPassiveEvents = hasPassiveEvents;
-		service.addEventListener = getAddEventListener();
+		var statics = {
+			hasPassiveEvents: hasPassiveEvents,
+			addEventListener: getAddEventListener(),
+		};
+
+		angular.extend(service, statics);
+
+		// prevent history back on mac os
 
 		preventHistoryNavigation();
+
+		// static methods
 
 		function hasPassiveEvents() {
 			var supported = false;
@@ -435,26 +474,13 @@
 
 			function getModifiedAddEventListener(original) {
 				function addEventListener(type, listener, options) {
-					if (options === true) {
+					if (typeof options !== 'object') {
+						var capture = options === true;
 						options = angular.copy(defaults);
-						options.capture = true;
-					} else if (options === undefined) {
-						options = angular.copy(defaults);
+						options.capture = capture;
+					} else {
+						options = angular.extend(angular.copy(defaults), options);
 					}
-					options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-					options.capture = options.capture !== undefined ? options.capture : defaults.capture;
-					// console.log(type, options);
-					/*
-					var usesListenerOptions = typeof options === 'object';
-					options = usesListenerOptions ? options : {};
-					var descriptor = Object.getOwnPropertyDescriptor(options, 'passive');
-					if (!descriptor || descriptor.writable) {
-						var capture = usesListenerOptions ? options.capture : options;
-						options.passive = options.passive !== undefined ? options.passive : defaults.passive;
-						options.capture = capture !== undefined ? capture : defaults.capture;
-						// console.log(this, type);
-					}
-					*/
 					original.call(this, type, listener, options);
 				}
 				return addEventListener;
@@ -462,17 +488,15 @@
 
 			var original = EventTarget.prototype.addEventListener;
 			var modified = getModifiedAddEventListener(original);
-
 			EventTarget.prototype.addEventListener = modified;
-
 			return modified;
 		}
 
 		function preventHistoryNavigation() {
-			if (!Utils.ua.mac) {
+			if (!Dom.ua.mac) {
 				return;
 			}
-			if (Utils.ua.chrome || Utils.ua.safari || Utils.ua.firefox) {
+			if (Dom.ua.chrome || Dom.ua.safari || Dom.ua.firefox) {
 				$window.addEventListener('mousewheel', onScroll, {
 					passive: false
 				});
@@ -483,10 +507,10 @@
 					return;
 				}
 				if (
-					(e.deltaX < 0 && (Utils.getParents(e.target).filter(function (node) {
+					(e.deltaX < 0 && (Dom.getParents(e.target).filter(function (node) {
 						return node.scrollLeft > 0;
 					}).length === 0)) ||
-					(e.deltaX > 0 && (Utils.getParents(e.target).filter(function (node) {
+					(e.deltaX > 0 && (Dom.getParents(e.target).filter(function (node) {
 						return node.scrollWidth - node.scrollLeft > node.clientWidth;
 					}).length === 0))
 				) {

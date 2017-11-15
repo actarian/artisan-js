@@ -8,6 +8,7 @@
 	var app = angular.module('artisan');
 
 	app.factory('Style', [function () {
+
 		function Style() {
 			this.props = {
 				scale: 1,
@@ -16,26 +17,42 @@
 			};
 		}
 
-		Style.prototype = {
-			set: function (element) {
-				var styles = [];
-				for (var key in this) {
-					if (key !== 'props') {
-						styles.push(key + ':' + this[key]);
-					}
-				}
-				element.style.cssText = styles.join(';') + ';';
-			},
-			transform: function (transform) {
-				this[transformProperty] = transform;
-			},
-			transformOrigin: function (x, y) {
-				this[transformProperty + '-origin-x'] = (Math.round(x * 1000) / 1000) + '%';
-				this[transformProperty + '-origin-y'] = (Math.round(y * 1000) / 1000) + '%';
-			},
+		var statics = {};
+
+		var methods = {
+			set: set,
+			transform: transform,
+			transformOrigin: transformOrigin,
 		};
 
+		angular.extend(Style, statics);
+		angular.extend(Style.prototype, methods);
+
 		return Style;
+
+		// static methods
+
+		// prototype methods
+
+		function set(element) {
+			var styles = [];
+			for (var key in this) {
+				if (key !== 'props') {
+					styles.push(key + ':' + this[key]);
+				}
+			}
+			element.style.cssText = styles.join(';') + ';';
+		}
+
+		function transform(transform) {
+			this[transformProperty] = transform;
+		}
+
+		function transformOrigin(x, y) {
+			this[transformProperty + '-origin-x'] = (Math.round(x * 1000) / 1000) + '%';
+			this[transformProperty + '-origin-y'] = (Math.round(y * 1000) / 1000) + '%';
+		}
+
     }]);
 
 	function detectTransformProperty() {

@@ -1,81 +1,88 @@
 ﻿/* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('View', ['Api', '$promise', '$location', '$routeParams', 'environment', 'Doc', function(Api, $promise, $location, $routeParams, environment, Doc) {
-        function View(doc) {
-            var url = $location.path(),
-                params = $routeParams;
-            var view = {
-                environment: environment,
-                route: {
-                    url: url,
-                    params: params,
-                },
-                doc: doc,
-            };
-            angular.extend(this, view);
-        }
+	app.factory('View', ['Api', '$promise', '$location', '$routeParams', 'environment', 'Doc', function (Api, $promise, $location, $routeParams, environment, Doc) {
 
-        View.prototype = {
+		function View(doc) {
+			var url = $location.path(),
+				params = $routeParams;
+			var view = {
+				environment: environment,
+				route: {
+					url: url,
+					params: params,
+				},
+				doc: doc,
+			};
+			angular.extend(this, view);
+		}
 
-        };
+		var statics = {
+			current: ViewCurrent,
+		};
 
-        var statics = {
-            current: function() {
-                return $promise(function(promise) {
-                    var url = $location.path();
-                    console.log('View.current', url);
-                    Api.docs.url(url).then(function(response) {
-                        var doc = new Doc(response);
-                        var view = new View(doc);
-                        promise.resolve(view);
+		var methods = {};
 
-                    }, function(error) {
-                        promise.reject(error);
+		angular.extend(View, statics);
+		angular.extend(View.prototype, methods);
 
-                    });
-                    /*
-                    Api.navs.main().then(function(items) {
-                        var doc = null,
-                            url = $location.path(),
-                            pool = getPool(items);
-                        var item = pool[url];
-                        if (item) {
-                            doc = new Doc(item);
-                        }
-                        promise.resolve(doc);
+		return View;
 
-                    }, function(error) {
-                        promise.reject(error);
+		// static methods
 
-                    });
-                    */
-                });
-            }
-        };
+		function ViewCurrent() {
+			return $promise(function (promise) {
+				var url = $location.path();
+				console.log('View.current', url);
+				Api.docs.url(url).then(function (response) {
+					var doc = new Doc(response);
+					var view = new View(doc);
+					promise.resolve(view);
 
-        angular.extend(View, statics);
+				}, function (error) {
+					promise.reject(error);
 
-        function getPool(items) {
-            var pool = {};
+				});
+				/*
+				Api.navs.main().then(function(items) {
+				    var doc = null,
+				        url = $location.path(),
+				        pool = getPool(items);
+				    var item = pool[url];
+				    if (item) {
+				        doc = new Doc(item);
+				    }
+				    promise.resolve(doc);
 
-            function _getPool(items) {
-                if (items) {
-                    angular.forEach(items, function(item) {
-                        pool[item.url] = item;
-                        _getPool(item.items);
-                    });
-                }
-            }
-            _getPool(items);
-            return pool;
-        }
+				}, function(error) {
+				    promise.reject(error);
 
-        return View;
+				});
+				*/
+			});
+		}
+
+		function ViewPool(items) {
+			var pool = {};
+
+			function _getPool(items) {
+				if (items) {
+					angular.forEach(items, function (item) {
+						pool[item.url] = item;
+						_getPool(item.items);
+					});
+				}
+			}
+			_getPool(items);
+			return pool;
+		}
+
+		// prototype methods
+
     }]);
 
 }());
