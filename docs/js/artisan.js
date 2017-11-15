@@ -312,7 +312,7 @@ $(window).on('resize', function () {
 		}
 
 		function getElement(element) {
-			return element.length ? element : angular.element(element);
+			return angular.isArray(element) ? element : angular.element(element);
 		}
 
 		function getClosest(el, selector) {
