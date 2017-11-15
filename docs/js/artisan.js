@@ -437,56 +437,61 @@ $(window).on('resize', function () {
 	app.factory('Event', ['$window', '$document', 'EventsService', 'Dom', 'Point', 'Rect', function ($window, $document, EventsService, Dom, Point, Rect) {
 
 		function Event(e, element) {
-			var event = this;
-			e = e || $window.event;
-			var documentNode = Dom.getDocumentNode();
-			var scroll = new Point(
-				$window.pageXOffset || documentNode.scrollLeft,
-				$window.pageYOffset || documentNode.scrollTop
-			);
-			var node = Dom.getNode(element);
-			var offset = new Point(
-				node.offsetLeft,
-				node.offsetTop
-			);
-			var boundNode = node === $window ? documentNode : node;
-			var rect = boundNode.getBoundingClientRect();
-			var page = event.getPage(e);
-			if (page) {
-				var relative = new Point(
-					page.x - scroll.x - rect.left,
-					page.y - scroll.y - rect.top
+			try {
+				var event = this;
+				e = e || $window.event;
+				var documentNode = Dom.getDocumentNode();
+				var scroll = new Point(
+					$window.pageXOffset || documentNode.scrollLeft,
+					$window.pageYOffset || documentNode.scrollTop
 				);
-				var absolute = new Point(
-					page.x - scroll.x,
-					page.y - scroll.y
-				);
-				event.relative = relative;
-				event.absolute = absolute;
-			}
-			if (e.type === 'resize') {
-				var view = {
-					w: event.getWidth(),
-					h: event.getHeight(),
-				};
-				event.view = view;
-			}
-			if (e.type === 'mousewheel' || e.type === 'DOMMouseScroll') {
-				e = e.originalEvent ? e.originalEvent : e;
-				var deltaX = e.deltaX || e.wheelDeltaX;
-				var deltaY = e.deltaY || e.wheelDeltaY;
-				if (Math.abs(deltaX) > Math.abs(deltaY)) {
-					event.dir = deltaX < 0 ? 1 : -1;
-				} else {
-					event.dir = deltaY < 0 ? 1 : -1;
+				var offset = new Point();
+				var node = Dom.getNode(element);
+				if (node && node.nodeType === 1) {
+					offset.x = node.offsetLeft;
+					offset.y = node.offsetTop;
 				}
+				var boundNode = node === $window ? documentNode : node;
+				var rect = boundNode.getBoundingClientRect();
+				var page = event.getPage(e);
+				if (page) {
+					var relative = new Point(
+						page.x - scroll.x - rect.left,
+						page.y - scroll.y - rect.top
+					);
+					var absolute = new Point(
+						page.x - scroll.x,
+						page.y - scroll.y
+					);
+					event.relative = relative;
+					event.absolute = absolute;
+				}
+				if (e.type === 'resize') {
+					var view = {
+						w: event.getWidth(),
+						h: event.getHeight(),
+					};
+					event.view = view;
+				}
+				if (e.type === 'mousewheel' || e.type === 'DOMMouseScroll') {
+					e = e.originalEvent ? e.originalEvent : e;
+					var deltaX = e.deltaX || e.wheelDeltaX;
+					var deltaY = e.deltaY || e.wheelDeltaY;
+					if (Math.abs(deltaX) > Math.abs(deltaY)) {
+						event.dir = deltaX < 0 ? 1 : -1;
+					} else {
+						event.dir = deltaY < 0 ? 1 : -1;
+					}
+				}
+				event.originalEvent = e;
+				event.element = element;
+				event.node = node;
+				event.offset = offset;
+				event.rect = rect;
+				event.timestamp = new Date().getTime();
+			} catch (error) {
+				console.log('Event.error', error);
 			}
-			event.originalEvent = e;
-			event.element = element;
-			event.node = node;
-			event.offset = offset;
-			event.rect = rect;
-			event.timestamp = new Date().getTime();
 		}
 
 		var methods = {

@@ -296,9 +296,11 @@
 
 		//////////////
 
+		/*
 		FacebookService.getMe().then(function (user) {
 			console.log('FacebookService.getMe', user);
 		});
+        */
 
     }]);
 
