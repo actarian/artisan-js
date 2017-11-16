@@ -7,7 +7,7 @@
 
 	var TIMEOUT = 5 * 60 * 1000; // five minutes
 
-	app.service('Cookie', ['$promise', '$window', function ($promise, $window) {
+	app.service('Cookie', ['$promise', function ($promise) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -25,12 +25,12 @@
 		}
 
 		function CookieExists(name) {
-			return $window.document.cookie.indexOf(';' + name + '=') !== -1 || $window.document.cookie.indexOf(name + '=') === 0;
+			return document.cookie.indexOf(';' + name + '=') !== -1 || document.cookie.indexOf(name + '=') === 0;
 		}
 
 		function CookieGet(name) {
 			var cookieName = name + "=";
-			var ca = $window.document.cookie.split(';');
+			var ca = document.cookie.split(';');
 			for (var i = 0; i < ca.length; i++) {
 				var c = ca[i];
 				while (c.charAt(0) == ' ') {
@@ -105,12 +105,12 @@
 			} else {
 				expires = '';
 			}
-			$window.document.cookie = name + '=' + value + expires + '; path=/';
+			document.cookie = name + '=' + value + expires + '; path=/';
 		}
 
     }]);
 
-	app.service('LocalStorage', ['$promise', '$window', 'Cookie', function ($promise, $window, Cookie) {
+	app.service('LocalStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -134,10 +134,10 @@
 		function LocalSupported() {
 			var supported = false;
 			try {
-				supported = 'localStorage' in $window && $window.localStorage !== null;
+				supported = 'localStorage' in window && window.localStorage !== null;
 				if (supported) {
-					$window.localStorage.setItem('test', '1');
-					$window.localStorage.removeItem('test');
+					window.localStorage.setItem('test', '1');
+					window.localStorage.removeItem('test');
 				} else {
 					supported = false;
 				}
@@ -148,14 +148,14 @@
 		}
 
 		function LocalExists(name) {
-			return $window.localStorage[name] !== undefined;
+			return window.localStorage[name] !== undefined;
 		}
 
 		function LocalGet(name) {
 			var value = null;
-			if ($window.localStorage[name] !== undefined) {
+			if (window.localStorage[name] !== undefined) {
 				try {
-					value = JSON.parse($window.localStorage[name]);
+					value = JSON.parse(window.localStorage[name]);
 				} catch (e) {
 					console.log('LocalStorage.get.error parsing', name, e);
 				}
@@ -180,14 +180,14 @@
 					return value;
 				});
 				cache = null;
-				$window.localStorage.setItem(name, json);
+				window.localStorage.setItem(name, json);
 			} catch (e) {
 				console.log('LocalStorage.set.error serializing', name, value, e);
 			}
 		}
 
 		function LocalDelete(name) {
-			$window.localStorage.removeItem(name);
+			window.localStorage.removeItem(name);
 		}
 
 		function LocalOn(name) {
@@ -209,7 +209,7 @@
 						}
 					}
 				}
-				angular.element($window).on('storage', storageEvent);
+				angular.element(window).on('storage', storageEvent);
 				i = setTimeout(function () {
 					promise.reject('timeout');
 				}, timeout);
@@ -218,7 +218,7 @@
 
     }]);
 
-	app.factory('SessionStorage', ['$promise', '$window', 'Cookie', function ($promise, $window, Cookie) {
+	app.factory('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -242,10 +242,10 @@
 		function SessionSupported() {
 			var supported = false;
 			try {
-				supported = 'sessionStorage' in $window && $window.sessionStorage !== undefined;
+				supported = 'sessionStorage' in window && window.sessionStorage !== undefined;
 				if (supported) {
-					$window.sessionStorage.setItem('test', '1');
-					$window.sessionStorage.removeItem('test');
+					window.sessionStorage.setItem('test', '1');
+					window.sessionStorage.removeItem('test');
 				} else {
 					supported = false;
 				}
@@ -256,14 +256,14 @@
 		}
 
 		function SessionExists(name) {
-			return $window.sessionStorage[name] !== undefined;
+			return window.sessionStorage[name] !== undefined;
 		}
 
 		function SessionGet(name) {
 			var value = null;
-			if ($window.sessionStorage[name] !== undefined) {
+			if (window.sessionStorage[name] !== undefined) {
 				try {
-					value = JSON.parse($window.sessionStorage[name]);
+					value = JSON.parse(window.sessionStorage[name]);
 				} catch (e) {
 					console.log('SessionStorage.get.error parsing', name, e);
 				}
@@ -288,14 +288,14 @@
 					return value;
 				});
 				cache = null;
-				$window.sessionStorage.setItem(name, json);
+				window.sessionStorage.setItem(name, json);
 			} catch (e) {
 				console.log('SessionStorage.set.error serializing', name, value, e);
 			}
 		}
 
 		function SessionDelete(name) {
-			$window.sessionStorage.removeItem(name);
+			window.sessionStorage.removeItem(name);
 		}
 
 		function SessionOn(name) {
@@ -317,7 +317,7 @@
 						}
 					}
 				}
-				angular.element($window).on('storage', storageEvent);
+				angular.element(window).on('storage', storageEvent);
 				i = setTimeout(function () {
 					promise.reject('timeout');
 				}, timeout);

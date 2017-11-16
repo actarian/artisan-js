@@ -5,7 +5,7 @@
 
 	var app = angular.module('artisan');
 
-	app.service('FacebookService', ['$promise', '$window', '$document', 'environment', function ($promise, $window, $document, environment) {
+	app.service('FacebookService', ['$promise', 'environment', function ($promise, environment) {
 
 		var service = this;
 
@@ -31,11 +31,11 @@
 
 		function Facebook() {
 			return $promise(function (promise) {
-				if ($window.FB !== undefined) {
-					promise.resolve($window.FB);
+				if (window.FB !== undefined) {
+					promise.resolve(window.FB);
 				} else {
 					FacebookInit().then(function (success) {
-						promise.resolve($window.FB);
+						promise.resolve(window.FB);
 					}, function (error) {
 						promise.reject(error);
 					});
@@ -117,16 +117,16 @@
 
 		function FacebookInit() {
 			return $promise(function (promise) {
-				$window.fbAsyncInit = function () {
-					$window.FB.init({
+				window.fbAsyncInit = function () {
+					window.FB.init({
 						appId: config.app_id,
 						status: true,
 						cookie: true,
 						xfbml: true,
 						version: 'v2.10'
 					});
-					promise.resolve($window.FB);
-					// $window.fbAsyncInit = null;
+					promise.resolve(window.FB);
+					// window.fbAsyncInit = null;
 				};
 				try {
 					(function (d, s, id) {

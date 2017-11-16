@@ -13,7 +13,7 @@
 
 	var app = angular.module('artisan');
 
-	app.service('FacebookService', ['$promise', '$window', '$document', 'environment', function ($promise, $window, $document, environment) {
+	app.service('FacebookService', ['$promise', 'environment', function ($promise, environment) {
 
 		var service = this;
 
@@ -39,11 +39,11 @@
 
 		function Facebook() {
 			return $promise(function (promise) {
-				if ($window.FB !== undefined) {
-					promise.resolve($window.FB);
+				if (window.FB !== undefined) {
+					promise.resolve(window.FB);
 				} else {
 					FacebookInit().then(function (success) {
-						promise.resolve($window.FB);
+						promise.resolve(window.FB);
 					}, function (error) {
 						promise.reject(error);
 					});
@@ -125,16 +125,16 @@
 
 		function FacebookInit() {
 			return $promise(function (promise) {
-				$window.fbAsyncInit = function () {
-					$window.FB.init({
+				window.fbAsyncInit = function () {
+					window.FB.init({
 						appId: config.app_id,
 						status: true,
 						cookie: true,
 						xfbml: true,
 						version: 'v2.10'
 					});
-					promise.resolve($window.FB);
-					// $window.fbAsyncInit = null;
+					promise.resolve(window.FB);
+					// window.fbAsyncInit = null;
 				};
 				try {
 					(function (d, s, id) {
@@ -266,23 +266,190 @@ $(window).on('resize', function () {
 
 	var app = angular.module('artisan');
 
-	app.service('Dom', ['$window', '$document', function ($window, $document) {
+	app.service('Dom', ['Point', 'Rect', function (Point, Rect) {
 
 		var service = this;
 
 		var statics = {
-			ua: getUA(),
-			getNode: getNode,
-			getElement: getElement,
+			getBoundRect: getBoundRect,
 			getClosest: getClosest,
-			getClosestElement: getClosestElement,
-			getParents: getParents,
+			getClosestNode: getClosestNode,
+			getDelta: getDelta,
 			getDocumentNode: getDocumentNode,
+			getElement: getElement,
+			getNode: getNode,
+			getNodeOffset: getNodeOffset,
+			getPageScroll: getPageScroll,
+			getParents: getParents,
+			getView: getView,
+			getPointInView: getPointInView,
 			compileController: compileController,
 			downloadFile: downloadFile,
+			ua: getUA(),
 		};
 
 		angular.extend(service, statics);
+
+		// return node element BoundingClientRect
+		function getBoundRect(node) {
+			node = getNode(node);
+			if (node === window) {
+				node = getDocumentNode();
+			}
+			var rect = node.getBoundingClientRect();
+			return rect;
+		}
+
+		// return closest parent node that match a selector
+		function getClosest(node, selector) {
+			var matchesFn, parent;
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+				if (typeof document.body[fn] == 'function') {
+					matchesFn = fn;
+					return true;
+				}
+				return false;
+			});
+			if (node[matchesFn](selector)) {
+				return node;
+			}
+			while (node !== null) {
+				parent = node.parentElement;
+				if (parent !== null && parent[matchesFn](selector)) {
+					return parent;
+				}
+				node = parent;
+			}
+			return null;
+		}
+
+		// return closest parent node that math a target node
+		function getClosestNode(node, target) {
+			var parent = null;
+			if (node === target) {
+				return node;
+			}
+			while (node !== null) {
+				parent = node.parentElement;
+				if (parent !== null && parent === target) {
+					return parent;
+				}
+				node = parent;
+			}
+			return null;
+		}
+
+		// return wheel delta
+		function getDelta(event) {
+			var original = event.originalEvent ? event.originalEvent : event;
+			var type = original.type;
+			var delta = null;
+			if (type === 'mousewheel' || type === 'DOMMouseScroll') {
+				var deltaX = original.deltaX || original.wheelDeltaX;
+				var deltaY = original.deltaY || original.wheelDeltaY;
+				delta = new Point(deltaX, deltaY);
+				if (Math.abs(deltaX) > Math.abs(deltaY)) {
+					delta.dir = deltaX < 0 ? 1 : -1;
+				} else {
+					delta.dir = deltaY < 0 ? 1 : -1;
+				}
+			}
+			return delta;
+		}
+
+		// return document element node
+		function getDocumentNode() {
+			var documentNode = (document.documentElement || document.body.parentNode || document.body);
+			return documentNode;
+		}
+
+		// return an angular element
+		function getElement(element) {
+			return angular.isArray(element) ? element : angular.element(element);
+		}
+
+		// return a native html node
+		function getNode(element) {
+			return angular.isArray(element) ? element[0] : element;
+		}
+
+		// return a node offset point
+		function getNodeOffset(node) {
+			var offset = new Point();
+			node = getNode(node);
+			if (node && node.nodeType === 1) {
+				offset.x = node.offsetLeft;
+				offset.y = node.offsetTop;
+			}
+			return offset;
+		}
+
+		// return the current page scroll
+		function getPageScroll() {
+			var scroll = new Point();
+			var documentNode = getDocumentNode();
+			scroll.x = window.pageXOffset || documentNode.scrollLeft;
+			scroll.y = window.pageYOffset || documentNode.scrollTop;
+			return scroll;
+		}
+
+		// return an array of node parants
+		function getParents(node, topParentNode) {
+			// if no topParentNode defined will bubble up all the way to *document*
+			topParentNode = topParentNode || getDocumentNode();
+			var parents = [];
+			if (node) {
+				parents.push(node);
+				var parentNode = node.parentNode;
+				while (parentNode !== topParentNode) {
+					parents.push(parentNode);
+					parentNode = parentNode.parentNode;
+				}
+				parents.push(topParentNode); // push that topParentNode you wanted to stop at
+			}
+			return parents;
+		}
+
+		// return the view rect
+		function getView() {
+			var view = new Rect();
+			if (window.innerWidth !== undefined) {
+				view.width = window.innerWidth;
+				view.height = window.innerHeight;
+			} else {
+				var documentNode = getDocumentNode();
+				view.width = documentNode.clientWidth;
+				view.height = documentNode.clientHeight;
+			}
+			return view;
+		}
+
+		// add to constant
+		var MOUSE_EVENTS = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
+		var TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+
+		function getPointInView(event) {
+			var original = event.originalEvent ? event.originalEvent : event;
+			var type = original.type;
+			var point = null;
+			if (TOUCH_EVENTS.indexOf(type) !== -1) {
+				var touch = null;
+				var touches = original.touches.length ? original.touches : original.changedTouches;
+				if (touches && touches.length) {
+					touch = touches[0];
+				}
+				if (touch) {
+					point = new Point();
+					point.x = touch.pageX;
+					point.y = touch.pageY;
+				}
+			} else if (MOUSE_EVENTS.indexOf(type) !== -1) {
+				point = new Point();
+				point.x = original.pageX;
+				point.y = original.pageY;
+			}
+			return point;
+		}
 
 		function getUA() {
 			var agent = window.navigator.userAgent.toLowerCase();
@@ -307,74 +474,9 @@ $(window).on('resize', function () {
 			return ua;
 		}
 
-		function getNode(element) {
-			return element.length ? element[0] : element;
-		}
-
-		function getElement(element) {
-			return angular.isArray(element) ? element : angular.element(element);
-		}
-
-		function getClosest(el, selector) {
-			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
-				if (typeof document.body[fn] == 'function') {
-					matchesFn = fn;
-					return true;
-				}
-				return false;
-			});
-			if (el[matchesFn](selector)) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent[matchesFn](selector)) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getClosestElement(el, target) {
-			var matchesFn, parent;
-			if (el === target) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent === target) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getDocumentNode() {
-			var documentNode = (document.documentElement || document.body.parentNode || document.body);
-			return documentNode;
-		}
-
-		function getParents(node, topParentNode) {
-			// if no topParentNode defined will bubble up all the way to *document*
-			topParentNode = topParentNode || getDocumentNode();
-			var parents = [];
-			if (node) {
-				parents.push(node);
-				var parentNode = node.parentNode;
-				while (parentNode !== topParentNode) {
-					parents.push(parentNode);
-					parentNode = parentNode.parentNode;
-				}
-				parents.push(topParentNode); // push that topParentNode you wanted to stop at
-			}
-			return parents;
-		}
-
 		function compileController(scope, element, html, data) {
 			// console.log('Dom.compileController', element);
+			element = getElement(element);
 			element.html(html);
 			var link = $compile(element.contents());
 			if (data.controller) {
@@ -434,70 +536,46 @@ $(window).on('resize', function () {
 
 	var app = angular.module('artisan');
 
-	app.factory('Event', ['$window', '$document', 'EventsService', 'Dom', 'Point', 'Rect', function ($window, $document, EventsService, Dom, Point, Rect) {
+	app.factory('Event', ['EventsService', 'Dom', 'Point', 'Rect', function (EventsService, Dom, Point, Rect) {
 
-		function Event(e, element) {
+		function Event(event, element) {
 			try {
-				var event = this;
-				e = e || $window.event;
-				var documentNode = Dom.getDocumentNode();
-				var scroll = new Point(
-					$window.pageXOffset || documentNode.scrollLeft,
-					$window.pageYOffset || documentNode.scrollTop
-				);
-				var offset = new Point();
-				var node = Dom.getNode(element);
-				if (node && node.nodeType === 1) {
-					offset.x = node.offsetLeft;
-					offset.y = node.offsetTop;
+				event = event || window.event;
+				var type = event.type;
+				var originalEvent = event.originalEvent ? event.originalEvent : event;
+				var node = element[0]; // Dom.getNode(element);
+				var offset = Dom.getNodeOffset(node);
+				var rect = Dom.getBoundRect(node);
+				var view = Dom.getView();
+				var scroll = Dom.getPageScroll();
+				var point = Dom.getPointInView(event);
+				if (point) {
+					var absolute = new Point(point.x - scroll.x, point.y - scroll.y);
+					var relative = new Point(absolute.x - rect.left, absolute.y - rect.top);
+					this.point = point;
+					this.absolute = absolute;
+					this.relative = relative;
 				}
-				var boundNode = node === $window ? documentNode : node;
-				var rect = boundNode.getBoundingClientRect();
-				var page = event.getPage(e);
-				if (page) {
-					var relative = new Point(
-						page.x - scroll.x - rect.left,
-						page.y - scroll.y - rect.top
-					);
-					var absolute = new Point(
-						page.x - scroll.x,
-						page.y - scroll.y
-					);
-					event.relative = relative;
-					event.absolute = absolute;
+				var delta = Dom.getDelta(event);
+				if (delta) {
+					this.delta = delta;
+					this.dir = delta.dir;
 				}
-				if (e.type === 'resize') {
-					var view = {
-						w: event.getWidth(),
-						h: event.getHeight(),
-					};
-					event.view = view;
-				}
-				if (e.type === 'mousewheel' || e.type === 'DOMMouseScroll') {
-					e = e.originalEvent ? e.originalEvent : e;
-					var deltaX = e.deltaX || e.wheelDeltaX;
-					var deltaY = e.deltaY || e.wheelDeltaY;
-					if (Math.abs(deltaX) > Math.abs(deltaY)) {
-						event.dir = deltaX < 0 ? 1 : -1;
-					} else {
-						event.dir = deltaY < 0 ? 1 : -1;
-					}
-				}
-				event.originalEvent = e;
-				event.element = element;
-				event.node = node;
-				event.offset = offset;
-				event.rect = rect;
-				event.timestamp = new Date().getTime();
+				this.type = type;
+				this.originalEvent = originalEvent;
+				this.element = element;
+				this.node = node;
+				this.offset = offset;
+				this.rect = rect;
+				this.view = view;
+				this.scroll = scroll;
+				this.timestamp = new Date().getTime();
 			} catch (error) {
 				console.log('Event.error', error);
 			}
 		}
 
 		var methods = {
-			getPage: getPage,
-			getWidth: getWidth,
-			getHeight: getHeight,
 			stop: stop,
 		};
 
@@ -509,49 +587,6 @@ $(window).on('resize', function () {
 
 		// prototype methods
 
-		function getWidth() {
-			if (self.innerWidth) {
-				return self.innerWidth;
-			}
-			var documentNode = Dom.getDocumentNode();
-			return documentNode.clientWidth;
-		}
-
-		function getHeight() {
-			if (self.innerHeight) {
-				return self.innerHeight;
-			}
-			var documentNode = Dom.getDocumentNode();
-			return documentNode.clientHeight;
-		}
-
-		function getPage(e) {
-			var page = null;
-			var standardEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
-			var touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
-			if (touchEvents.indexOf(e.type) !== -1) {
-				var t = null;
-				var event = e.originalEvent ? e.originalEvent : e;
-				var touches = event.touches.length ? event.touches : event.changedTouches;
-				if (touches && touches.length) {
-					t = touches[0];
-				}
-				if (t) {
-					page = new Point(
-						t.pageX,
-						t.pageY
-					);
-				}
-			} else if (standardEvents.indexOf(e.type) !== -1) {
-				page = new Point(
-					e.pageX,
-					e.pageY
-				);
-			}
-			this.type = e.type;
-			return page;
-		}
-
 		function stop() {
 			this.originalEvent.stopPropagation();
 			this.originalEvent.preventDefault();
@@ -559,12 +594,12 @@ $(window).on('resize', function () {
 
 	}]);
 
-	app.factory('Events', ['$window', '$document', 'EventsService', 'Event', 'Dom', function ($window, $document, EventsService, Event, Dom) {
+	app.factory('Events', ['EventsService', 'Event', 'Dom', function (EventsService, Event, Dom) {
 
 		function Events(element) {
 			var events = this;
 
-			this.element = element;
+			this.element = Dom.getElement(element);
 			this.listeners = {};
 			this.standardEvents = {
 				click: {
@@ -726,8 +761,8 @@ $(window).on('resize', function () {
 				touch = this.touchEvents,
 				wheel = this.wheelEvents,
 				scroll = this.scrollEvents;
-			var element = Dom.getElement(this.element),
-				windowElement = angular.element($window);
+			var element = this.element,
+				windowElement = angular.element(window);
 
 			angular.forEach(listeners, function (callback, key) {
 				if (events.listeners[key]) {
@@ -769,8 +804,8 @@ $(window).on('resize', function () {
 				touch = this.touchEvents,
 				wheel = this.wheelEvents,
 				scroll = this.scrollEvents;
-			var element = Dom.getElement(this.element),
-				windowElement = angular.element($window);
+			var element = this.element,
+				windowElement = angular.element(window);
 			angular.forEach(listeners, function (callback, key) {
 				if (standard[key]) {
 					if (key === 'resize') {
@@ -797,7 +832,7 @@ $(window).on('resize', function () {
 			var events = this,
 				standard = events.standardEvents,
 				touch = events.touchEvents;
-			var element = Dom.getElement(events.element);
+			var element = events.element;
 			element.off('mousedown', standard.down.callback);
 			element.off('mousemove', standard.move.callback);
 			element.off('mouseup', standard.up.callback);
@@ -807,7 +842,7 @@ $(window).on('resize', function () {
 			var events = this,
 				standard = events.standardEvents,
 				touch = events.touchEvents;
-			var element = Dom.getElement(events.element);
+			var element = events.element;
 			element.off('touchstart', touch.down.callback);
 			element.off('touchmove', touch.move.callback);
 			element.off('touchend', touch.up.callback);
@@ -815,13 +850,13 @@ $(window).on('resize', function () {
 
 		function removeWheelEvents() {
 			var events = this;
-			var element = Dom.getElement(events.element);
+			var element = events.element;
 			element.off('mousewheel', events.mouseEvents.wheel.callback);
 		}
 
 		function removeScrollEvents() {
 			var events = this;
-			var element = Dom.getElement(events.element);
+			var element = events.element;
 			element.off('DOMMouseScroll', events.scrollEvents.wheel.callback);
 		}
 
@@ -861,7 +896,7 @@ $(window).on('resize', function () {
 
     }]);
 
-	app.service('EventsService', ['$window', 'Dom', function ($window, Dom) {
+	app.service('EventsService', ['Dom', function (Dom) {
 
 		var service = this;
 
@@ -880,14 +915,14 @@ $(window).on('resize', function () {
 
 		function hasPassiveEvents() {
 			var supported = false;
-			if ($window.addEventListener) {
+			if (window.addEventListener) {
 				try {
 					var options = Object.defineProperty({}, 'passive', {
 						get: function () {
 							supported = true;
 						},
 					});
-					$window.addEventListener('test', null, options);
+					window.addEventListener('test', null, options);
 				} catch (e) {
 					console.log('getAddEventListener.isSupprted', e);
 				}
@@ -931,7 +966,7 @@ $(window).on('resize', function () {
 				return;
 			}
 			if (Dom.ua.chrome || Dom.ua.safari || Dom.ua.firefox) {
-				$window.addEventListener('mousewheel', onScroll, {
+				window.addEventListener('mousewheel', onScroll, {
 					passive: false
 				});
 			}
@@ -2561,7 +2596,7 @@ $(window).on('resize', function () {
 
 	var TIMEOUT = 5 * 60 * 1000; // five minutes
 
-	app.service('Cookie', ['$promise', '$window', function ($promise, $window) {
+	app.service('Cookie', ['$promise', function ($promise) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -2579,12 +2614,12 @@ $(window).on('resize', function () {
 		}
 
 		function CookieExists(name) {
-			return $window.document.cookie.indexOf(';' + name + '=') !== -1 || $window.document.cookie.indexOf(name + '=') === 0;
+			return document.cookie.indexOf(';' + name + '=') !== -1 || document.cookie.indexOf(name + '=') === 0;
 		}
 
 		function CookieGet(name) {
 			var cookieName = name + "=";
-			var ca = $window.document.cookie.split(';');
+			var ca = document.cookie.split(';');
 			for (var i = 0; i < ca.length; i++) {
 				var c = ca[i];
 				while (c.charAt(0) == ' ') {
@@ -2659,12 +2694,12 @@ $(window).on('resize', function () {
 			} else {
 				expires = '';
 			}
-			$window.document.cookie = name + '=' + value + expires + '; path=/';
+			document.cookie = name + '=' + value + expires + '; path=/';
 		}
 
     }]);
 
-	app.service('LocalStorage', ['$promise', '$window', 'Cookie', function ($promise, $window, Cookie) {
+	app.service('LocalStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -2688,10 +2723,10 @@ $(window).on('resize', function () {
 		function LocalSupported() {
 			var supported = false;
 			try {
-				supported = 'localStorage' in $window && $window.localStorage !== null;
+				supported = 'localStorage' in window && window.localStorage !== null;
 				if (supported) {
-					$window.localStorage.setItem('test', '1');
-					$window.localStorage.removeItem('test');
+					window.localStorage.setItem('test', '1');
+					window.localStorage.removeItem('test');
 				} else {
 					supported = false;
 				}
@@ -2702,14 +2737,14 @@ $(window).on('resize', function () {
 		}
 
 		function LocalExists(name) {
-			return $window.localStorage[name] !== undefined;
+			return window.localStorage[name] !== undefined;
 		}
 
 		function LocalGet(name) {
 			var value = null;
-			if ($window.localStorage[name] !== undefined) {
+			if (window.localStorage[name] !== undefined) {
 				try {
-					value = JSON.parse($window.localStorage[name]);
+					value = JSON.parse(window.localStorage[name]);
 				} catch (e) {
 					console.log('LocalStorage.get.error parsing', name, e);
 				}
@@ -2734,14 +2769,14 @@ $(window).on('resize', function () {
 					return value;
 				});
 				cache = null;
-				$window.localStorage.setItem(name, json);
+				window.localStorage.setItem(name, json);
 			} catch (e) {
 				console.log('LocalStorage.set.error serializing', name, value, e);
 			}
 		}
 
 		function LocalDelete(name) {
-			$window.localStorage.removeItem(name);
+			window.localStorage.removeItem(name);
 		}
 
 		function LocalOn(name) {
@@ -2763,7 +2798,7 @@ $(window).on('resize', function () {
 						}
 					}
 				}
-				angular.element($window).on('storage', storageEvent);
+				angular.element(window).on('storage', storageEvent);
 				i = setTimeout(function () {
 					promise.reject('timeout');
 				}, timeout);
@@ -2772,7 +2807,7 @@ $(window).on('resize', function () {
 
     }]);
 
-	app.factory('SessionStorage', ['$promise', '$window', 'Cookie', function ($promise, $window, Cookie) {
+	app.factory('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -2796,10 +2831,10 @@ $(window).on('resize', function () {
 		function SessionSupported() {
 			var supported = false;
 			try {
-				supported = 'sessionStorage' in $window && $window.sessionStorage !== undefined;
+				supported = 'sessionStorage' in window && window.sessionStorage !== undefined;
 				if (supported) {
-					$window.sessionStorage.setItem('test', '1');
-					$window.sessionStorage.removeItem('test');
+					window.sessionStorage.setItem('test', '1');
+					window.sessionStorage.removeItem('test');
 				} else {
 					supported = false;
 				}
@@ -2810,14 +2845,14 @@ $(window).on('resize', function () {
 		}
 
 		function SessionExists(name) {
-			return $window.sessionStorage[name] !== undefined;
+			return window.sessionStorage[name] !== undefined;
 		}
 
 		function SessionGet(name) {
 			var value = null;
-			if ($window.sessionStorage[name] !== undefined) {
+			if (window.sessionStorage[name] !== undefined) {
 				try {
-					value = JSON.parse($window.sessionStorage[name]);
+					value = JSON.parse(window.sessionStorage[name]);
 				} catch (e) {
 					console.log('SessionStorage.get.error parsing', name, e);
 				}
@@ -2842,14 +2877,14 @@ $(window).on('resize', function () {
 					return value;
 				});
 				cache = null;
-				$window.sessionStorage.setItem(name, json);
+				window.sessionStorage.setItem(name, json);
 			} catch (e) {
 				console.log('SessionStorage.set.error serializing', name, value, e);
 			}
 		}
 
 		function SessionDelete(name) {
-			$window.sessionStorage.removeItem(name);
+			window.sessionStorage.removeItem(name);
 		}
 
 		function SessionOn(name) {
@@ -2871,7 +2906,7 @@ $(window).on('resize', function () {
 						}
 					}
 				}
-				angular.element($window).on('storage', storageEvent);
+				angular.element(window).on('storage', storageEvent);
 				i = setTimeout(function () {
 					promise.reject('timeout');
 				}, timeout);
@@ -3973,7 +4008,7 @@ $(window).on('resize', function () {
 				/*
 				// window.scrollTo(0, element[0].offsetTop - 100);
 				function onClick(e) {
-				    var closest = Dom.getClosestElement(e.target, element[0]);
+				    var closest = Dom.getClosestNode(e.target, element[0]);
 				    if (closest === null) {
 				        modal.reject(null);
 				    }
@@ -4429,406 +4464,406 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    window.ondragstart = function() {
-        return false;
-    };
+	window.ondragstart = function () {
+		return false;
+	};
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('scrollableX', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
-        return {
-            restrict: 'A',
-            template: '<div class="content" ng-transclude></div>',
-            transclude: true,
-            link: function(scope, element, attributes, model) {
+	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
 
-                var onLeft, onRight, showIndicatorFor, scrollableWhen;
-                if (attributes.onLeft) {
-                    onLeft = $parse(attributes.onLeft);
-                }
-                if (attributes.onRight) {
-                    onRight = $parse(attributes.onRight);
-                }
-                if (attributes.showIndicatorFor) {
-                    showIndicatorFor = $parse(attributes.showIndicatorFor);
-                }
-                if (attributes.scrollableWhen) {
-                    scrollableWhen = $parse(attributes.scrollableWhen);
-                }
+				var onLeft, onRight, showIndicatorFor, scrollableWhen;
+				if (attributes.onLeft) {
+					onLeft = $parse(attributes.onLeft);
+				}
+				if (attributes.onRight) {
+					onRight = $parse(attributes.onRight);
+				}
+				if (attributes.showIndicatorFor) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor);
+				}
+				if (attributes.scrollableWhen) {
+					scrollableWhen = $parse(attributes.scrollableWhen);
+				}
 
-                // ELEMENTS & STYLESHEETS;
-                element.attr('unselectable', 'on').addClass('unselectable');
-                var containerNode = element[0];
-                var contentNode = containerNode.querySelector('.content');
-                var content = angular.element(content);
-                var contentStyle = new Style();
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var containerNode = element[0];
+				var contentNode = containerNode.querySelector('.content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
 
-                var animate = new Animate(render);
+				var animate = new Animate(render);
 
-                var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
-                link(scrollable);
+				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
+				link(scrollable);
 
-                function link(scrollable) {
-                    scrollable.link({
-                        getItems: function() {
-                            if (attributes.scrollableItem) {
-                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
-                                return items;
-                            }
-                        },
-                        prev: function() {
-                            scrollable.scrollPrev();
-                            animate.play();
-                        },
-                        next: function() {
-                            scrollable.scrollNext();
-                            animate.play();
-                        },
-                        reset: function() {
-                            scrollable.doReset();
-                            animate.play();
-                        },
-                        onLeft: onLeft,
-                        onRight: onRight,
-                    });
-                }
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
+						},
+						reset: function () {
+							scrollable.doReset();
+							animate.play();
+						},
+						onLeft: onLeft,
+						onRight: onRight,
+					});
+				}
 
-                /*
-                scope.$watch(attributes.scrollableX, function (newValue) {
-                	console.log(newValue);
-                });
-                */
+				/*
+				scope.$watch(attributes.scrollableX, function (newValue) {
+					console.log(newValue);
+				});
+				*/
 
-                /*
-                var indicator = null,
-                	indicatorNode = null,
-                	indicatorStyle;
-                showIndicatorFor = false;
-                if (showIndicatorFor) {
-                	indicator = angular.element('<div class="indicator"></div>');
-                	indicatorNode = indicator[0];
-                	indicatorStyle = new Style();
-                	element.append(indicator);
-                	$compile(indicator.contents())(scope);
-                	var i = scrollbar.getIndicator();
-                	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-                	indicatorStyle.set(indicatorNode);
-                }
-                */
+				/*
+				var indicator = null,
+					indicatorNode = null,
+					indicatorStyle;
+				showIndicatorFor = false;
+				if (showIndicatorFor) {
+					indicator = angular.element('<div class="indicator"></div>');
+					indicatorNode = indicator[0];
+					indicatorStyle = new Style();
+					element.append(indicator);
+					$compile(indicator.contents())(scope);
+					var i = scrollbar.getIndicator();
+					indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+					indicatorStyle.set(indicatorNode);
+				}
+				*/
 
-                function render(time) {
-                    scrollable.setContainer(containerNode);
-                    scrollable.setContent(contentNode);
-                    scrollable.setEnabled(isEnabled());
-                    var animating = scrollable.renderX();
-                    if (!animating) {
-                        // animate.pause();
-                    }
-                    var current = scrollable.getCurrent();
-                    contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
-                    contentStyle.set(contentNode);
-                    /*
-                    if (showIndicatorFor) {
-                    	if (dragging || wheeling || speed) {
-                    		var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
-                    		percent = Math.max(0, Math.min(1, percent));
-                    		i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
-                    		i.y += (0 - i.y) / 4;
-                    		// var count = Math.round(contentNode.offsetWidth / 315);
-                    		var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
-                    		indicator.html(index + '/' + showIndicatorFor.count);
-                    		// indicator.html((percent * 100).toFixed(2).toString());
-                    	} else {
-                    		i.y += (45 - i.y) / 4;
-                    	}
-                    	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-                    	indicatorStyle.set(indicatorNode);
-                    }
-                    */
-                }
+				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
+					scrollable.setEnabled(isEnabled());
+					var animating = scrollable.renderX();
+					if (!animating) {
+						// animate.pause();
+					}
+					var current = scrollable.getCurrent();
+					contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
+					contentStyle.set(contentNode);
+					/*
+					if (showIndicatorFor) {
+						if (dragging || wheeling || speed) {
+							var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
+							percent = Math.max(0, Math.min(1, percent));
+							i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
+							i.y += (0 - i.y) / 4;
+							// var count = Math.round(contentNode.offsetWidth / 315);
+							var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+							indicator.html(index + '/' + showIndicatorFor.count);
+							// indicator.html((percent * 100).toFixed(2).toString());
+						} else {
+							i.y += (45 - i.y) / 4;
+						}
+						indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+						indicatorStyle.set(indicatorNode);
+					}
+					*/
+				}
 
-                function undrag() {
-                    scrollable.off();
-                    dragOff();
-                }
+				function undrag() {
+					scrollable.off();
+					dragOff();
+				}
 
-                function onDown(event) {
-                    if (scrollable.dragStart(event.absolute)) {
-                        dragOn();
-                        animate.play();
-                    }
-                }
+				function onDown(event) {
+					if (scrollable.dragStart(event.absolute)) {
+						dragOn();
+						animate.play();
+					}
+				}
 
-                function onMove(event) {
-                    scrollable.dragMove(event.absolute);
-                    var drag = scrollable.getDrag();
-                    if (Math.abs(drag.y) > Math.abs(drag.x)) {
-                        onUp(event);
-                    } else {
-                        event.stop();
-                    }
-                }
+				function onMove(event) {
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.y) > Math.abs(drag.x)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
+				}
 
-                function onUp(event) {
-                    scrollable.dragEnd(event.absolute);
-                    event.stop();
-                    dragOff();
-                }
+				function onUp(event) {
+					scrollable.dragEnd(event.absolute);
+					event.stop();
+					dragOff();
+				}
 
-                function _onScrollX(dir, interval) {
-                    return scrollable.wheelX(dir, interval);
-                }
+				function _onScrollX(dir, interval) {
+					return scrollable.wheelX(dir, interval);
+				}
 
-                var onScrollX = _onScrollX;
-                // var onScrollX = Utils.throttle(_onScrollX, 25);
+				var onScrollX = _onScrollX;
+				// var onScrollX = Utils.throttle(_onScrollX, 25);
 
-                function onWheel(event) {
-                    // console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
-                    if (scrollable.wheelXCheck(event.dir)) {
-                        onScrollX(event.dir, event.interval);
-                        animate.play();
-                        event.stop();
-                    }
-                }
+				function onWheel(event) {
+					// console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
+					if (scrollable.wheelXCheck(event.dir)) {
+						onScrollX(event.dir, event.interval);
+						animate.play();
+						event.stop();
+					}
+				}
 
-                function off() {
-                    dragOff();
-                    // animate.pause();
-                    scrollable.off();
-                }
+				function off() {
+					dragOff();
+					// animate.pause();
+					scrollable.off();
+				}
 
-                function isEnabled() {
-                    var enabled = true;
-                    if (scrollableWhen) {
-                        enabled = enabled && scrollableWhen(scope);
-                    }
-                    enabled = enabled && $window.innerWidth >= 1024;
-                    enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
-                    return enabled;
-                }
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && window.innerWidth >= 1024;
+					enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
+					return enabled;
+				}
 
-                function onResize() {
-                    var enabled = isEnabled();
-                    if (!enabled) {
-                        off();
-                    }
-                    render();
-                }
+				function onResize() {
+					var enabled = isEnabled();
+					if (!enabled) {
+						off();
+					}
+					render();
+				}
 
-                scope.$watch(function() {
-                    return contentNode.offsetWidth;
-                }, function(newValue, oldValue) {
-                    onResize();
-                });
+				scope.$watch(function () {
+					return contentNode.offsetWidth;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
 
-                var events = new Events(element).add({
-                    down: onDown,
-                    wheel: onWheel,
-                }, scope);
+				var events = new Events(element).add({
+					down: onDown,
+					wheel: onWheel,
+				}, scope);
 
-                var windowEvents = new Events($window).add({
-                    resize: onResize,
-                }, scope);
+				var windowEvents = new Events(window).add({
+					resize: onResize,
+				}, scope);
 
-                function dragOn() {
-                    windowEvents.add({
-                        move: onMove,
-                        up: onUp,
-                    }, scope);
-                }
+				function dragOn() {
+					windowEvents.add({
+						move: onMove,
+						up: onUp,
+					}, scope);
+				}
 
-                function dragOff() {
-                    windowEvents.remove({
-                        move: onMove,
-                        up: onUp,
-                    });
-                }
+				function dragOff() {
+					windowEvents.remove({
+						move: onMove,
+						up: onUp,
+					});
+				}
 
-                scope.$on('$destroy', function() {
-                    animate.pause();
-                });
+				scope.$on('$destroy', function () {
+					animate.pause();
+				});
 
-            },
-        };
+			},
+		};
     }]);
 
-    app.directive('scrollableY', ['$parse', '$compile', '$window', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $window, $timeout, Scrollable, Animate, Style, Events, Utils) {
-        return {
-            restrict: 'A',
-            template: '<div class="content" ng-transclude></div>',
-            transclude: true,
-            link: function(scope, element, attributes, model) {
+	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
 
-                var onTop, onBottom, showIndicatorFor, scrollableWhen;
-                if (attributes.onTop) {
-                    onTop = $parse(attributes.onTop);
-                }
-                if (attributes.onBottom) {
-                    onBottom = $parse(attributes.onBottom);
-                }
-                if (attributes.showIndicatorFor) {
-                    showIndicatorFor = $parse(attributes.showIndicatorFor);
-                }
-                if (attributes.scrollableWhen) {
-                    scrollableWhen = $parse(attributes.scrollableWhen);
-                }
+				var onTop, onBottom, showIndicatorFor, scrollableWhen;
+				if (attributes.onTop) {
+					onTop = $parse(attributes.onTop);
+				}
+				if (attributes.onBottom) {
+					onBottom = $parse(attributes.onBottom);
+				}
+				if (attributes.showIndicatorFor) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor);
+				}
+				if (attributes.scrollableWhen) {
+					scrollableWhen = $parse(attributes.scrollableWhen);
+				}
 
-                // ELEMENTS & STYLESHEETS;
-                element.attr('unselectable', 'on').addClass('unselectable');
-                var containerNode = element[0];
-                var contentNode = containerNode.querySelector('.content');
-                var content = angular.element(content);
-                var contentStyle = new Style();
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var containerNode = element[0];
+				var contentNode = containerNode.querySelector('.content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
 
-                var animate = new Animate(render);
+				var animate = new Animate(render);
 
-                var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
-                link(scrollable);
+				var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
+				link(scrollable);
 
-                function link(scrollable) {
-                    scrollable.link({
-                        getItems: function() {
-                            if (attributes.scrollableItem) {
-                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
-                                return items;
-                            }
-                        },
-                        prev: function() {
-                            scrollable.scrollPrev();
-                            animate.play();
-                        },
-                        next: function() {
-                            scrollable.scrollNext();
-                            animate.play();
-                        },
-                        reset: function() {
-                            scrollable.doReset();
-                            animate.play();
-                        },
-                        onTop: onTop,
-                        onBottom: onBottom,
-                    });
-                }
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
+						},
+						reset: function () {
+							scrollable.doReset();
+							animate.play();
+						},
+						onTop: onTop,
+						onBottom: onBottom,
+					});
+				}
 
-                function render(time) {
-                    scrollable.setContainer(containerNode);
-                    scrollable.setContent(contentNode);
-                    scrollable.setEnabled(isEnabled());
-                    var animating = scrollable.renderY();
-                    if (!animating) {
-                        // animate.pause();
-                    }
-                    var current = scrollable.getCurrent();
-                    contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
-                    contentStyle.set(contentNode);
-                }
+				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
+					scrollable.setEnabled(isEnabled());
+					var animating = scrollable.renderY();
+					if (!animating) {
+						// animate.pause();
+					}
+					var current = scrollable.getCurrent();
+					contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
+					contentStyle.set(contentNode);
+				}
 
-                function undrag() {
-                    scrollable.off();
-                    dragOff();
-                }
+				function undrag() {
+					scrollable.off();
+					dragOff();
+				}
 
-                function onDown(event) {
-                    if (scrollable.dragStart(event.absolute)) {
-                        dragOn();
-                        animate.play();
-                    }
-                }
+				function onDown(event) {
+					if (scrollable.dragStart(event.absolute)) {
+						dragOn();
+						animate.play();
+					}
+				}
 
-                function onMove(event) {
-                    scrollable.dragMove(event.absolute);
-                    var drag = scrollable.getDrag();
-                    if (Math.abs(drag.x) > Math.abs(drag.y)) {
-                        onUp(event);
-                    } else {
-                        event.stop();
-                    }
-                }
+				function onMove(event) {
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.x) > Math.abs(drag.y)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
+				}
 
-                function onUp(event) {
-                    scrollable.dragEnd(event.absolute);
-                    event.stop();
-                    dragOff();
-                }
+				function onUp(event) {
+					scrollable.dragEnd(event.absolute);
+					event.stop();
+					dragOff();
+				}
 
-                function _onScrollY(dir, interval) {
-                    return scrollable.wheelY(dir, interval);
-                }
+				function _onScrollY(dir, interval) {
+					return scrollable.wheelY(dir, interval);
+				}
 
-                var onScrollY = _onScrollY;
-                // var onScrollY = Utils.throttle(_onScrollY, 25);
+				var onScrollY = _onScrollY;
+				// var onScrollY = Utils.throttle(_onScrollY, 25);
 
-                function onWheel(event) {
-                    // console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
-                    if (scrollable.wheelYCheck(event.dir)) {
-                        onScrollY(event.dir, event.interval);
-                        animate.play();
-                        event.stop();
-                    }
-                }
+				function onWheel(event) {
+					// console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
+					if (scrollable.wheelYCheck(event.dir)) {
+						onScrollY(event.dir, event.interval);
+						animate.play();
+						event.stop();
+					}
+				}
 
-                function off() {
-                    dragOff();
-                    // animate.pause();
-                    scrollable.off();
-                }
+				function off() {
+					dragOff();
+					// animate.pause();
+					scrollable.off();
+				}
 
-                function isEnabled() {
-                    var enabled = true;
-                    if (scrollableWhen) {
-                        enabled = enabled && scrollableWhen(scope);
-                    }
-                    enabled = enabled && $window.innerWidth >= 1024;
-                    enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
-                    return enabled;
-                }
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && window.innerWidth >= 1024;
+					enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
+					return enabled;
+				}
 
-                function onResize() {
-                    var enabled = isEnabled();
-                    if (!enabled) {
-                        off();
-                    }
-                    render();
-                }
+				function onResize() {
+					var enabled = isEnabled();
+					if (!enabled) {
+						off();
+					}
+					render();
+				}
 
-                scope.$watch(function() {
-                    return contentNode.offsetHeight;
-                }, function(newValue, oldValue) {
-                    onResize();
-                });
+				scope.$watch(function () {
+					return contentNode.offsetHeight;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
 
-                var events = new Events(element).add({
-                    down: onDown,
-                    wheel: onWheel,
-                }, scope);
+				var events = new Events(element).add({
+					down: onDown,
+					wheel: onWheel,
+				}, scope);
 
-                var windowEvents = new Events($window).add({
-                    resize: onResize,
-                }, scope);
+				var windowEvents = new Events(window).add({
+					resize: onResize,
+				}, scope);
 
-                function dragOn() {
-                    windowEvents.add({
-                        move: onMove,
-                        up: onUp,
-                    }, scope);
-                }
+				function dragOn() {
+					windowEvents.add({
+						move: onMove,
+						up: onUp,
+					}, scope);
+				}
 
-                function dragOff() {
-                    windowEvents.remove({
-                        move: onMove,
-                        up: onUp,
-                    });
-                }
+				function dragOff() {
+					windowEvents.remove({
+						move: onMove,
+						up: onUp,
+					});
+				}
 
-                scope.$on('$destroy', function() {
-                    animate.pause();
-                });
+				scope.$on('$destroy', function () {
+					animate.pause();
+				});
 
-            },
-        };
+			},
+		};
     }]);
 
 }());

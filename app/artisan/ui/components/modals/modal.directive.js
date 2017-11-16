@@ -40,7 +40,7 @@
 				/*
 				// window.scrollTo(0, element[0].offsetTop - 100);
 				function onClick(e) {
-				    var closest = Dom.getClosestElement(e.target, element[0]);
+				    var closest = Dom.getClosestNode(e.target, element[0]);
 				    if (closest === null) {
 				        modal.reject(null);
 				    }

@@ -17,23 +17,190 @@ $(window).on('resize', function () {
 
 	var app = angular.module('artisan');
 
-	app.service('Dom', ['$window', '$document', function ($window, $document) {
+	app.service('Dom', ['Point', 'Rect', function (Point, Rect) {
 
 		var service = this;
 
 		var statics = {
-			ua: getUA(),
-			getNode: getNode,
-			getElement: getElement,
+			getBoundRect: getBoundRect,
 			getClosest: getClosest,
-			getClosestElement: getClosestElement,
-			getParents: getParents,
+			getClosestNode: getClosestNode,
+			getDelta: getDelta,
 			getDocumentNode: getDocumentNode,
+			getElement: getElement,
+			getNode: getNode,
+			getNodeOffset: getNodeOffset,
+			getPageScroll: getPageScroll,
+			getParents: getParents,
+			getView: getView,
+			getPointInView: getPointInView,
 			compileController: compileController,
 			downloadFile: downloadFile,
+			ua: getUA(),
 		};
 
 		angular.extend(service, statics);
+
+		// return node element BoundingClientRect
+		function getBoundRect(node) {
+			node = getNode(node);
+			if (node === window) {
+				node = getDocumentNode();
+			}
+			var rect = node.getBoundingClientRect();
+			return rect;
+		}
+
+		// return closest parent node that match a selector
+		function getClosest(node, selector) {
+			var matchesFn, parent;
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+				if (typeof document.body[fn] == 'function') {
+					matchesFn = fn;
+					return true;
+				}
+				return false;
+			});
+			if (node[matchesFn](selector)) {
+				return node;
+			}
+			while (node !== null) {
+				parent = node.parentElement;
+				if (parent !== null && parent[matchesFn](selector)) {
+					return parent;
+				}
+				node = parent;
+			}
+			return null;
+		}
+
+		// return closest parent node that math a target node
+		function getClosestNode(node, target) {
+			var parent = null;
+			if (node === target) {
+				return node;
+			}
+			while (node !== null) {
+				parent = node.parentElement;
+				if (parent !== null && parent === target) {
+					return parent;
+				}
+				node = parent;
+			}
+			return null;
+		}
+
+		// return wheel delta
+		function getDelta(event) {
+			var original = event.originalEvent ? event.originalEvent : event;
+			var type = original.type;
+			var delta = null;
+			if (type === 'mousewheel' || type === 'DOMMouseScroll') {
+				var deltaX = original.deltaX || original.wheelDeltaX;
+				var deltaY = original.deltaY || original.wheelDeltaY;
+				delta = new Point(deltaX, deltaY);
+				if (Math.abs(deltaX) > Math.abs(deltaY)) {
+					delta.dir = deltaX < 0 ? 1 : -1;
+				} else {
+					delta.dir = deltaY < 0 ? 1 : -1;
+				}
+			}
+			return delta;
+		}
+
+		// return document element node
+		function getDocumentNode() {
+			var documentNode = (document.documentElement || document.body.parentNode || document.body);
+			return documentNode;
+		}
+
+		// return an angular element
+		function getElement(element) {
+			return angular.isArray(element) ? element : angular.element(element);
+		}
+
+		// return a native html node
+		function getNode(element) {
+			return angular.isArray(element) ? element[0] : element;
+		}
+
+		// return a node offset point
+		function getNodeOffset(node) {
+			var offset = new Point();
+			node = getNode(node);
+			if (node && node.nodeType === 1) {
+				offset.x = node.offsetLeft;
+				offset.y = node.offsetTop;
+			}
+			return offset;
+		}
+
+		// return the current page scroll
+		function getPageScroll() {
+			var scroll = new Point();
+			var documentNode = getDocumentNode();
+			scroll.x = window.pageXOffset || documentNode.scrollLeft;
+			scroll.y = window.pageYOffset || documentNode.scrollTop;
+			return scroll;
+		}
+
+		// return an array of node parants
+		function getParents(node, topParentNode) {
+			// if no topParentNode defined will bubble up all the way to *document*
+			topParentNode = topParentNode || getDocumentNode();
+			var parents = [];
+			if (node) {
+				parents.push(node);
+				var parentNode = node.parentNode;
+				while (parentNode !== topParentNode) {
+					parents.push(parentNode);
+					parentNode = parentNode.parentNode;
+				}
+				parents.push(topParentNode); // push that topParentNode you wanted to stop at
+			}
+			return parents;
+		}
+
+		// return the view rect
+		function getView() {
+			var view = new Rect();
+			if (window.innerWidth !== undefined) {
+				view.width = window.innerWidth;
+				view.height = window.innerHeight;
+			} else {
+				var documentNode = getDocumentNode();
+				view.width = documentNode.clientWidth;
+				view.height = documentNode.clientHeight;
+			}
+			return view;
+		}
+
+		// add to constant
+		var MOUSE_EVENTS = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
+		var TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+
+		function getPointInView(event) {
+			var original = event.originalEvent ? event.originalEvent : event;
+			var type = original.type;
+			var point = null;
+			if (TOUCH_EVENTS.indexOf(type) !== -1) {
+				var touch = null;
+				var touches = original.touches.length ? original.touches : original.changedTouches;
+				if (touches && touches.length) {
+					touch = touches[0];
+				}
+				if (touch) {
+					point = new Point();
+					point.x = touch.pageX;
+					point.y = touch.pageY;
+				}
+			} else if (MOUSE_EVENTS.indexOf(type) !== -1) {
+				point = new Point();
+				point.x = original.pageX;
+				point.y = original.pageY;
+			}
+			return point;
+		}
 
 		function getUA() {
 			var agent = window.navigator.userAgent.toLowerCase();
@@ -58,74 +225,9 @@ $(window).on('resize', function () {
 			return ua;
 		}
 
-		function getNode(element) {
-			return element.length ? element[0] : element;
-		}
-
-		function getElement(element) {
-			return angular.isArray(element) ? element : angular.element(element);
-		}
-
-		function getClosest(el, selector) {
-			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
-				if (typeof document.body[fn] == 'function') {
-					matchesFn = fn;
-					return true;
-				}
-				return false;
-			});
-			if (el[matchesFn](selector)) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent[matchesFn](selector)) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getClosestElement(el, target) {
-			var matchesFn, parent;
-			if (el === target) {
-				return el;
-			}
-			while (el !== null) {
-				parent = el.parentElement;
-				if (parent !== null && parent === target) {
-					return parent;
-				}
-				el = parent;
-			}
-			return null;
-		}
-
-		function getDocumentNode() {
-			var documentNode = (document.documentElement || document.body.parentNode || document.body);
-			return documentNode;
-		}
-
-		function getParents(node, topParentNode) {
-			// if no topParentNode defined will bubble up all the way to *document*
-			topParentNode = topParentNode || getDocumentNode();
-			var parents = [];
-			if (node) {
-				parents.push(node);
-				var parentNode = node.parentNode;
-				while (parentNode !== topParentNode) {
-					parents.push(parentNode);
-					parentNode = parentNode.parentNode;
-				}
-				parents.push(topParentNode); // push that topParentNode you wanted to stop at
-			}
-			return parents;
-		}
-
 		function compileController(scope, element, html, data) {
 			// console.log('Dom.compileController', element);
+			element = getElement(element);
 			element.html(html);
 			var link = $compile(element.contents());
 			if (data.controller) {
