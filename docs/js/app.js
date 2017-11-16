@@ -53,22 +53,31 @@
     }]);
 
 	app.config(['$httpProvider', 'environment', function ($httpProvider, environment) {
-		$httpProvider.defaults.headers.common["Accept-Language"] = environment.lang;
+		$httpProvider.defaults.headers.common["Accept-Language"] = environment.language.code;
 		// $httpProvider.defaults.withCredentials = true;
 		// $httpProvider.interceptors.push('AuthInterceptorService');
     }]);
 
 	function getEnvironment() {
+		var production = window.location.href.indexOf('actarian.github.io') !== -1;
 		var environment = {
-			language: 'en',
+			addons: {
+				facebook: {
+					app_id: production ? 156171878319496 : 340008479796111,
+					scope: 'public_profile, email', // publish_stream
+					fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
+					version: 'v2.10',
+				}
+			},
+			language: {
+				code: 'en',
+				culture: 'en_US',
+				name: 'English',
+				iso: 'ENU',
+			},
 			urls: {
 				api: 'api',
 			},
-			addons: {
-				facebook: {
-					app_id: 156171878319496,
-				}
-			}
 		};
 		if (window.environment) {
 			angular.extend(environment, window.environment);
@@ -160,10 +169,18 @@
 		$rootScope.trustResource = trustResource;
 		$rootScope.cssUrl = cssUrl;
 
+		$rootScope.$on('$routeChangeStart', function ($event, next, current) {
+			var nextPath = next.$$route.originalPath;
+			var currentPath = current ? current.$$route.originalPath : null;
+			if (nextPath !== currentPath) {
+				$rootScope.pageLoading = true;
+				console.log('$routeChangeStart', nextPath, currentPath);
+			}
+		});
+
     }]);
 
 }());
-
 /* global angular */
 
 (function() {
@@ -296,9 +313,15 @@
 
 		//////////////
 
-		FacebookService.getMe().then(function (user) {
-			console.log('FacebookService.getMe', user);
-		});
+		function getMe() {
+			FacebookService.getMe().then(function (user) {
+				console.log('FacebookService.getMe', user);
+			}, function (error) {
+				console.log('FacebookService.getMe.error', error);
+			});
+		}
+
+		$scope.getMe = getMe;
 
     }]);
 

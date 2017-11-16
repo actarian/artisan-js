@@ -2,6 +2,8 @@
 
 <json-formatter json="view"></json-formatter>
 
+<button type="button" ng-click="getMe()">fb</button>
+
 <button type="button" ng-click="scrollPrev()">prev</button>
 <button type="button" ng-click="scrollNext()">next</button>
 
@@ -16,6 +18,10 @@
         </div>
     </div>
 </div>
+
+<section class="video-player" video-source="'http://eatalyworld.wslabs.it/media/files/attachments/56_enrico-bartolini.mp4'" video-image="'http://eatalyworld.wslabs.it/media/immagini/163_z_thumb_3.jpg?width=1920'">
+    <!-- video -->
+</section>
 
 <section ng-repeat="section in view.doc.sections track by $index">
     <div class="background" ng-style="{ 'background-image': cssUrl(section.image.url) }" alt="{{section.image.caption}}" ng-if="section.image"></div>

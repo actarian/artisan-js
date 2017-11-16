@@ -125,5 +125,14 @@ $templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-h
 $templateCache.put("artisan/nav/nav","<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
     "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
     "</ul>")
+
+$templateCache.put("artisan/video/video-player","<div class=\"video-player\" ng-class=\"{ playing: playing }\">\n" +
+    "    <div class=\"video-item\" ng-click=\"toggle()\">\n" +
+    "        <img ng-src=\"{{image}}\" ng-if=\"image\" />\n" +
+    "        <video loop>\n" +
+    "        <source src=\"{{source}}\" type=\"video/mp4\">\n" +
+    "    </video>\n" +
+    "    </div>\n" +
+    "</div>")
 }]);
 })();

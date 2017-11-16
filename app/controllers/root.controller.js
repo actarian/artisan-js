@@ -81,9 +81,15 @@
 
 		//////////////
 
-		FacebookService.getMe().then(function (user) {
-			console.log('FacebookService.getMe', user);
-		});
+		function getMe() {
+			FacebookService.getMe().then(function (user) {
+				console.log('FacebookService.getMe', user);
+			}, function (error) {
+				console.log('FacebookService.getMe.error', error);
+			});
+		}
+
+		$scope.getMe = getMe;
 
     }]);
 

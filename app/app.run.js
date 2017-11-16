@@ -18,6 +18,15 @@
 		$rootScope.trustResource = trustResource;
 		$rootScope.cssUrl = cssUrl;
 
+		$rootScope.$on('$routeChangeStart', function ($event, next, current) {
+			var nextPath = next.$$route.originalPath;
+			var currentPath = current ? current.$$route.originalPath : null;
+			if (nextPath !== currentPath) {
+				$rootScope.pageLoading = true;
+				console.log('$routeChangeStart', nextPath, currentPath);
+			}
+		});
+
     }]);
 
 }());

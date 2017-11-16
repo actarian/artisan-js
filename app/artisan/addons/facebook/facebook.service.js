@@ -22,12 +22,18 @@
 		// private vars
 
 		if (!environment.addons || !environment.addons.facebook) {
-			trhow('FacebookService.error missing environment.addons.facebook');
+			trhow('FacebookService.error missing config object in environment.addons.facebook');
 		}
 
 		var config = environment.addons.facebook;
 
 		// statics methods
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		 *  calling facebook initializer on page load to avoid popup blockers via asyncronous loading  *
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		Facebook();
 
 		function Facebook() {
 			return $promise(function (promise) {
@@ -59,11 +65,13 @@
 			}
 		}
 
-		function FacebookGetMe() {
+		function FacebookGetMe(fields) {
+			fields = fields || config.fields;
 			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
+				FacebookLogin().then(function (facebook) {
+					console.log('FacebookGetMe', facebook);
 					facebook.api('/me', {
-						fields: 'id,name,first_name,last_name,email,gender,picture,cover,link'
+						fields: fields
 					}, function (response) {
 						if (!response || response.error) {
 							promise.reject('Error occured');
@@ -75,12 +83,13 @@
 			});
 		}
 
-		function FacebookGetMyPicture() {
+		function FacebookGetMyPicture(size) {
+			size = size || 300;
 			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
+				FacebookLogin().then(function (facebook) {
 					facebook.api('/me/picture', {
-						width: 300,
-						height: 300,
+						width: size,
+						height: size,
 						type: 'square'
 					}, function (response) {
 						if (!response || response.error) {
@@ -96,10 +105,11 @@
 		function FacebookLogin() {
 			return $promise(function (promise) {
 				Facebook().then(function (facebook) {
+					console.log('FacebookLogin', facebook);
 					facebook.login(function (response) {
 						FacebookStatus(response, promise);
 					}, {
-						scope: 'public_profile, email' // publish_stream,
+						scope: config.scope
 					});
 				});
 			});
@@ -118,12 +128,13 @@
 		function FacebookInit() {
 			return $promise(function (promise) {
 				window.fbAsyncInit = function () {
+					console.log('FacebookInit.fbAsyncInit', window.FB);
 					window.FB.init({
 						appId: config.app_id,
 						status: true,
 						cookie: true,
 						xfbml: true,
-						version: 'v2.10'
+						version: config.version,
 					});
 					promise.resolve(window.FB);
 					// window.fbAsyncInit = null;
@@ -136,7 +147,7 @@
 						}
 						js = d.createElement(s);
 						js.id = id;
-						js.src = "//connect.facebook.net/en_US/sdk.js";
+						js.src = '//connect.facebook.net/' + environment.language.culture + '/sdk.js';
 						fjs.parentNode.insertBefore(js, fjs);
 					}(document, 'script', 'facebook-jssdk'));
 				} catch (error) {

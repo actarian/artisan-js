@@ -54,6 +54,7 @@
         "app/artisan/ui/components/nav/nav.factory.js",
         "app/artisan/ui/components/scrollable/scrollable.directive.js",
         "app/artisan/ui/components/scrollable/scrollable.factory.js",
+        "app/artisan/ui/components/video/video.directive.js",
 
         "app/artisan/ui/interactions/tap.directive.js"
     ],

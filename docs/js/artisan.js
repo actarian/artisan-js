@@ -30,12 +30,18 @@
 		// private vars
 
 		if (!environment.addons || !environment.addons.facebook) {
-			trhow('FacebookService.error missing environment.addons.facebook');
+			trhow('FacebookService.error missing config object in environment.addons.facebook');
 		}
 
 		var config = environment.addons.facebook;
 
 		// statics methods
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		 *  calling facebook initializer on page load to avoid popup blockers via asyncronous loading  *
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		Facebook();
 
 		function Facebook() {
 			return $promise(function (promise) {
@@ -67,11 +73,13 @@
 			}
 		}
 
-		function FacebookGetMe() {
+		function FacebookGetMe(fields) {
+			fields = fields || config.fields;
 			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
+				FacebookLogin().then(function (facebook) {
+					console.log('FacebookGetMe', facebook);
 					facebook.api('/me', {
-						fields: 'id,name,first_name,last_name,email,gender,picture,cover,link'
+						fields: fields
 					}, function (response) {
 						if (!response || response.error) {
 							promise.reject('Error occured');
@@ -83,12 +91,13 @@
 			});
 		}
 
-		function FacebookGetMyPicture() {
+		function FacebookGetMyPicture(size) {
+			size = size || 300;
 			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
+				FacebookLogin().then(function (facebook) {
 					facebook.api('/me/picture', {
-						width: 300,
-						height: 300,
+						width: size,
+						height: size,
 						type: 'square'
 					}, function (response) {
 						if (!response || response.error) {
@@ -104,10 +113,11 @@
 		function FacebookLogin() {
 			return $promise(function (promise) {
 				Facebook().then(function (facebook) {
+					console.log('FacebookLogin', facebook);
 					facebook.login(function (response) {
 						FacebookStatus(response, promise);
 					}, {
-						scope: 'public_profile, email' // publish_stream,
+						scope: config.scope
 					});
 				});
 			});
@@ -126,12 +136,13 @@
 		function FacebookInit() {
 			return $promise(function (promise) {
 				window.fbAsyncInit = function () {
+					console.log('FacebookInit.fbAsyncInit', window.FB);
 					window.FB.init({
 						appId: config.app_id,
 						status: true,
 						cookie: true,
 						xfbml: true,
-						version: 'v2.10'
+						version: config.version,
 					});
 					promise.resolve(window.FB);
 					// window.fbAsyncInit = null;
@@ -144,7 +155,7 @@
 						}
 						js = d.createElement(s);
 						js.id = id;
-						js.src = "//connect.facebook.net/en_US/sdk.js";
+						js.src = '//connect.facebook.net/' + environment.language.culture + '/sdk.js';
 						fjs.parentNode.insertBefore(js, fjs);
 					}(document, 'script', 'facebook-jssdk'));
 				} catch (error) {
@@ -5351,6 +5362,133 @@ $(window).on('resize', function () {
 		};
 		return Scrollable;
     }]);
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.directive('videoSource', ['$timeout', function ($timeout) {
+		return {
+			restrict: 'A',
+			scope: {
+				source: '=videoSource',
+				image: '=videoImage',
+			},
+			templateUrl: function (element, attributes) {
+				return attributes.template || 'artisan/video/video-player';
+			},
+			link: function (scope, element, attributes) {
+				var native = element[0];
+				var video = native.querySelector('video');
+				var img = native.querySelector('img');
+				var infos = {};
+				scope.playing = false;
+				scope.busy = false;
+				scope.toggle = toggle;
+				scope.play = play;
+				scope.pause = pause;
+				scope.infos = infos;
+
+				function toggle() {
+					if (!scope.busy) {
+						scope.busy = true;
+						if (scope.playing) {
+							video.pause();
+						} else {
+							video.play();
+						}
+					}
+				}
+
+				function play() {
+					if (!scope.busy) {
+						scope.busy = true;
+						video.play();
+					}
+				}
+
+				function pause() {
+					if (!scope.busy) {
+						scope.busy = true;
+						video.pause();
+					}
+				}
+
+				function onPlaying(e) {
+					$timeout(function () {
+						scope.playing = true;
+						scope.busy = false;
+					});
+				}
+
+				function onPause(e) {
+					$timeout(function () {
+						scope.playing = false;
+						scope.busy = false;
+					});
+				}
+
+				function onEnded(e) {
+					$timeout(function () {
+						scope.playing = false;
+						scope.busy = false;
+					});
+				}
+
+				function onProgress(e) {
+					$timeout(function () {
+						infos.buffered = video.buffered; // todo: TimeRanges
+						console.log('onProgress', infos);
+					});
+				}
+
+				function onTimeUpdate(e) {
+					$timeout(function () {
+						infos.duration = video.duration;
+						infos.currentTime = video.currentTime;
+						infos.progressTime = infos.currentTime / infos.duration;
+						console.log('onTimeUpdate', infos);
+					});
+				}
+
+				var videoElement = angular.element(video);
+
+				function addListeners() {
+					videoElement.on('playing', onPlaying);
+					videoElement.on('pause', onPause);
+					videoElement.on('ended', onEnded);
+					videoElement.on('progress', onProgress);
+					videoElement.on('timeupdate', onTimeUpdate);
+				}
+
+				function removeListeners() {
+					videoElement.off('playing', onPlaying);
+					videoElement.off('pause', onPause);
+					videoElement.off('ended', onEnded);
+					videoElement.off('progress', onProgress);
+					videoElement.off('timeupdate', onTimeUpdate);
+				}
+
+				addListeners();
+				scope.$on('destroy', function () {
+					removeListeners();
+				});
+
+			}
+		};
+    }]);
+
+	/*
+	Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
+	    get: function () {
+	        return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
+	    }
+	});
+	*/
 
 }());
 /* global angular */
