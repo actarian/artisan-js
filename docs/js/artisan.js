@@ -4475,892 +4475,898 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	window.ondragstart = function () {
-		return false;
-	};
+    window.ondragstart = function() {
+        return false;
+    };
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
-		return {
-			restrict: 'A',
-			template: '<div class="content" ng-transclude></div>',
-			transclude: true,
-			link: function (scope, element, attributes, model) {
+    app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+        return {
+            restrict: 'A',
+            template: '<div class="scrollable-content" ng-transclude></div>',
+            transclude: true,
+            link: function(scope, element, attributes, model) {
 
-				var onLeft, onRight, showIndicatorFor, scrollableWhen;
-				if (attributes.onLeft) {
-					onLeft = $parse(attributes.onLeft);
-				}
-				if (attributes.onRight) {
-					onRight = $parse(attributes.onRight);
-				}
-				if (attributes.showIndicatorFor) {
-					showIndicatorFor = $parse(attributes.showIndicatorFor);
-				}
-				if (attributes.scrollableWhen) {
-					scrollableWhen = $parse(attributes.scrollableWhen);
-				}
+                var onLeft, onRight, showIndicatorFor, scrollableWhen;
+                if (attributes.onLeft) {
+                    onLeft = $parse(attributes.onLeft);
+                }
+                if (attributes.onRight) {
+                    onRight = $parse(attributes.onRight);
+                }
+                if (attributes.showIndicatorFor) {
+                    showIndicatorFor = $parse(attributes.showIndicatorFor);
+                }
+                if (attributes.scrollableWhen) {
+                    scrollableWhen = $parse(attributes.scrollableWhen);
+                }
 
-				// ELEMENTS & STYLESHEETS;
-				element.attr('unselectable', 'on').addClass('unselectable');
-				var containerNode = element[0];
-				var contentNode = containerNode.querySelector('.content');
-				var content = angular.element(content);
-				var contentStyle = new Style();
+                // ELEMENTS & STYLESHEETS;
+                element.attr('unselectable', 'on').addClass('unselectable');
+                var containerNode = element[0];
+                var contentNode = containerNode.querySelector('.scrollable-content');
+                var content = angular.element(content);
+                var contentStyle = new Style();
 
-				var animate = new Animate(render);
+                var animate = new Animate(render);
 
-				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
-				link(scrollable);
+                var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
 
-				function link(scrollable) {
-					scrollable.link({
-						getItems: function () {
-							if (attributes.scrollableItem) {
-								var items = containerNode.querySelectorAll(attributes.scrollableItem);
-								return items;
-							}
-						},
-						prev: function () {
-							scrollable.scrollPrev();
-							animate.play();
-						},
-						next: function () {
-							scrollable.scrollNext();
-							animate.play();
-						},
-						reset: function () {
-							scrollable.doReset();
-							animate.play();
-						},
-						onLeft: onLeft,
-						onRight: onRight,
-					});
-				}
+                link(scrollable);
 
-				/*
-				scope.$watch(attributes.scrollableX, function (newValue) {
-					console.log(newValue);
-				});
-				*/
+                function link(scrollable) {
+                    scrollable.link({
+                        getItems: function() {
+                            if (attributes.scrollableItem) {
+                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
+                                return items;
+                            }
+                        },
+                        prev: function() {
+                            scrollable.scrollPrev();
+                            animate.play();
+                        },
+                        next: function() {
+                            scrollable.scrollNext();
+                            animate.play();
+                        },
+                        reset: function() {
+                            scrollable.doReset();
+                            animate.play();
+                        },
+                        onLeft: onLeft,
+                        onRight: onRight,
+                    });
+                }
 
-				/*
-				var indicator = null,
-					indicatorNode = null,
-					indicatorStyle;
-				showIndicatorFor = false;
-				if (showIndicatorFor) {
-					indicator = angular.element('<div class="indicator"></div>');
-					indicatorNode = indicator[0];
-					indicatorStyle = new Style();
-					element.append(indicator);
-					$compile(indicator.contents())(scope);
-					var i = scrollbar.getIndicator();
-					indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-					indicatorStyle.set(indicatorNode);
-				}
-				*/
+                /*
+                scope.$watch(attributes.scrollableX, function (newValue) {
+                	console.log(newValue);
+                });
+                */
 
-				function render(time) {
-					scrollable.setContainer(containerNode);
-					scrollable.setContent(contentNode);
-					scrollable.setEnabled(isEnabled());
-					var animating = scrollable.renderX();
-					if (!animating) {
-						// animate.pause();
-					}
-					var current = scrollable.getCurrent();
-					contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
-					contentStyle.set(contentNode);
-					/*
-					if (showIndicatorFor) {
-						if (dragging || wheeling || speed) {
-							var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
-							percent = Math.max(0, Math.min(1, percent));
-							i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
-							i.y += (0 - i.y) / 4;
-							// var count = Math.round(contentNode.offsetWidth / 315);
-							var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
-							indicator.html(index + '/' + showIndicatorFor.count);
-							// indicator.html((percent * 100).toFixed(2).toString());
-						} else {
-							i.y += (45 - i.y) / 4;
-						}
-						indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-						indicatorStyle.set(indicatorNode);
-					}
-					*/
-				}
+                /*
+                var indicator = null,
+                	indicatorNode = null,
+                	indicatorStyle;
+                showIndicatorFor = false;
+                if (showIndicatorFor) {
+                	indicator = angular.element('<div class="indicator"></div>');
+                	indicatorNode = indicator[0];
+                	indicatorStyle = new Style();
+                	element.append(indicator);
+                	$compile(indicator.contents())(scope);
+                	var i = scrollbar.getIndicator();
+                	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+                	indicatorStyle.set(indicatorNode);
+                }
+                */
 
-				function undrag() {
-					scrollable.off();
-					dragOff();
-				}
+                function render(time) {
+                    scrollable.setContainer(containerNode);
+                    scrollable.setContent(contentNode);
+                    scrollable.setEnabled(isEnabled());
+                    var animating = scrollable.renderX();
+                    if (!animating) {
+                        // animate.pause();
+                    }
+                    var current = scrollable.getCurrent();
+                    contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
+                    contentStyle.set(contentNode);
+                    /*
+                    if (showIndicatorFor) {
+                    	if (dragging || wheeling || speed) {
+                    		var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
+                    		percent = Math.max(0, Math.min(1, percent));
+                    		i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
+                    		i.y += (0 - i.y) / 4;
+                    		// var count = Math.round(contentNode.offsetWidth / 315);
+                    		var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+                    		indicator.html(index + '/' + showIndicatorFor.count);
+                    		// indicator.html((percent * 100).toFixed(2).toString());
+                    	} else {
+                    		i.y += (45 - i.y) / 4;
+                    	}
+                    	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+                    	indicatorStyle.set(indicatorNode);
+                    }
+                    */
+                }
 
-				function onDown(event) {
-					if (scrollable.dragStart(event.absolute)) {
-						dragOn();
-						animate.play();
-					}
-				}
+                function undrag() {
+                    scrollable.off();
+                    dragOff();
+                }
 
-				function onMove(event) {
-					scrollable.dragMove(event.absolute);
-					var drag = scrollable.getDrag();
-					if (Math.abs(drag.y) > Math.abs(drag.x)) {
-						onUp(event);
-					} else {
-						event.stop();
-					}
-				}
+                function onDown(event) {
+                    if (scrollable.dragStart(event.absolute)) {
+                        dragOn();
+                        animate.play();
+                    }
+                }
 
-				function onUp(event) {
-					scrollable.dragEnd(event.absolute);
-					event.stop();
-					dragOff();
-				}
+                function onMove(event) {
+                    scrollable.dragMove(event.absolute);
+                    var drag = scrollable.getDrag();
+                    if (Math.abs(drag.y) > Math.abs(drag.x)) {
+                        onUp(event);
+                    } else {
+                        event.stop();
+                    }
+                }
 
-				function _onScrollX(dir, interval) {
-					return scrollable.wheelX(dir, interval);
-				}
+                function onUp(event) {
+                    scrollable.dragEnd(event.absolute);
+                    event.stop();
+                    dragOff();
+                }
 
-				var onScrollX = _onScrollX;
-				// var onScrollX = Utils.throttle(_onScrollX, 25);
+                function _onScrollX(dir, interval) {
+                    return scrollable.wheelX(dir, interval);
+                }
 
-				function onWheel(event) {
-					// console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
-					if (scrollable.wheelXCheck(event.dir)) {
-						onScrollX(event.dir, event.interval);
-						animate.play();
-						event.stop();
-					}
-				}
+                var onScrollX = _onScrollX;
+                // var onScrollX = Utils.throttle(_onScrollX, 25);
 
-				function off() {
-					dragOff();
-					// animate.pause();
-					scrollable.off();
-				}
+                function onWheel(event) {
+                    // console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
+                    if (scrollable.wheelXCheck(event.dir)) {
+                        onScrollX(event.dir, event.interval);
+                        animate.play();
+                        event.stop();
+                    }
+                }
 
-				function isEnabled() {
-					var enabled = true;
-					if (scrollableWhen) {
-						enabled = enabled && scrollableWhen(scope);
-					}
-					enabled = enabled && window.innerWidth >= 1024;
-					enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
-					return enabled;
-				}
+                function off() {
+                    dragOff();
+                    // animate.pause();
+                    scrollable.off();
+                }
 
-				function onResize() {
-					var enabled = isEnabled();
-					if (!enabled) {
-						off();
-					}
-					render();
-				}
+                function isEnabled() {
+                    var enabled = true;
+                    if (scrollableWhen) {
+                        enabled = enabled && scrollableWhen(scope);
+                    }
+                    enabled = enabled && window.innerWidth >= 1024;
+                    enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
+                    return enabled;
+                }
 
-				scope.$watch(function () {
-					return contentNode.offsetWidth;
-				}, function (newValue, oldValue) {
-					onResize();
-				});
+                function onResize() {
+                    var enabled = isEnabled();
+                    if (!enabled) {
+                        off();
+                    }
+                    render();
+                }
 
-				var events = new Events(element).add({
-					down: onDown,
-					wheel: onWheel,
-				}, scope);
+                scope.$watch(function() {
+                    return contentNode.offsetWidth;
+                }, function(newValue, oldValue) {
+                    onResize();
+                });
 
-				var windowEvents = new Events(window).add({
-					resize: onResize,
-				}, scope);
+                var events = new Events(element).add({
+                    down: onDown,
+                    wheel: onWheel,
+                }, scope);
 
-				function dragOn() {
-					windowEvents.add({
-						move: onMove,
-						up: onUp,
-					}, scope);
-				}
+                var windowEvents = new Events(window).add({
+                    resize: onResize,
+                }, scope);
 
-				function dragOff() {
-					windowEvents.remove({
-						move: onMove,
-						up: onUp,
-					});
-				}
+                function dragOn() {
+                    windowEvents.add({
+                        move: onMove,
+                        up: onUp,
+                    }, scope);
+                }
 
-				scope.$on('$destroy', function () {
-					animate.pause();
-				});
+                function dragOff() {
+                    windowEvents.remove({
+                        move: onMove,
+                        up: onUp,
+                    });
+                }
 
-			},
-		};
+                scope.$on('$destroy', function() {
+                    animate.pause();
+                });
+
+            },
+        };
     }]);
 
-	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
-		return {
-			restrict: 'A',
-			template: '<div class="content" ng-transclude></div>',
-			transclude: true,
-			link: function (scope, element, attributes, model) {
+    app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+        return {
+            restrict: 'A',
+            template: '<div class="scrollable-content" ng-transclude></div>',
+            transclude: true,
+            link: function(scope, element, attributes, model) {
 
-				var onTop, onBottom, showIndicatorFor, scrollableWhen;
-				if (attributes.onTop) {
-					onTop = $parse(attributes.onTop);
-				}
-				if (attributes.onBottom) {
-					onBottom = $parse(attributes.onBottom);
-				}
-				if (attributes.showIndicatorFor) {
-					showIndicatorFor = $parse(attributes.showIndicatorFor);
-				}
-				if (attributes.scrollableWhen) {
-					scrollableWhen = $parse(attributes.scrollableWhen);
-				}
+                var onTop, onBottom, showIndicatorFor, scrollableWhen;
+                if (attributes.onTop) {
+                    onTop = $parse(attributes.onTop);
+                }
+                if (attributes.onBottom) {
+                    onBottom = $parse(attributes.onBottom);
+                }
+                if (attributes.showIndicatorFor) {
+                    showIndicatorFor = $parse(attributes.showIndicatorFor);
+                }
+                if (attributes.scrollableWhen) {
+                    scrollableWhen = $parse(attributes.scrollableWhen);
+                }
 
-				// ELEMENTS & STYLESHEETS;
-				element.attr('unselectable', 'on').addClass('unselectable');
-				var containerNode = element[0];
-				var contentNode = containerNode.querySelector('.content');
-				var content = angular.element(content);
-				var contentStyle = new Style();
+                // ELEMENTS & STYLESHEETS;
+                element.attr('unselectable', 'on').addClass('unselectable');
+                var containerNode = element[0];
+                var contentNode = containerNode.querySelector('.scrollable-content');
+                var content = angular.element(content);
+                var contentStyle = new Style();
 
-				var animate = new Animate(render);
+                var animate = new Animate(render);
 
-				var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
-				link(scrollable);
+                var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
+                link(scrollable);
 
-				function link(scrollable) {
-					scrollable.link({
-						getItems: function () {
-							if (attributes.scrollableItem) {
-								var items = containerNode.querySelectorAll(attributes.scrollableItem);
-								return items;
-							}
-						},
-						prev: function () {
-							scrollable.scrollPrev();
-							animate.play();
-						},
-						next: function () {
-							scrollable.scrollNext();
-							animate.play();
-						},
-						reset: function () {
-							scrollable.doReset();
-							animate.play();
-						},
-						onTop: onTop,
-						onBottom: onBottom,
-					});
-				}
+                function link(scrollable) {
+                    scrollable.link({
+                        getItems: function() {
+                            if (attributes.scrollableItem) {
+                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
+                                return items;
+                            }
+                        },
+                        prev: function() {
+                            scrollable.scrollPrev();
+                            animate.play();
+                        },
+                        next: function() {
+                            scrollable.scrollNext();
+                            animate.play();
+                        },
+                        reset: function() {
+                            scrollable.doReset();
+                            animate.play();
+                        },
+                        onTop: onTop,
+                        onBottom: onBottom,
+                    });
+                }
 
-				function render(time) {
-					scrollable.setContainer(containerNode);
-					scrollable.setContent(contentNode);
-					scrollable.setEnabled(isEnabled());
-					var animating = scrollable.renderY();
-					if (!animating) {
-						// animate.pause();
-					}
-					var current = scrollable.getCurrent();
-					contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
-					contentStyle.set(contentNode);
-				}
+                function render(time) {
+                    scrollable.setContainer(containerNode);
+                    scrollable.setContent(contentNode);
+                    scrollable.setEnabled(isEnabled());
+                    var animating = scrollable.renderY();
+                    if (!animating) {
+                        // animate.pause();
+                    }
+                    var current = scrollable.getCurrent();
+                    contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
+                    contentStyle.set(contentNode);
+                }
 
-				function undrag() {
-					scrollable.off();
-					dragOff();
-				}
+                function undrag() {
+                    scrollable.off();
+                    dragOff();
+                }
 
-				function onDown(event) {
-					if (scrollable.dragStart(event.absolute)) {
-						dragOn();
-						animate.play();
-					}
-				}
+                function onDown(event) {
+                    if (scrollable.dragStart(event.absolute)) {
+                        dragOn();
+                        animate.play();
+                    }
+                }
 
-				function onMove(event) {
-					scrollable.dragMove(event.absolute);
-					var drag = scrollable.getDrag();
-					if (Math.abs(drag.x) > Math.abs(drag.y)) {
-						onUp(event);
-					} else {
-						event.stop();
-					}
-				}
+                function onMove(event) {
+                    scrollable.dragMove(event.absolute);
+                    var drag = scrollable.getDrag();
+                    if (Math.abs(drag.x) > Math.abs(drag.y)) {
+                        onUp(event);
+                    } else {
+                        event.stop();
+                    }
+                }
 
-				function onUp(event) {
-					scrollable.dragEnd(event.absolute);
-					event.stop();
-					dragOff();
-				}
+                function onUp(event) {
+                    scrollable.dragEnd(event.absolute);
+                    event.stop();
+                    dragOff();
+                }
 
-				function _onScrollY(dir, interval) {
-					return scrollable.wheelY(dir, interval);
-				}
+                function _onScrollY(dir, interval) {
+                    return scrollable.wheelY(dir, interval);
+                }
 
-				var onScrollY = _onScrollY;
-				// var onScrollY = Utils.throttle(_onScrollY, 25);
+                var onScrollY = _onScrollY;
+                // var onScrollY = Utils.throttle(_onScrollY, 25);
 
-				function onWheel(event) {
-					// console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
-					if (scrollable.wheelYCheck(event.dir)) {
-						onScrollY(event.dir, event.interval);
-						animate.play();
-						event.stop();
-					}
-				}
+                function onWheel(event) {
+                    // console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
+                    if (scrollable.wheelYCheck(event.dir)) {
+                        onScrollY(event.dir, event.interval);
+                        animate.play();
+                        event.stop();
+                    }
+                }
 
-				function off() {
-					dragOff();
-					// animate.pause();
-					scrollable.off();
-				}
+                function off() {
+                    dragOff();
+                    // animate.pause();
+                    scrollable.off();
+                }
 
-				function isEnabled() {
-					var enabled = true;
-					if (scrollableWhen) {
-						enabled = enabled && scrollableWhen(scope);
-					}
-					enabled = enabled && window.innerWidth >= 1024;
-					enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
-					return enabled;
-				}
+                function isEnabled() {
+                    var enabled = true;
+                    if (scrollableWhen) {
+                        enabled = enabled && scrollableWhen(scope);
+                    }
+                    enabled = enabled && window.innerWidth >= 1024;
+                    enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
+                    return enabled;
+                }
 
-				function onResize() {
-					var enabled = isEnabled();
-					if (!enabled) {
-						off();
-					}
-					render();
-				}
+                function onResize() {
+                    var enabled = isEnabled();
+                    if (!enabled) {
+                        off();
+                    }
+                    render();
+                }
 
-				scope.$watch(function () {
-					return contentNode.offsetHeight;
-				}, function (newValue, oldValue) {
-					onResize();
-				});
+                scope.$watch(function() {
+                    return contentNode.offsetHeight;
+                }, function(newValue, oldValue) {
+                    onResize();
+                });
 
-				var events = new Events(element).add({
-					down: onDown,
-					wheel: onWheel,
-				}, scope);
+                var events = new Events(element).add({
+                    down: onDown,
+                    wheel: onWheel,
+                }, scope);
 
-				var windowEvents = new Events(window).add({
-					resize: onResize,
-				}, scope);
+                var windowEvents = new Events(window).add({
+                    resize: onResize,
+                }, scope);
 
-				function dragOn() {
-					windowEvents.add({
-						move: onMove,
-						up: onUp,
-					}, scope);
-				}
+                function dragOn() {
+                    windowEvents.add({
+                        move: onMove,
+                        up: onUp,
+                    }, scope);
+                }
 
-				function dragOff() {
-					windowEvents.remove({
-						move: onMove,
-						up: onUp,
-					});
-				}
+                function dragOff() {
+                    windowEvents.remove({
+                        move: onMove,
+                        up: onUp,
+                    });
+                }
 
-				scope.$on('$destroy', function () {
-					animate.pause();
-				});
+                scope.$on('$destroy', function() {
+                    animate.pause();
+                });
 
-			},
-		};
+            },
+        };
     }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('Scrollable', ['Utils', 'Point', 'Rect', function (Utils, Point, Rect) {
+    app.factory('Scrollable', ['Utils', 'Point', 'Rect', function(Utils, Point, Rect) {
 
-		function Scrollable() {
+        function Scrollable() {
 
-			var padding = 150;
-			var enabled, snappable, busy, dragging, wheeling, down, move, prev;
-			var currentIndex = 0;
+            var padding = 150;
+            var enabled, snappable, busy, dragging, wheeling, down, move, prev;
+            var currentIndex = 0;
 
-			snappable = true;
+            snappable = true;
 
-			var start = new Point(),
-				end = new Point(),
-				current = new Point(),
-				drag = new Point(),
-				indicator = new Point(),
-				offset = new Point(),
-				speed = new Point(),
-				container = new Rect(),
-				content = new Rect(),
-				overflow = new Rect();
+            var start = new Point(),
+                end = new Point(),
+                current = new Point(),
+                drag = new Point(),
+                indicator = new Point(),
+                offset = new Point(),
+                speed = new Point(),
+                container = new Rect(),
+                content = new Rect(),
+                overflow = new Rect();
 
-			var scrollable = {
-				// properties
-				start: start,
-				end: end,
-				current: current,
-				indicator: indicator,
-				speed: speed,
-				overflow: overflow,
-				container: container,
-				content: content,
-				// methods
-				setContainer: setContainer,
-				setContent: setContent,
-				setEnabled: setEnabled,
-				getCurrent: getCurrent,
-				getDrag: getDrag,
-				getIndicator: getIndicator,
-				scrollToIndex: scrollToIndex,
-				scrollPrev: scrollPrev,
-				scrollNext: scrollNext,
-				dragStart: dragStart,
-				dragMove: dragMove,
-				dragEnd: dragEnd,
-				doReset: doReset,
-				off: off,
-				// x direction
-				doLeft: doLeft,
-				doRight: doRight,
-				renderX: renderX,
-				scrollToX: scrollToX,
-				wheelX: wheelX,
-				wheelXCheck: wheelXCheck,
-				// y direction
-				doTop: doTop,
-				doBottom: doBottom,
-				renderY: renderY,
-				scrollToY: scrollToY,
-				wheelY: wheelY,
-				wheelYCheck: wheelYCheck,
-			};
+            var scrollable = {
+                // properties
+                start: start,
+                end: end,
+                current: current,
+                indicator: indicator,
+                speed: speed,
+                overflow: overflow,
+                container: container,
+                content: content,
+                // methods
+                setContainer: setContainer,
+                setContent: setContent,
+                setEnabled: setEnabled,
+                getCurrent: getCurrent,
+                getDrag: getDrag,
+                getIndicator: getIndicator,
+                getIndex: getIndex,
+                scrollToIndex: scrollToIndex,
+                scrollPrev: scrollPrev,
+                scrollNext: scrollNext,
+                dragStart: dragStart,
+                dragMove: dragMove,
+                dragEnd: dragEnd,
+                doReset: doReset,
+                off: off,
+                // x direction
+                doLeft: doLeft,
+                doRight: doRight,
+                renderX: renderX,
+                scrollToX: scrollToX,
+                wheelX: wheelX,
+                wheelXCheck: wheelXCheck,
+                // y direction
+                doTop: doTop,
+                doBottom: doBottom,
+                renderY: renderY,
+                scrollToY: scrollToY,
+                wheelY: wheelY,
+                wheelYCheck: wheelYCheck,
+            };
 
-			angular.extend(this, scrollable);
+            angular.extend(this, scrollable);
 
-			scrollable = this;
+            scrollable = this;
 
-			function setContainer(node) {
-				container.width = node.offsetWidth;
-				container.height = node.offsetHeight;
-			}
+            function setContainer(node) {
+                container.width = node.offsetWidth;
+                container.height = node.offsetHeight;
+            }
 
-			function setContent(node) {
-				content.width = node.offsetWidth;
-				content.height = node.offsetHeight;
-			}
+            function setContent(node) {
+                content.width = node.offsetWidth;
+                content.height = node.offsetHeight;
+            }
 
-			function setEnabled(flag) {
-				enabled = flag;
-			}
+            function setEnabled(flag) {
+                enabled = flag;
+            }
 
-			function getCurrent() {
-				return current;
-			}
+            function getCurrent() {
+                return current;
+            }
 
-			function getDrag() {
-				return drag;
-			}
+            function getDrag() {
+                return drag;
+            }
 
-			function getIndicator() {
-				return indicator;
-			}
+            function getIndicator() {
+                return indicator;
+            }
 
-			function scrollToIndex(index) {
-				if (index !== currentIndex) {
-					currentIndex = index;
-					var item = getItemAtIndex(index);
-					if (item) {
-						offset = new Point(
-							item.offsetLeft,
-							item.offsetTop
-						);
-						// console.log('scrollToIndex', index, offset);
-					}
-					return true;
-				}
-			}
+            function getIndex() {
+                return currentIndex;
+            }
 
-			function dragStart(point) {
-				if (!busy) {
-					start.x = end.x = current.x;
-					start.y = end.y = current.y;
-					speed.x = 0;
-					speed.y = 0;
-					down = point;
-					currentIndex = -1;
-					wheeling = false;
-					return true;
-				} else {
-					return false;
-				}
-			}
+            function scrollToIndex(index) {
+                if (index !== currentIndex) {
+                    currentIndex = index;
+                    var item = getItemAtIndex(index);
+                    if (item) {
+                        offset = new Point(
+                            item.offsetLeft,
+                            item.offsetTop
+                        );
+                        // console.log('scrollToIndex', index, offset);
+                    }
+                    return true;
+                }
+            }
 
-			function dragMove(point) {
-				prev = move;
-				move = point;
-				drag.x = move.x - down.x;
-				drag.y = move.y - down.y;
-				dragging = true;
-			}
+            function dragStart(point) {
+                if (!busy) {
+                    start.x = end.x = current.x;
+                    start.y = end.y = current.y;
+                    speed.x = 0;
+                    speed.y = 0;
+                    down = point;
+                    currentIndex = -1;
+                    wheeling = false;
+                    return true;
+                } else {
+                    return false;
+                }
+            }
 
-			function dragEnd() {
-				if (move && prev) {
-					speed.x += (move.x - prev.x) * 4;
-					speed.y += (move.y - prev.y) * 4;
-				}
-				start.x = end.x = current.x;
-				start.y = end.y = current.y;
-				dragging = false;
-				move = null;
-				down = null;
-				prev = null;
-			}
+            function dragMove(point) {
+                prev = move;
+                move = point;
+                drag.x = move.x - down.x;
+                drag.y = move.y - down.y;
+                dragging = true;
+            }
 
-			function getItemAtIndex(index) {
-				var item = null;
-				var items = scrollable.getItems();
-				if (items) {
-					if (index >= 0 && index < items.length) {
-						item = items[index];
-					}
-				}
-				// console.log('getItemAtIndex', index, items.length, item);
-				return item;
-			}
+            function dragEnd() {
+                if (move && prev) {
+                    speed.x += (move.x - prev.x) * 4;
+                    speed.y += (move.y - prev.y) * 4;
+                }
+                start.x = end.x = current.x;
+                start.y = end.y = current.y;
+                dragging = false;
+                move = null;
+                down = null;
+                prev = null;
+            }
 
-			function scrollPrev() {
-				var index = Math.max(0, currentIndex - 1);
-				// console.log('scrollPrev', index);
-				scrollToIndex(index);
-			}
+            function getItemAtIndex(index) {
+                var item = null;
+                var items = scrollable.getItems();
+                if (items) {
+                    if (index >= 0 && index < items.length) {
+                        item = items[index];
+                    }
+                }
+                // console.log('getItemAtIndex', index, items.length, item);
+                return item;
+            }
 
-			function scrollNext() {
-				var items = scrollable.getItems();
-				var index = Math.min(items.length - 1, currentIndex + 1);
-				// console.log('scrollNext', index);
-				scrollToIndex(index);
-			}
+            function scrollPrev() {
+                var index = Math.max(0, currentIndex - 1);
+                console.log('scrollPrev', index);
+                scrollToIndex(index);
+            }
 
-			function doReset() {
-				end.x = current.x = 0;
-			}
+            function scrollNext() {
+                var items = scrollable.getItems();
+                var index = Math.min(items.length - 1, currentIndex + 1);
+                console.log('scrollNext', index);
+                scrollToIndex(index);
+            }
 
-			function off() {
-				dragging = false;
-				wheeling = false;
-				move = null;
-				down = null;
-			}
+            function doReset() {
+                end.x = current.x = 0;
+            }
 
-			// x - direction
+            function off() {
+                dragging = false;
+                wheeling = false;
+                move = null;
+                down = null;
+            }
 
-			function doLeft(scope) {
-				if (busy) {
-					return;
-				}
-				if (!scrollable.onLeft) {
-					return;
-				}
-				busy = true;
-				scrollable.onLeft(scope).then().finally(function () {
-					scrollToX(0);
-				});
-			}
+            // x - direction
 
-			function doRight(scope) {
-				if (busy) {
-					return;
-				}
-				if (!scrollable.onRight) {
-					return;
-				}
-				busy = true;
-				scrollable.onRight(scope).then().finally(function () {
-					var right = container.width - content.width;
-					if (right > overflow.width) {
-						start.x = end.x = overflow.width;
-					} else {
-						start.x = end.x = overflow.width + padding;
-					}
-					scrollToX(0);
-				});
-			}
+            function doLeft(scope) {
+                if (busy) {
+                    return;
+                }
+                if (!scrollable.onLeft) {
+                    return;
+                }
+                busy = true;
+                scrollable.onLeft(scope).then().finally(function() {
+                    scrollToX(0);
+                });
+            }
 
-			function renderX() {
-				var animating = true;
-				if (enabled) {
-					overflow.x = 0;
-					overflow.width = container.width - content.width;
-					if (dragging) {
-						end.x = start.x + move.x - down.x;
-						if (extendX()) {
-							start.x = end.x;
-							down.x = move.x;
-						}
-					} else if (speed.x) {
-						end.x += speed.x;
-						speed.x *= 0.75;
-						if (wheeling) {
-							extendX();
-						}
-						if (Math.abs(speed.x) < 2.05) {
-							speed.x = 0;
-							scrollable.wheeling = wheeling = false;
-							snapToNearestX();
-						}
-					} else if (offset) {
-						end.x = -offset.x;
-						offset = null;
-					}
-					end.x = Math.round(end.x * 10000) / 10000;
-					end.x = Math.min(overflow.x, end.x);
-					end.x = Math.max(overflow.width, end.x);
-					current.x += (end.x - current.x) / 4;
-					if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
-						current.x = end.x;
-						if (!snapToNearestX()) {
-							animating = false;
-						}
-					}
-					// console.log('renderX', current.x, end.x, overflow.x);
-				} else {
-					current.x = end.x = 0;
-					animating = false;
-				}
-				return animating;
-			}
+            function doRight(scope) {
+                if (busy) {
+                    return;
+                }
+                if (!scrollable.onRight) {
+                    return;
+                }
+                busy = true;
+                scrollable.onRight(scope).then().finally(function() {
+                    var right = container.width - content.width;
+                    if (right > overflow.width) {
+                        start.x = end.x = overflow.width;
+                    } else {
+                        start.x = end.x = overflow.width + padding;
+                    }
+                    scrollToX(0);
+                });
+            }
 
-			function extendX() {
-				var extending = false;
-				overflow.x += padding;
-				overflow.width -= padding;
-				if (end.x > overflow.x) {
-					extending = true;
-					doLeft();
-				} else if (end.x < overflow.width) {
-					extending = true;
-					doRight();
-				}
-				return extending;
-			}
+            function renderX() {
+                var animating = true;
+                if (enabled) {
+                    overflow.x = 0;
+                    overflow.width = container.width - content.width;
+                    if (dragging) {
+                        end.x = start.x + move.x - down.x;
+                        if (extendX()) {
+                            start.x = end.x;
+                            down.x = move.x;
+                        }
+                    } else if (speed.x) {
+                        end.x += speed.x;
+                        speed.x *= 0.75;
+                        if (wheeling) {
+                            extendX();
+                        }
+                        if (Math.abs(speed.x) < 2.05) {
+                            speed.x = 0;
+                            scrollable.wheeling = wheeling = false;
+                            snapToNearestX();
+                        }
+                    } else if (offset) {
+                        end.x = -offset.x;
+                        offset = null;
+                    }
+                    end.x = Math.round(end.x * 10000) / 10000;
+                    end.x = Math.min(overflow.x, end.x);
+                    end.x = Math.max(overflow.width, end.x);
+                    current.x += (end.x - current.x) / 4;
+                    if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
+                        current.x = end.x;
+                        if (!snapToNearestX()) {
+                            animating = false;
+                        }
+                    }
+                    // console.log('renderX', current.x, end.x, overflow.x);
+                } else {
+                    current.x = end.x = 0;
+                    animating = false;
+                }
+                return animating;
+            }
 
-			function snapToNearestX() {
-				var items = scrollable.getItems();
-				if (items) {
-					var index = -1;
-					var min = Number.POSITIVE_INFINITY;
-					angular.forEach(items, function (item, i) {
-						var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
-						if (distance < min) {
-							min = distance;
-							index = i;
-						}
-					});
-					if (index !== -1) {
-						if (snappable) {
-							return scrollToIndex(index);
-						} else {
-							currentIndex = index;
-						}
-					}
-				}
-			}
+            function extendX() {
+                var extending = false;
+                overflow.x += padding;
+                overflow.width -= padding;
+                if (end.x > overflow.x) {
+                    extending = true;
+                    doLeft();
+                } else if (end.x < overflow.width) {
+                    extending = true;
+                    doRight();
+                }
+                return extending;
+            }
 
-			function wheelXCheck(dir) {
-				// console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
-				if (!busy && enabled) {
-					if (dir < 0) {
-						return end.x - overflow.width;
-					} else {
-						return end.x - overflow.x;
-					}
-				} else {
-					return false;
-				}
-			}
+            function snapToNearestX() {
+                var items = scrollable.getItems();
+                if (items) {
+                    var index = -1;
+                    var min = Number.POSITIVE_INFINITY;
+                    angular.forEach(items, function(item, i) {
+                        var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
+                        if (distance < min) {
+                            min = distance;
+                            index = i;
+                        }
+                    });
+                    if (index !== -1) {
+                        if (snappable) {
+                            return scrollToIndex(index);
+                        } else {
+                            currentIndex = index;
+                        }
+                    }
+                }
+            }
 
-			function wheelX(dir, interval) {
-				end.x += dir * 100 / 1000 * interval;
-				speed.x += dir * 100 / 1000 * interval;
-				wheeling = true;
-			}
+            function wheelXCheck(dir) {
+                // console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
+                if (!busy && enabled) {
+                    if (dir < 0) {
+                        return end.x - overflow.width;
+                    } else {
+                        return end.x - overflow.x;
+                    }
+                } else {
+                    return false;
+                }
+            }
 
-			function scrollToX(value) {
-				start.x = end.x = value;
-				setTimeout(function () {
-					off();
-					busy = false;
-				}, 500);
-			}
+            function wheelX(dir, interval) {
+                end.x += dir * 100 / 1000 * interval;
+                speed.x += dir * 100 / 1000 * interval;
+                wheeling = true;
+            }
 
-			// y - direction
+            function scrollToX(value) {
+                start.x = end.x = value;
+                setTimeout(function() {
+                    off();
+                    busy = false;
+                }, 500);
+            }
 
-			function doTop(scope) {
-				if (busy) {
-					return;
-				}
-				if (!scrollable.onTop) {
-					return;
-				}
-				busy = true;
-				scrollable.onTop(scope).then().finally(function () {
-					scrollToY(0);
-				});
-			}
+            // y - direction
 
-			function doBottom(scope) {
-				if (busy) {
-					return;
-				}
-				if (!scrollable.onBottom) {
-					return;
-				}
-				busy = true;
-				scrollable.onBottom(scope).then().finally(function () {
-					var bottom = container.height - content.height;
-					if (bottom > overflow.height) {
-						start.y = end.y = overflow.height;
-					} else {
-						start.y = end.y = overflow.height + padding;
-					}
-					scrollToY(0);
-				});
-			}
+            function doTop(scope) {
+                if (busy) {
+                    return;
+                }
+                if (!scrollable.onTop) {
+                    return;
+                }
+                busy = true;
+                scrollable.onTop(scope).then().finally(function() {
+                    scrollToY(0);
+                });
+            }
 
-			function renderY() {
-				var animating = true;
-				if (enabled) {
-					overflow.y = 0;
-					overflow.height = container.height - content.height;
-					if (dragging) {
-						end.y = start.y + move.y - down.y;
-						if (extendY()) {
-							start.y = end.y;
-							down.y = move.y;
-						}
-					} else if (speed.y) {
-						end.y += speed.y;
-						speed.y *= 0.75;
-						if (wheeling) {
-							extendY();
-						}
-						if (Math.abs(speed.y) < 2.05) {
-							speed.y = 0;
-							scrollable.wheeling = wheeling = false;
-							snapToNearestY();
-						}
-					} else if (offset) {
-						end.y = -offset.y;
-						offset = null;
-					}
-					end.y = Math.round(end.y * 10000) / 10000;
-					end.y = Math.min(overflow.y, end.y);
-					end.y = Math.max(overflow.height, end.y);
-					current.y += (end.y - current.y) / 4;
-					if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
-						current.y = end.y;
-						if (!snapToNearestY()) {
-							animating = false;
-						}
-					}
-					// console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
-					// console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
-				} else {
-					current.y = end.y = 0;
-					animating = false;
-				}
-				return animating;
-			}
+            function doBottom(scope) {
+                if (busy) {
+                    return;
+                }
+                if (!scrollable.onBottom) {
+                    return;
+                }
+                busy = true;
+                scrollable.onBottom(scope).then().finally(function() {
+                    var bottom = container.height - content.height;
+                    if (bottom > overflow.height) {
+                        start.y = end.y = overflow.height;
+                    } else {
+                        start.y = end.y = overflow.height + padding;
+                    }
+                    scrollToY(0);
+                });
+            }
 
-			function extendY() {
-				var extending = false;
-				overflow.y += padding;
-				overflow.height -= padding;
-				if (end.y > overflow.y) {
-					extending = true;
-					doTop();
-				} else if (end.y < overflow.height) {
-					extending = true;
-					doBottom();
-				}
-				return extending;
-			}
+            function renderY() {
+                var animating = true;
+                if (enabled) {
+                    overflow.y = 0;
+                    overflow.height = container.height - content.height;
+                    if (dragging) {
+                        end.y = start.y + move.y - down.y;
+                        if (extendY()) {
+                            start.y = end.y;
+                            down.y = move.y;
+                        }
+                    } else if (speed.y) {
+                        end.y += speed.y;
+                        speed.y *= 0.75;
+                        if (wheeling) {
+                            extendY();
+                        }
+                        if (Math.abs(speed.y) < 2.05) {
+                            speed.y = 0;
+                            scrollable.wheeling = wheeling = false;
+                            snapToNearestY();
+                        }
+                    } else if (offset) {
+                        end.y = -offset.y;
+                        offset = null;
+                    }
+                    end.y = Math.round(end.y * 10000) / 10000;
+                    end.y = Math.min(overflow.y, end.y);
+                    end.y = Math.max(overflow.height, end.y);
+                    current.y += (end.y - current.y) / 4;
+                    if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
+                        current.y = end.y;
+                        if (!snapToNearestY()) {
+                            animating = false;
+                        }
+                    }
+                    // console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
+                    // console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
+                } else {
+                    current.y = end.y = 0;
+                    animating = false;
+                }
+                return animating;
+            }
 
-			function snapToNearestY() {
-				var items = scrollable.getItems();
-				if (items) {
-					var index = -1;
-					var min = Number.POSITIVE_INFINITY;
-					angular.forEach(items, function (item, i) {
-						var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
-						if (distance < min) {
-							min = distance;
-							index = i;
-						}
-					});
-					// console.log('snapToNearestY', index, min);
-					if (index !== -1) {
-						if (snappable) {
-							return scrollToIndex(index);
-						} else {
-							currentIndex = index;
-						}
-					}
-				}
-			}
+            function extendY() {
+                var extending = false;
+                overflow.y += padding;
+                overflow.height -= padding;
+                if (end.y > overflow.y) {
+                    extending = true;
+                    doTop();
+                } else if (end.y < overflow.height) {
+                    extending = true;
+                    doBottom();
+                }
+                return extending;
+            }
 
-			function wheelYCheck(dir) {
-				// console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
-				if (!busy && enabled) {
-					if (dir < 0) {
-						return end.y - overflow.height;
-					} else {
-						return end.y - overflow.y;
-					}
-				} else {
-					return false;
-				}
-			}
+            function snapToNearestY() {
+                var items = scrollable.getItems();
+                if (items) {
+                    var index = -1;
+                    var min = Number.POSITIVE_INFINITY;
+                    angular.forEach(items, function(item, i) {
+                        var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
+                        if (distance < min) {
+                            min = distance;
+                            index = i;
+                        }
+                    });
+                    // console.log('snapToNearestY', index, min);
+                    if (index !== -1) {
+                        if (snappable) {
+                            return scrollToIndex(index);
+                        } else {
+                            currentIndex = index;
+                        }
+                    }
+                }
+            }
 
-			function wheelY(dir, interval) {
-				end.y += dir * 100 / 1000 * interval;
-				speed.y += dir * 100 / 1000 * interval;
-				wheeling = true;
-			}
+            function wheelYCheck(dir) {
+                // console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
+                if (!busy && enabled) {
+                    if (dir < 0) {
+                        return end.y - overflow.height;
+                    } else {
+                        return end.y - overflow.y;
+                    }
+                } else {
+                    return false;
+                }
+            }
 
-			function scrollToY(value) {
-				start.y = end.y = value;
-				setTimeout(function () {
-					off();
-					busy = false;
-				}, 500);
-			}
+            function wheelY(dir, interval) {
+                end.y += dir * 100 / 1000 * interval;
+                speed.y += dir * 100 / 1000 * interval;
+                wheeling = true;
+            }
 
-		}
+            function scrollToY(value) {
+                start.y = end.y = value;
+                setTimeout(function() {
+                    off();
+                    busy = false;
+                }, 500);
+            }
 
-		function link(methods) {
-			angular.extend(this, methods);
-		}
+        }
 
-		Scrollable.prototype = {
-			link: link,
-			getItems: function () {
-				return [content];
-			},
-		};
-		return Scrollable;
+        function link(methods) {
+            angular.extend(this, methods);
+        }
+
+        Scrollable.prototype = {
+            link: link,
+            getItems: function() {
+                return [content];
+            },
+        };
+        return Scrollable;
     }]);
 
 }());
