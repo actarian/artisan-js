@@ -355,7 +355,7 @@ $(window).on('resize', function () {
 			var original = event.originalEvent ? event.originalEvent : event;
 			var type = original.type;
 			var delta = null;
-			if (type === 'mousewheel' || type === 'DOMMouseScroll') {
+			if (type === 'wheel' || type === 'mousewheel' || type === 'DOMMouseScroll') {
 				var deltaX = original.deltaX || original.wheelDeltaX;
 				var deltaY = original.deltaY || original.wheelDeltaY;
 				delta = new Point(deltaX, deltaY);
@@ -485,6 +485,25 @@ $(window).on('resize', function () {
 			return ua;
 		}
 
+		/*
+    function mobilecheck() {
+        var check = false;
+        (function(a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true; })(navigator.userAgent || navigator.vendor || window.opera);
+        return check;
+    }
+
+    // For those wishing to include tablets in this test (though arguably, you shouldn't), you can use the following function:
+    function mobileAndTabletcheck() {
+        var check = false;
+        (function(a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true; })(navigator.userAgent || navigator.vendor || window.opera);
+        return check;
+    }
+
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var isMobile = mobilecheck();
+    var isMobileAndTabled = mobileAndTabletcheck();
+		*/
+
 		function compileController(scope, element, html, data) {
 			// console.log('Dom.compileController', element);
 			element = getElement(element);
@@ -572,6 +591,7 @@ $(window).on('resize', function () {
 					this.delta = delta;
 					this.dir = delta.dir;
 				}
+				this.event = event;
 				this.type = type;
 				this.originalEvent = originalEvent;
 				this.element = element;
@@ -599,8 +619,8 @@ $(window).on('resize', function () {
 		// prototype methods
 
 		function stop() {
-			this.originalEvent.stopPropagation();
-			this.originalEvent.preventDefault();
+			this.event.stopPropagation();
+			this.event.preventDefault();
 		}
 
 	}]);
@@ -2469,61 +2489,135 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('Router', ['$location', '$timeout', function($location, $timeout) {
+	app.service('Router', ['$rootScope', '$location', '$timeout', function ($rootScope, $location, $timeout) {
 
-        var service = this;
-        service.redirect = redirect;
-        service.path = path;
-        service.apply = apply;
+		var service = this;
 
-        function redirect(path, msecs) {
-            function doRedirect() {
-                $location.$$lastRequestedPath = $location.path();
-                $location.path(path);
-            }
-            if (msecs) {
-                $timeout(function() {
-                    doRedirect();
-                }, msecs);
-            } else {
-                doRedirect();
-            }
-        }
+		var statics = {
+			isController: RouterIsController,
+			redirect: RouterRedirect,
+			path: RouterPath,
+			apply: RouterApply,
+		};
 
-        function path(path, msecs) {
-            function doRetry() {
-                path = $location.$$lastRequestedPath || path;
-                $location.$$lastRequestedPath = null;
-                $location.path(path);
-            }
-            if (msecs) {
-                $timeout(function() {
-                    doRetry();
-                }, msecs);
-            } else {
-                doRetry();
-            }
-        }
+		angular.extend(service, statics);
 
-        function apply(path, msecs) {
-            function doRetry() {
-                $location.path(path);
-            }
-            if (msecs) {
-                $timeout(function() {
-                    doRetry();
-                }, msecs);
-            } else {
-                $timeout(function() {
-                    doRetry();
-                });
-            }
-        }
+		$rootScope.$on('$routeChangeStart', RouterOnChangeStart);
+		$rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
+		$rootScope.$on('$routeChangeError', RouterOnChangeError);
+		$rootScope.$on('$routeUpdate', RouterOnUpdate);
+
+		var $previous, $current, $next;
+		var $previousController, $currentController, $nextController;
+
+		function RouterSetControllers() {
+			$previousController = $previous ? $previous.controller : null;
+			$currentController = $current ? $current.controller : null;
+			$nextController = $next ? $next.controller : null;
+		}
+
+		/*
+		$routeChangeStart
+		Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
+		The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
+		*/
+		function RouterOnChangeStart(event, next, current) {
+			$previous = null;
+			$current = current ? current.$$route : null;
+			$next = next ? next.$$route : null;
+			RouterSetControllers();
+			console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeChangeSuccess
+		Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
+		*/
+		function RouterOnChangeSuccess(event, current, previous) {
+			$previous = previous ? previous.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeChangeError
+		Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
+		*/
+		function RouterOnChangeError(event, current, previous, rejection) {
+			$previous = null;
+			$current = previous.$$route || null;
+			$next = null;
+			RouterSetControllers();
+			console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeUpdate
+		The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
+		*/
+		function RouterOnUpdate(event, current) {
+			$previous = current ? current.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		function RouterIsController(controller) {
+			return $currentController === controller;
+		}
+
+		// navigation
+
+		function RouterRedirectTo(path) {
+			$location.$$lastRequestedPath = $location.path();
+			$location.path(path);
+		}
+
+		function RouterRetryLastRequestedPath(path) {
+			path = $location.$$lastRequestedPath || path;
+			$location.$$lastRequestedPath = null;
+			$location.path(path);
+		}
+
+		function RouterRedirect(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					RouterRedirectTo(path);
+				}, msecs);
+			} else {
+				RouterRedirectTo(path);
+			}
+		}
+
+		function RouterPath(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					RouterRetryLastRequestedPath(path);
+				}, msecs);
+			} else {
+				RouterRetryLastRequestedPath(path);
+			}
+		}
+
+		function RouterApply(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					$location.path(path);
+				}, msecs);
+			} else {
+				$timeout(function () {
+					$location.path(path);
+				});
+			}
+		}
 
     }]);
 
@@ -2535,19 +2629,16 @@ $(window).on('resize', function () {
 
 	var app = angular.module('artisan');
 
-	app.factory('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
+	app.service('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
 
-		function Silent() {}
+		var service = this;
 
 		var statics = {
 			silent: SilentSilent,
 			path: SilentPath,
 		};
 
-		var methods = {};
-
-		angular.extend(Silent, statics);
-		angular.extend(Silent.prototype, methods);
+		angular.extend(service, statics);
 
 		$rootScope.$$listeners.$locationChangeSuccess.unshift(SilentListener);
 		// console.log('$rootScope.$$listeners.$locationChangeSuccess', $rootScope.$$listeners.$locationChangeSuccess);
@@ -2556,9 +2647,12 @@ $(window).on('resize', function () {
 
 		var $path;
 
-		return Silent;
-
 		// static methods
+
+		function SilentGetDomain() {
+			var currentDomain = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+			return currentDomain;
+		}
 
 		function SilentUnlink() {
 			var listeners = $rootScope.$$listeners.$locationChangeSuccess;
@@ -2921,6 +3015,74 @@ $(window).on('resize', function () {
 				i = setTimeout(function () {
 					promise.reject('timeout');
 				}, timeout);
+			});
+		}
+
+    }]);
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.service('Trust', ['$sce', function ($sce) {
+
+		var service = this;
+
+		var statics = {
+			html: TrustHtml,
+			resource: TrustResource,
+			url: TrustUrl,
+		};
+
+		angular.extend(service, statics);
+
+		// private vars
+
+		var values = [],
+			trustedValues = [];
+
+		function TrustGetValue(value) {
+			var index = values.indexOf(value);
+			if (index !== -1) {
+				return trustedValues[index];
+			} else {
+				return null;
+			}
+		}
+
+		function TrustSetValue(value, trustedValue) {
+			values.push(value);
+			values.push(trustedValue);
+		}
+
+		function TrustGetOrSet(value, callback) {
+			var trustedValue = TrustGetValue(value);
+			if (!trustedValue) {
+				trustedValue = callback();
+				TrustSetValue(value, trustedValue);
+			}
+			return trustedValue;
+		}
+
+		function TrustHtml(value) {
+			return TrustGetOrSet(value, function () {
+				return $sce.trustAsHtml(value);
+			});
+		}
+
+		function TrustResource(value) {
+			return TrustGetOrSet(value, function () {
+				return $sce.trustAsResourceUrl(value);
+			});
+		}
+
+		function TrustUrl(value) {
+			return TrustGetOrSet(value, function () {
+				return 'url(\'' + value + '\')';
 			});
 		}
 
@@ -4193,7 +4355,7 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.directive('navItem', ['$timeout', function ($timeout) {
+	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
 		return {
 			restrict: 'A',
 			templateUrl: function (element, attributes) {
@@ -4260,9 +4422,9 @@ $(window).on('resize', function () {
 					// console.log(state);
 				}
 
-				function onTap(e) {
+				function onDown(e) {
 					var item = scope.item;
-					// console.log('Item.onTap', item);
+					// console.log('Item.onDown', item);
 					var state = item.$nav.state;
 					if (state.active) {
 						output = false;
@@ -4288,63 +4450,58 @@ $(window).on('resize', function () {
 							itemToggle(item);
 						});
 					}
-				}
 
-				function onTouchStart(e) {
-					// console.log('Item.onTouchStart', e);
-					onTap(e);
-					navItem
-						.off('mousedown', onMouseDown);
-					// return r || prevent(e);
-				}
-
-				function onMouseDown(e) {
-					// console.log('Item.onMouseDown', e);
-					onTap(e);
-					navItem
-						.off('touchstart', onTouchStart);
-					// return r || prevent(e);
+					// preventDefault(e);
 				}
 
 				function onClick(e) {
 					// console.log('Item.onClick', e);
-					return prevent(e);
+					return preventDefault(e);
 				}
 
-				function prevent(e) {
+				function preventDefault(e) {
 					if (output === false) {
-						// console.log('Item.prevent', e);
-						e.preventDefault();
+						// console.log('Item.preventDefault', e);
+						e.stop();
+						// e.preventDefault();
 						// e.stopPropagation();
 						return false;
 					}
 				}
 
-				function addListeners() {
-					navItem
-						.on('touchstart', onTouchStart)
-						.on('mousedown', onMouseDown)
-						.on('click', onClick);
+				var events = new Events(navItem).add({
+					down: onDown,
+					click: onClick,
+				}, scope);
+
+			}
+		};
+    }]);
+
+	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
+		return {
+			restrict: 'A',
+			link: function (scope, element, attributes) {
+
+				function onDown(e) {
+					console.log('navTo.onDown', attributes.navTo);
+					$timeout(function () {
+						var callback = $parse(attributes.navTo);
+						callback(scope);
+					});
+					e.preventDefault();
+					return false;
 				}
 
-				function removeListeners() {
-					navItem
-						.off('touchstart', onTouchStart)
-						.off('mousedown', onMouseDown)
-						.off('click', onClick);
-				}
+				var events = new Events(element).add({
+					down: onDown,
+				}, scope);
 
-				addListeners();
-
-				scope.$on('$destroy', function () {
-					removeListeners();
-				});
 			}
 		};
     }]);
 
 }());
-
 /* global angular */
 
 (function () {
@@ -4475,407 +4632,409 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    window.ondragstart = function() {
-        return false;
-    };
+	window.ondragstart = function () {
+		return false;
+	};
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
-        return {
-            restrict: 'A',
-            template: '<div class="scrollable-content" ng-transclude></div>',
-            transclude: true,
-            link: function(scope, element, attributes, model) {
+	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="scrollable-content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
 
-                var onLeft, onRight, showIndicatorFor, scrollableWhen;
-                if (attributes.onLeft) {
-                    onLeft = $parse(attributes.onLeft);
-                }
-                if (attributes.onRight) {
-                    onRight = $parse(attributes.onRight);
-                }
-                if (attributes.showIndicatorFor) {
-                    showIndicatorFor = $parse(attributes.showIndicatorFor);
-                }
-                if (attributes.scrollableWhen) {
-                    scrollableWhen = $parse(attributes.scrollableWhen);
-                }
+				var onLeft, onRight, showIndicatorFor, scrollableWhen;
+				if (attributes.onLeft) {
+					onLeft = $parse(attributes.onLeft);
+				}
+				if (attributes.onRight) {
+					onRight = $parse(attributes.onRight);
+				}
+				if (attributes.showIndicatorFor) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor);
+				}
+				if (attributes.scrollableWhen) {
+					scrollableWhen = $parse(attributes.scrollableWhen);
+				}
 
-                // ELEMENTS & STYLESHEETS;
-                element.attr('unselectable', 'on').addClass('unselectable');
-                var containerNode = element[0];
-                var contentNode = containerNode.querySelector('.scrollable-content');
-                var content = angular.element(content);
-                var contentStyle = new Style();
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var containerNode = element[0];
+				var contentNode = containerNode.querySelector('.scrollable-content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
 
-                var animate = new Animate(render);
+				var animate = new Animate(render);
 
-                var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
+				var scrollable = attributes.scrollableX ? $parse(attributes.scrollableX)(scope) : new Scrollable();
 
-                link(scrollable);
+				link(scrollable);
 
-                function link(scrollable) {
-                    scrollable.link({
-                        getItems: function() {
-                            if (attributes.scrollableItem) {
-                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
-                                return items;
-                            }
-                        },
-                        prev: function() {
-                            scrollable.scrollPrev();
-                            animate.play();
-                        },
-                        next: function() {
-                            scrollable.scrollNext();
-                            animate.play();
-                        },
-                        reset: function() {
-                            scrollable.doReset();
-                            animate.play();
-                        },
-                        onLeft: onLeft,
-                        onRight: onRight,
-                    });
-                }
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
+						},
+						reset: function () {
+							scrollable.doReset();
+							animate.play();
+						},
+						onLeft: onLeft,
+						onRight: onRight,
+					});
+				}
 
-                /*
-                scope.$watch(attributes.scrollableX, function (newValue) {
-                	console.log(newValue);
-                });
-                */
+				/*
+				scope.$watch(attributes.scrollableX, function (newValue) {
+					console.log(newValue);
+				});
+				*/
 
-                /*
-                var indicator = null,
-                	indicatorNode = null,
-                	indicatorStyle;
-                showIndicatorFor = false;
-                if (showIndicatorFor) {
-                	indicator = angular.element('<div class="indicator"></div>');
-                	indicatorNode = indicator[0];
-                	indicatorStyle = new Style();
-                	element.append(indicator);
-                	$compile(indicator.contents())(scope);
-                	var i = scrollbar.getIndicator();
-                	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-                	indicatorStyle.set(indicatorNode);
-                }
-                */
+				/*
+				var indicator = null,
+					indicatorNode = null,
+					indicatorStyle;
+				showIndicatorFor = false;
+				if (showIndicatorFor) {
+					indicator = angular.element('<div class="indicator"></div>');
+					indicatorNode = indicator[0];
+					indicatorStyle = new Style();
+					element.append(indicator);
+					$compile(indicator.contents())(scope);
+					var i = scrollbar.getIndicator();
+					indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+					indicatorStyle.set(indicatorNode);
+				}
+				*/
 
-                function render(time) {
-                    scrollable.setContainer(containerNode);
-                    scrollable.setContent(contentNode);
-                    scrollable.setEnabled(isEnabled());
-                    var animating = scrollable.renderX();
-                    if (!animating) {
-                        // animate.pause();
-                    }
-                    var current = scrollable.getCurrent();
-                    contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
-                    contentStyle.set(contentNode);
-                    /*
-                    if (showIndicatorFor) {
-                    	if (dragging || wheeling || speed) {
-                    		var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
-                    		percent = Math.max(0, Math.min(1, percent));
-                    		i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
-                    		i.y += (0 - i.y) / 4;
-                    		// var count = Math.round(contentNode.offsetWidth / 315);
-                    		var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
-                    		indicator.html(index + '/' + showIndicatorFor.count);
-                    		// indicator.html((percent * 100).toFixed(2).toString());
-                    	} else {
-                    		i.y += (45 - i.y) / 4;
-                    	}
-                    	indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
-                    	indicatorStyle.set(indicatorNode);
-                    }
-                    */
-                }
+				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
+					scrollable.setEnabled(isEnabled());
+					var animating = scrollable.renderX();
+					if (!animating) {
+						// animate.pause();
+					}
+					var current = scrollable.getCurrent();
+					contentStyle.transform('translate3d(' + current.x.toFixed(2) + 'px,0,0)');
+					contentStyle.set(contentNode);
+					/*
+					if (showIndicatorFor) {
+						if (dragging || wheeling || speed) {
+							var percent = c.x / (containerNode.offsetWidth - contentNode.offsetWidth);
+							percent = Math.max(0, Math.min(1, percent));
+							i.x = (containerNode.offsetWidth - indicatorNode.offsetWidth) * (percent);
+							i.y += (0 - i.y) / 4;
+							// var count = Math.round(contentNode.offsetWidth / 315);
+							var index = Math.max(1, Math.round(percent * showIndicatorFor.rows.length));
+							indicator.html(index + '/' + showIndicatorFor.count);
+							// indicator.html((percent * 100).toFixed(2).toString());
+						} else {
+							i.y += (45 - i.y) / 4;
+						}
+						indicatorStyle.transform('translate3d(' + i.x.toFixed(2) + 'px,' + i.y.toFixed(2) + 'px,0)');
+						indicatorStyle.set(indicatorNode);
+					}
+					*/
+				}
 
-                function undrag() {
-                    scrollable.off();
-                    dragOff();
-                }
+				function undrag() {
+					scrollable.off();
+					dragOff();
+				}
 
-                function onDown(event) {
-                    if (scrollable.dragStart(event.absolute)) {
-                        dragOn();
-                        animate.play();
-                    }
-                }
+				function onDown(event) {
+					if (scrollable.dragStart(event.absolute)) {
+						dragOn();
+						animate.play();
+						event.stop();
+					}
+				}
 
-                function onMove(event) {
-                    scrollable.dragMove(event.absolute);
-                    var drag = scrollable.getDrag();
-                    if (Math.abs(drag.y) > Math.abs(drag.x)) {
-                        onUp(event);
-                    } else {
-                        event.stop();
-                    }
-                }
+				function onMove(event) {
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.y) > Math.abs(drag.x)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
+				}
 
-                function onUp(event) {
-                    scrollable.dragEnd(event.absolute);
-                    event.stop();
-                    dragOff();
-                }
+				function onUp(event) {
+					scrollable.dragEnd(event.absolute);
+					event.stop();
+					dragOff();
+				}
 
-                function _onScrollX(dir, interval) {
-                    return scrollable.wheelX(dir, interval);
-                }
+				function _onScrollX(dir, interval) {
+					return scrollable.wheelX(dir, interval);
+				}
 
-                var onScrollX = _onScrollX;
-                // var onScrollX = Utils.throttle(_onScrollX, 25);
+				var onScrollX = _onScrollX;
+				// var onScrollX = Utils.throttle(_onScrollX, 25);
 
-                function onWheel(event) {
-                    // console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
-                    if (scrollable.wheelXCheck(event.dir)) {
-                        onScrollX(event.dir, event.interval);
-                        animate.play();
-                        event.stop();
-                    }
-                }
+				function onWheel(event) {
+					// console.log('onWheelX', event.dir, scrollable.wheelXCheck(event.dir));
+					if (scrollable.wheelXCheck(event.dir)) {
+						onScrollX(event.dir, event.interval);
+						animate.play();
+						event.stop();
+					}
+				}
 
-                function off() {
-                    dragOff();
-                    // animate.pause();
-                    scrollable.off();
-                }
+				function off() {
+					dragOff();
+					// animate.pause();
+					scrollable.off();
+				}
 
-                function isEnabled() {
-                    var enabled = true;
-                    if (scrollableWhen) {
-                        enabled = enabled && scrollableWhen(scope);
-                    }
-                    enabled = enabled && window.innerWidth >= 1024;
-                    enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
-                    return enabled;
-                }
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && window.innerWidth >= 1024;
+					enabled = enabled && (containerNode.offsetWidth < contentNode.offsetWidth);
+					return enabled;
+				}
 
-                function onResize() {
-                    var enabled = isEnabled();
-                    if (!enabled) {
-                        off();
-                    }
-                    render();
-                }
+				function onResize() {
+					var enabled = isEnabled();
+					if (!enabled) {
+						off();
+					}
+					render();
+				}
 
-                scope.$watch(function() {
-                    return contentNode.offsetWidth;
-                }, function(newValue, oldValue) {
-                    onResize();
-                });
+				scope.$watch(function () {
+					return contentNode.offsetWidth;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
 
-                var events = new Events(element).add({
-                    down: onDown,
-                    wheel: onWheel,
-                }, scope);
+				var events = new Events(element).add({
+					down: onDown,
+					wheel: onWheel,
+				}, scope);
 
-                var windowEvents = new Events(window).add({
-                    resize: onResize,
-                }, scope);
+				var windowEvents = new Events(window).add({
+					resize: onResize,
+				}, scope);
 
-                function dragOn() {
-                    windowEvents.add({
-                        move: onMove,
-                        up: onUp,
-                    }, scope);
-                }
+				function dragOn() {
+					windowEvents.add({
+						move: onMove,
+						up: onUp,
+					}, scope);
+				}
 
-                function dragOff() {
-                    windowEvents.remove({
-                        move: onMove,
-                        up: onUp,
-                    });
-                }
+				function dragOff() {
+					windowEvents.remove({
+						move: onMove,
+						up: onUp,
+					});
+				}
 
-                scope.$on('$destroy', function() {
-                    animate.pause();
-                });
+				scope.$on('$destroy', function () {
+					animate.pause();
+				});
 
-            },
-        };
+			},
+		};
     }]);
 
-    app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
-        return {
-            restrict: 'A',
-            template: '<div class="scrollable-content" ng-transclude></div>',
-            transclude: true,
-            link: function(scope, element, attributes, model) {
+	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+		return {
+			restrict: 'A',
+			template: '<div class="scrollable-content" ng-transclude></div>',
+			transclude: true,
+			link: function (scope, element, attributes, model) {
 
-                var onTop, onBottom, showIndicatorFor, scrollableWhen;
-                if (attributes.onTop) {
-                    onTop = $parse(attributes.onTop);
-                }
-                if (attributes.onBottom) {
-                    onBottom = $parse(attributes.onBottom);
-                }
-                if (attributes.showIndicatorFor) {
-                    showIndicatorFor = $parse(attributes.showIndicatorFor);
-                }
-                if (attributes.scrollableWhen) {
-                    scrollableWhen = $parse(attributes.scrollableWhen);
-                }
+				var onTop, onBottom, showIndicatorFor, scrollableWhen;
+				if (attributes.onTop) {
+					onTop = $parse(attributes.onTop);
+				}
+				if (attributes.onBottom) {
+					onBottom = $parse(attributes.onBottom);
+				}
+				if (attributes.showIndicatorFor) {
+					showIndicatorFor = $parse(attributes.showIndicatorFor);
+				}
+				if (attributes.scrollableWhen) {
+					scrollableWhen = $parse(attributes.scrollableWhen);
+				}
 
-                // ELEMENTS & STYLESHEETS;
-                element.attr('unselectable', 'on').addClass('unselectable');
-                var containerNode = element[0];
-                var contentNode = containerNode.querySelector('.scrollable-content');
-                var content = angular.element(content);
-                var contentStyle = new Style();
+				// ELEMENTS & STYLESHEETS;
+				element.attr('unselectable', 'on').addClass('unselectable');
+				var containerNode = element[0];
+				var contentNode = containerNode.querySelector('.scrollable-content');
+				var content = angular.element(content);
+				var contentStyle = new Style();
 
-                var animate = new Animate(render);
+				var animate = new Animate(render);
 
-                var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
-                link(scrollable);
+				var scrollable = attributes.scrollableY ? $parse(attributes.scrollableY)(scope) : new Scrollable();
+				link(scrollable);
 
-                function link(scrollable) {
-                    scrollable.link({
-                        getItems: function() {
-                            if (attributes.scrollableItem) {
-                                var items = containerNode.querySelectorAll(attributes.scrollableItem);
-                                return items;
-                            }
-                        },
-                        prev: function() {
-                            scrollable.scrollPrev();
-                            animate.play();
-                        },
-                        next: function() {
-                            scrollable.scrollNext();
-                            animate.play();
-                        },
-                        reset: function() {
-                            scrollable.doReset();
-                            animate.play();
-                        },
-                        onTop: onTop,
-                        onBottom: onBottom,
-                    });
-                }
+				function link(scrollable) {
+					scrollable.link({
+						getItems: function () {
+							if (attributes.scrollableItem) {
+								var items = containerNode.querySelectorAll(attributes.scrollableItem);
+								return items;
+							}
+						},
+						prev: function () {
+							scrollable.scrollPrev();
+							animate.play();
+						},
+						next: function () {
+							scrollable.scrollNext();
+							animate.play();
+						},
+						reset: function () {
+							scrollable.doReset();
+							animate.play();
+						},
+						onTop: onTop,
+						onBottom: onBottom,
+					});
+				}
 
-                function render(time) {
-                    scrollable.setContainer(containerNode);
-                    scrollable.setContent(contentNode);
-                    scrollable.setEnabled(isEnabled());
-                    var animating = scrollable.renderY();
-                    if (!animating) {
-                        // animate.pause();
-                    }
-                    var current = scrollable.getCurrent();
-                    contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
-                    contentStyle.set(contentNode);
-                }
+				function render(time) {
+					scrollable.setContainer(containerNode);
+					scrollable.setContent(contentNode);
+					scrollable.setEnabled(isEnabled());
+					var animating = scrollable.renderY();
+					if (!animating) {
+						// animate.pause();
+					}
+					var current = scrollable.getCurrent();
+					contentStyle.transform('translate3d(0,' + current.y.toFixed(2) + 'px,0)');
+					contentStyle.set(contentNode);
+				}
 
-                function undrag() {
-                    scrollable.off();
-                    dragOff();
-                }
+				function undrag() {
+					scrollable.off();
+					dragOff();
+				}
 
-                function onDown(event) {
-                    if (scrollable.dragStart(event.absolute)) {
-                        dragOn();
-                        animate.play();
-                    }
-                }
+				function onDown(event) {
+					if (scrollable.dragStart(event.absolute)) {
+						dragOn();
+						animate.play();
+						event.stop();
+					}
+				}
 
-                function onMove(event) {
-                    scrollable.dragMove(event.absolute);
-                    var drag = scrollable.getDrag();
-                    if (Math.abs(drag.x) > Math.abs(drag.y)) {
-                        onUp(event);
-                    } else {
-                        event.stop();
-                    }
-                }
+				function onMove(event) {
+					scrollable.dragMove(event.absolute);
+					var drag = scrollable.getDrag();
+					if (Math.abs(drag.x) > Math.abs(drag.y)) {
+						onUp(event);
+					} else {
+						event.stop();
+					}
+				}
 
-                function onUp(event) {
-                    scrollable.dragEnd(event.absolute);
-                    event.stop();
-                    dragOff();
-                }
+				function onUp(event) {
+					scrollable.dragEnd(event.absolute);
+					event.stop();
+					dragOff();
+				}
 
-                function _onScrollY(dir, interval) {
-                    return scrollable.wheelY(dir, interval);
-                }
+				function _onScrollY(dir, interval) {
+					return scrollable.wheelY(dir, interval);
+				}
 
-                var onScrollY = _onScrollY;
-                // var onScrollY = Utils.throttle(_onScrollY, 25);
+				var onScrollY = _onScrollY;
+				// var onScrollY = Utils.throttle(_onScrollY, 25);
 
-                function onWheel(event) {
-                    // console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
-                    if (scrollable.wheelYCheck(event.dir)) {
-                        onScrollY(event.dir, event.interval);
-                        animate.play();
-                        event.stop();
-                    }
-                }
+				function onWheel(event) {
+					// console.log('onWheelY', event.dir, scrollable.wheelYCheck(event.dir));
+					if (scrollable.wheelYCheck(event.dir)) {
+						onScrollY(event.dir, event.interval);
+						animate.play();
+						event.stop();
+					}
+				}
 
-                function off() {
-                    dragOff();
-                    // animate.pause();
-                    scrollable.off();
-                }
+				function off() {
+					dragOff();
+					// animate.pause();
+					scrollable.off();
+				}
 
-                function isEnabled() {
-                    var enabled = true;
-                    if (scrollableWhen) {
-                        enabled = enabled && scrollableWhen(scope);
-                    }
-                    enabled = enabled && window.innerWidth >= 1024;
-                    enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
-                    return enabled;
-                }
+				function isEnabled() {
+					var enabled = true;
+					if (scrollableWhen) {
+						enabled = enabled && scrollableWhen(scope);
+					}
+					enabled = enabled && window.innerWidth >= 1024;
+					enabled = enabled && (containerNode.offsetHeight < contentNode.offsetHeight);
+					return enabled;
+				}
 
-                function onResize() {
-                    var enabled = isEnabled();
-                    if (!enabled) {
-                        off();
-                    }
-                    render();
-                }
+				function onResize() {
+					var enabled = isEnabled();
+					if (!enabled) {
+						off();
+					}
+					render();
+				}
 
-                scope.$watch(function() {
-                    return contentNode.offsetHeight;
-                }, function(newValue, oldValue) {
-                    onResize();
-                });
+				scope.$watch(function () {
+					return contentNode.offsetHeight;
+				}, function (newValue, oldValue) {
+					onResize();
+				});
 
-                var events = new Events(element).add({
-                    down: onDown,
-                    wheel: onWheel,
-                }, scope);
+				var events = new Events(element).add({
+					down: onDown,
+					wheel: onWheel,
+				}, scope);
 
-                var windowEvents = new Events(window).add({
-                    resize: onResize,
-                }, scope);
+				var windowEvents = new Events(window).add({
+					resize: onResize,
+				}, scope);
 
-                function dragOn() {
-                    windowEvents.add({
-                        move: onMove,
-                        up: onUp,
-                    }, scope);
-                }
+				function dragOn() {
+					windowEvents.add({
+						move: onMove,
+						up: onUp,
+					}, scope);
+				}
 
-                function dragOff() {
-                    windowEvents.remove({
-                        move: onMove,
-                        up: onUp,
-                    });
-                }
+				function dragOff() {
+					windowEvents.remove({
+						move: onMove,
+						up: onUp,
+					});
+				}
 
-                scope.$on('$destroy', function() {
-                    animate.pause();
-                });
+				scope.$on('$destroy', function () {
+					animate.pause();
+				});
 
-            },
-        };
+			},
+		};
     }]);
 
 }());

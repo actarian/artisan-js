@@ -30,6 +30,7 @@
 					this.delta = delta;
 					this.dir = delta.dir;
 				}
+				this.event = event;
 				this.type = type;
 				this.originalEvent = originalEvent;
 				this.element = element;
@@ -57,8 +58,8 @@
 		// prototype methods
 
 		function stop() {
-			this.originalEvent.stopPropagation();
-			this.originalEvent.preventDefault();
+			this.event.stopPropagation();
+			this.event.preventDefault();
 		}
 
 	}]);

@@ -5,19 +5,16 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
+	app.service('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
 
-		function Silent() {}
+		var service = this;
 
 		var statics = {
 			silent: SilentSilent,
 			path: SilentPath,
 		};
 
-		var methods = {};
-
-		angular.extend(Silent, statics);
-		angular.extend(Silent.prototype, methods);
+		angular.extend(service, statics);
 
 		$rootScope.$$listeners.$locationChangeSuccess.unshift(SilentListener);
 		// console.log('$rootScope.$$listeners.$locationChangeSuccess', $rootScope.$$listeners.$locationChangeSuccess);
@@ -26,9 +23,12 @@
 
 		var $path;
 
-		return Silent;
-
 		// static methods
+
+		function SilentGetDomain() {
+			var currentDomain = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+			return currentDomain;
+		}
 
 		function SilentUnlink() {
 			var listeners = $rootScope.$$listeners.$locationChangeSuccess;

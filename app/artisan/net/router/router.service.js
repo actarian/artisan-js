@@ -1,60 +1,134 @@
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('Router', ['$location', '$timeout', function($location, $timeout) {
+	app.service('Router', ['$rootScope', '$location', '$timeout', function ($rootScope, $location, $timeout) {
 
-        var service = this;
-        service.redirect = redirect;
-        service.path = path;
-        service.apply = apply;
+		var service = this;
 
-        function redirect(path, msecs) {
-            function doRedirect() {
-                $location.$$lastRequestedPath = $location.path();
-                $location.path(path);
-            }
-            if (msecs) {
-                $timeout(function() {
-                    doRedirect();
-                }, msecs);
-            } else {
-                doRedirect();
-            }
-        }
+		var statics = {
+			isController: RouterIsController,
+			redirect: RouterRedirect,
+			path: RouterPath,
+			apply: RouterApply,
+		};
 
-        function path(path, msecs) {
-            function doRetry() {
-                path = $location.$$lastRequestedPath || path;
-                $location.$$lastRequestedPath = null;
-                $location.path(path);
-            }
-            if (msecs) {
-                $timeout(function() {
-                    doRetry();
-                }, msecs);
-            } else {
-                doRetry();
-            }
-        }
+		angular.extend(service, statics);
 
-        function apply(path, msecs) {
-            function doRetry() {
-                $location.path(path);
-            }
-            if (msecs) {
-                $timeout(function() {
-                    doRetry();
-                }, msecs);
-            } else {
-                $timeout(function() {
-                    doRetry();
-                });
-            }
-        }
+		$rootScope.$on('$routeChangeStart', RouterOnChangeStart);
+		$rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
+		$rootScope.$on('$routeChangeError', RouterOnChangeError);
+		$rootScope.$on('$routeUpdate', RouterOnUpdate);
+
+		var $previous, $current, $next;
+		var $previousController, $currentController, $nextController;
+
+		function RouterSetControllers() {
+			$previousController = $previous ? $previous.controller : null;
+			$currentController = $current ? $current.controller : null;
+			$nextController = $next ? $next.controller : null;
+		}
+
+		/*
+		$routeChangeStart
+		Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
+		The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
+		*/
+		function RouterOnChangeStart(event, next, current) {
+			$previous = null;
+			$current = current ? current.$$route : null;
+			$next = next ? next.$$route : null;
+			RouterSetControllers();
+			console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeChangeSuccess
+		Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
+		*/
+		function RouterOnChangeSuccess(event, current, previous) {
+			$previous = previous ? previous.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeChangeError
+		Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
+		*/
+		function RouterOnChangeError(event, current, previous, rejection) {
+			$previous = null;
+			$current = previous.$$route || null;
+			$next = null;
+			RouterSetControllers();
+			console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeUpdate
+		The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
+		*/
+		function RouterOnUpdate(event, current) {
+			$previous = current ? current.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		function RouterIsController(controller) {
+			return $currentController === controller;
+		}
+
+		// navigation
+
+		function RouterRedirectTo(path) {
+			$location.$$lastRequestedPath = $location.path();
+			$location.path(path);
+		}
+
+		function RouterRetryLastRequestedPath(path) {
+			path = $location.$$lastRequestedPath || path;
+			$location.$$lastRequestedPath = null;
+			$location.path(path);
+		}
+
+		function RouterRedirect(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					RouterRedirectTo(path);
+				}, msecs);
+			} else {
+				RouterRedirectTo(path);
+			}
+		}
+
+		function RouterPath(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					RouterRetryLastRequestedPath(path);
+				}, msecs);
+			} else {
+				RouterRetryLastRequestedPath(path);
+			}
+		}
+
+		function RouterApply(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					$location.path(path);
+				}, msecs);
+			} else {
+				$timeout(function () {
+					$location.path(path);
+				});
+			}
+		}
 
     }]);
 

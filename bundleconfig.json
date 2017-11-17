@@ -42,8 +42,9 @@
 
         "app/artisan/net/http/http.service.js",
         "app/artisan/net/router/router.service.js",
-        "app/artisan/net/silent/silent.factory.js",
+        "app/artisan/net/silent/silent.service.js",
         "app/artisan/net/storage/storage.service.js",
+        "app/artisan/net/trust/trust.service.js",
 
         "app/artisan/ui/components/canvas/painter.service.js",
         "app/artisan/ui/components/forms/control.directive.js",

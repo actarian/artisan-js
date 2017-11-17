@@ -37,7 +37,7 @@
 		};
     }]);
 
-	app.directive('navItem', ['$timeout', function ($timeout) {
+	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
 		return {
 			restrict: 'A',
 			templateUrl: function (element, attributes) {
@@ -104,9 +104,9 @@
 					// console.log(state);
 				}
 
-				function onTap(e) {
+				function onDown(e) {
 					var item = scope.item;
-					// console.log('Item.onTap', item);
+					// console.log('Item.onDown', item);
 					var state = item.$nav.state;
 					if (state.active) {
 						output = false;
@@ -132,57 +132,53 @@
 							itemToggle(item);
 						});
 					}
-				}
 
-				function onTouchStart(e) {
-					// console.log('Item.onTouchStart', e);
-					onTap(e);
-					navItem
-						.off('mousedown', onMouseDown);
-					// return r || prevent(e);
-				}
-
-				function onMouseDown(e) {
-					// console.log('Item.onMouseDown', e);
-					onTap(e);
-					navItem
-						.off('touchstart', onTouchStart);
-					// return r || prevent(e);
+					// preventDefault(e);
 				}
 
 				function onClick(e) {
 					// console.log('Item.onClick', e);
-					return prevent(e);
+					return preventDefault(e);
 				}
 
-				function prevent(e) {
+				function preventDefault(e) {
 					if (output === false) {
-						// console.log('Item.prevent', e);
-						e.preventDefault();
+						// console.log('Item.preventDefault', e);
+						e.stop();
+						// e.preventDefault();
 						// e.stopPropagation();
 						return false;
 					}
 				}
 
-				function addListeners() {
-					navItem
-						.on('touchstart', onTouchStart)
-						.on('mousedown', onMouseDown)
-						.on('click', onClick);
+				var events = new Events(navItem).add({
+					down: onDown,
+					click: onClick,
+				}, scope);
+
+			}
+		};
+    }]);
+
+	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
+		return {
+			restrict: 'A',
+			link: function (scope, element, attributes) {
+
+				function onDown(e) {
+					console.log('navTo.onDown', attributes.navTo);
+					$timeout(function () {
+						var callback = $parse(attributes.navTo);
+						callback(scope);
+					});
+					e.preventDefault();
+					return false;
 				}
 
-				function removeListeners() {
-					navItem
-						.off('touchstart', onTouchStart)
-						.off('mousedown', onMouseDown)
-						.off('click', onClick);
-				}
+				var events = new Events(element).add({
+					down: onDown,
+				}, scope);
 
-				addListeners();
-
-				scope.$on('$destroy', function () {
-					removeListeners();
-				});
 			}
 		};
     }]);
