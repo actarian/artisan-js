@@ -5,49 +5,57 @@
 
 	var app = angular.module('artisan');
 
-	// todo !!!
+	app.service('GoogleMaps', ['$promise', 'environment', function ($promise, environment) {
 
-	app.service('GoogleMaps', ['$q', '$http', '$promise', function ($q, $http, $promise) {
+		var service = this;
 
-		var _key = 'AIzaSyBlgTatREkeIDKEKYL_dtaaDx1yYxmx_iM';
-		var _init = false;
+		var statics = {
+			maps: GoogleMaps,
+			geocoder: GoogleMapsGeocoder,
+			parse: GoogleMapsParse,
+		};
 
-		this.maps = maps;
-		this.geocoder = geocoder;
-		this.parse = parse;
+		angular.extend(service, statics);
 
-		function maps() {
+		if (!environment.addons.googlemaps) {
+			trhow('GoogleMaps.error missing config object in environment.addons.googlemaps');
+		}
+
+		function GoogleMaps() {
 			return $promise(function (promise) {
-				if (_init) {
+				if (window.google && window.google.maps) {
 					promise.resolve(window.google.maps);
+
 				} else {
-					window.__googleMapsInit = function () {
+					window.googleMapsAsyncInit = function () {
 						promise.resolve(window.google.maps);
-						window.__googleMapsInit = null;
-						_init = true;
+						window.googleMapsAsyncInit = null;
 					};
+					var apiKey = environment.addons.googlemaps.apiKey;
 					var script = document.createElement('script');
 					script.setAttribute('async', null);
 					script.setAttribute('defer', null);
-					script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=__googleMapsInit');
+					script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback=googleMapsAsyncInit');
 					document.body.appendChild(script);
 				}
 			});
 		}
 
-		function geocoder() {
+		function GoogleMapsGeocoder() {
 			var service = this;
-			var deferred = $q.defer();
-			maps().then(function (maps) {
-				var _geocoder = new maps.Geocoder();
-				deferred.resolve(_geocoder);
-			}, function (error) {
-				deferred.reject(error);
+			return $promise(function (promise) {
+				GoogleMaps().then(function (maps) {
+					var geocoder = new maps.Geocoder();
+					promise.resolve(geocoder);
+
+				}, function (error) {
+					promise.reject(error);
+
+				});
 			});
-			return deferred.promise;
 		}
 
-		function getType(type, item) {
+		function GoogleMapsType(type, item) {
 			var types = {
 				street: 'route',
 				number: 'street_number',
@@ -66,11 +74,11 @@
 					}
 				});
 			});
-			// console.log('googleMaps.getType', type, item, label);
+			// console.log('GoogleMapsType', type, item, label);
 			return label;
 		}
 
-		function parse(results) {
+		function GoogleMapsParse(results) {
 			var items = null;
 			if (results.length) {
 				items = results.filter(function (item) {
@@ -80,14 +88,14 @@
 				}).map(function (item) {
 					return {
 						name: item.formatted_address,
-						street: getType('street', item),
-						number: getType('number', item),
-						locality: getType('locality', item),
-						postalCode: getType('postalCode', item),
-						city: getType('city', item),
-						province: getType('province', item),
-						region: getType('region', item),
-						country: getType('country', item),
+						street: GoogleMapsType('street', item),
+						number: GoogleMapsType('number', item),
+						locality: GoogleMapsType('locality', item),
+						postalCode: GoogleMapsType('postalCode', item),
+						city: GoogleMapsType('city', item),
+						province: GoogleMapsType('province', item),
+						region: GoogleMapsType('region', item),
+						country: GoogleMapsType('country', item),
 						position: {
 							lng: item.geometry.location.lng(),
 							lat: item.geometry.location.lat(),
@@ -101,7 +109,7 @@
 				setLocation();
 				*/
 			}
-			console.log('googleMaps.parse', results, items);
+			console.log('GoogleMapsParse', results, items);
 			return items;
 		}
 

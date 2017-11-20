@@ -21,7 +21,7 @@
 
 		// private vars
 
-		if (!environment.addons || !environment.addons.facebook) {
+		if (!environment.addons.facebook) {
 			trhow('FacebookService.error missing config object in environment.addons.facebook');
 		}
 

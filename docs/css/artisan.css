@@ -379,10 +379,21 @@ Scrollbar
         1
 --------------------
 */
-[google-maps] {
+[googlemaps] {
   width: 100%;
   height: 100%;
-  background: #0275d8; }
+  background: #0000fe; }
+  [googlemaps] .cluster {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: #0000fe;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    color: white;
+    font-size: 16px; }
 
 /*
 @function pow($number, $exp) {
@@ -577,7 +588,7 @@ Scrollbar
 [mapbox] {
   width: 100%;
   height: 100%;
-  background: #0275d8; }
+  background: #0000fe; }
 
 .form-group {
   position: relative;
@@ -636,9 +647,9 @@ Scrollbar
   .control-focus > .form-label:after {
     transform: translateX(0); }
   .control-success > .form-label:before {
-    background: #0275d8; }
+    background: #0000fe; }
   .control-success > .form-label:after {
-    background: #0275d8; }
+    background: #0000fe; }
   .control-error > .form-label:before {
     background: #d9534f; }
   .control-error > .form-label:after {
@@ -695,8 +706,8 @@ control-messages {
   .btn.busy {
     position: relative;
     z-index: 10;
-    background: #0275d8;
-    border-color: #0275d8; }
+    background: #0000fe;
+    border-color: #0000fe; }
   .btn.error {
     background: #d9534f;
     border-color: #d9534f; }
@@ -711,7 +722,7 @@ control-messages {
   .input-group-addon [class^='icon-'] {
     font-size: 15px;
     line-height: 20px;
-    color: #0275d8; }
+    color: #0000fe; }
 
 .interaction-tap {
   display: inline-block;

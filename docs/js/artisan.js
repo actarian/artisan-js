@@ -29,7 +29,7 @@
 
 		// private vars
 
-		if (!environment.addons || !environment.addons.facebook) {
+		if (!environment.addons.facebook) {
 			trhow('FacebookService.error missing config object in environment.addons.facebook');
 		}
 
@@ -176,350 +176,232 @@
 
 	// todo !!!
 
-	app.directive('googleMaps', ['$timeout', '$compile', 'GoogleMaps', function ($timeout, $compile, GoogleMaps) {
-		return {
+	app.directive('googlemaps', ['$timeout', '$compile', '$promise', 'Http', 'GoogleMaps', 'environment', function ($timeout, $compile, $promise, Http, GoogleMaps, environment) {
+
+		var directive = {
 			restrict: 'A',
-			link: function (scope, element, attributes) {
+			scope: {
+				connector: '=googlemaps',
+			},
+			link: GooglemapsLink,
+		};
 
-				var filters = {};
+		if (!environment.addons.googlemaps) {
+			trhow('googlemaps.error missing config object in environment.addons.googlemaps');
+		}
 
-				GoogleMaps.maps().then(function (maps) {
-					Init(maps);
+		var config = environment.addons.googlemaps;
+
+		return directive;
+
+		function GooglemapsLink(scope, element, attributes) {
+			console.log('GooglemapsLink', arguments);
+
+			var map, options, info, bounds, clusterer;
+			var filters = {};
+			var markers = [];
+
+			var methods = {
+				// methods available for controllers
+				/*
+				fly: MapboxFly,
+				flyPosition: MapboxFlyPosition,
+				jump: MapboxJump,
+				jumpPosition: MapboxJumpPosition,
+				*/
+				setMarkers: GooglemapsMarkersSet,
+				setType: GooglemapsSetType,
+			};
+
+			if (scope.connector) {
+				angular.extend(scope.connector, methods);
+			}
+
+			Googlemaps();
+
+			function Googlemaps() {
+				return $promise(function (promise) {
+					GoogleMaps.maps().then(function (maps) {
+						GooglemapsOptions().then(function (options) {
+							map = new google.maps.Map(element[0], options);
+							info = GooglemapsInfo();
+							promise.resolve(map);
+						});
+					});
 				});
+			}
 
-				function Init(maps) {
-					var center = new google.maps.LatLng(22.106445, 14.630445);
+			function GooglemapsOptions() {
+				return $promise(function (promise) {
+					var options = angular.copy(config.options);
+					if (config.styles) {
+						Http.get(config.styles).then(function (styles) {
+							options.styles = styles;
+							promise.resolve(options);
 
-					var map = new google.maps.Map(element[0], {
-						zoom: 3,
-						center: center,
-						mapTypeId: google.maps.MapTypeId.ROADMAP,
-						scrollwheel: true,
-						disableDefaultUI: true,
-						styles: [
-							{
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#f5f5f5"
-                                    }
-                                ]
-                            },
-							{
-								"elementType": "labels.icon",
-								"stylers": [
-									{
-										"visibility": "off"
-                                    }
-                                ]
-                            },
-							{
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#616161"
-                                    }
-                                ]
-                            },
-							{
-								"elementType": "labels.text.stroke",
-								"stylers": [
-									{
-										"color": "#f5f5f5"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "administrative.land_parcel",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#bdbdbd"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "poi",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#eeeeee"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "poi",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#757575"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "poi.park",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#e5e5e5"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "poi.park",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#9e9e9e"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "road",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#ffffff"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "road.arterial",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#757575"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "road.highway",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#dadada"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "road.highway",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#616161"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "road.local",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#9e9e9e"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "transit.line",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#e5e5e5"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "transit.station",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#eeeeee"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "water",
-								"elementType": "geometry",
-								"stylers": [
-									{
-										"color": "#b8b8b8"
-                                    }
-                                ]
-                            },
-							{
-								"featureType": "water",
-								"elementType": "labels.text.fill",
-								"stylers": [
-									{
-										"color": "#9e9e9e"
-                                    }
-                                ]
-                            }
-                        ]
+						}, function (error) {
+							console.log('GooglemapsOptions.error', 'unable to load styles', config.styles);
+							promise.resolve(options);
+
+						});
+
+					} else {
+						promise.resolve(options);
+					}
+				});
+			}
+
+			function GooglemapsMarkersRemove() {
+				angular.forEach(markers, function (marker) {
+					marker.setMap(null);
+				});
+			}
+
+			function GooglemapsMarkersSet(items) {
+				Googlemaps().then(function (map) {
+					GooglemapsMarkersRemove();
+					bounds = new google.maps.LatLngBounds();
+
+					markers = items.filter(function (item) {
+						var has = true;
+						if (filters.month) {
+							has = has && filters.month.items.has(item.id);
+						}
+						if (filters.category) {
+							has = has && item.categories.indexOf(filters.category.key) !== -1;
+						}
+						return has;
+
+					}).map(function (item) {
+						return GooglemapsMarker(item);
+
 					});
 
-					var infowindow = getInfoWindow();
-					var items = [];
-					var markers = [];
-
-					function updateMarkers() {
-						if (!items) {
-							return;
-						}
-
-						angular.forEach(markers, function (marker) {
-							marker.setMap(null);
-						});
-
-						var imgPath = '/contrib/themes/GioacchinoRossiniTheme/img/gmap/';
-						var bounds = new google.maps.LatLngBounds();
-
-						markers = items.filter(function (item) {
-							var has = true;
-							if (filters.month) {
-								has = has && filters.month.items.has(item.id);
-							}
-							if (filters.category) {
-								has = has && item.categories.indexOf(filters.category.key) !== -1;
-							}
-							return has;
-						}).map(function (item) {
-							return addMarker(item);
-						});
-
-						function addMarker(item) {
-							var latLng = new google.maps.LatLng(
-								item.place.position.latitude,
-								item.place.position.longitude
-							);
-
-							var markerImg;
-							var categoryKey = filters.category ? filters.category.key : 'all';
-							if (categoryKey === 'all') {
-								markerImg = imgPath + item.categories[0] + '.png';
-							} else {
-								markerImg = imgPath + categoryKey + '.png';
-							}
-
-							var marker = new google.maps.Marker({
-								position: latLng,
-								item: item,
-								icon: {
-									url: markerImg,
-									scaledSize: new google.maps.Size(25, 25),
-									origin: new google.maps.Point(0, 0),
-									anchor: new google.maps.Point(0, 0)
-								},
-								map: map,
-								contentString: '<div id="iw-container">' +
-									'<div class="iw-image" ng-style="{ \'background-image\': cssUrl(selectedBlog.image.url) }"></div>' +
-									'<div class="iw-title" ng-bind="selectedBlog.title"></div>' +
-									'<div class="iw-cta"><button type="button" class="iw-link" ng-click="openBlog(selectedBlog)">Details</button></div>' +
-									'</div>'
-							});
-
-							marker.onClick = function () {
-								var marker = this;
-								$timeout(function () {
-									scope.selectedBlog = marker.item;
-									var html = $compile(marker.contentString)(scope);
-									infowindow.setContent(html[0]);
-									infowindow.open(map, marker);
-								});
-							};
-
-							marker.addListener('click', marker.onClick);
-
-							bounds.extend(latLng);
-
-							return marker;
-						}
-
-						if (!bounds.isEmpty()) {
-							map.fitBounds(bounds);
-						}
-
-						var options = {
-							cssClass: 'cluster',
-							imagePath: '/contrib/themes/GioacchinoRossiniTheme/img/gmap/m'
-						};
-
-						var markerCluster = new MarkerClusterer(map, markers, options);
+					if (config.clusterer) {
+						clusterer = GooglemapsClusterer(markers);
 					}
 
-					scope.$on('onSetBlog', function ($scope, blog) {
-						angular.forEach(markers, function (marker) {
-							if (marker.item === blog) {
-								map.setZoom(12);
-								map.setCenter(marker.position);
-								marker.onClick();
-							}
-						});
-					});
+				});
+			}
 
-					function getInfoWindow() {
-						var infowindow = new google.maps.InfoWindow({
-							maxWidth: 350,
-							pixelOffset: new google.maps.Size(0, 15),
-						});
-
-						google.maps.event.addListener(infowindow, 'domready', function () {
-							var outer = $('.gm-style-iw');
-							var background = outer.prev();
-							background.children(':nth-child(2)').css({
-								'display': 'none'
-							});
-							background.children(':nth-child(4)').css({
-								'display': 'none'
-							});
-							outer.parent().parent().css({
-								left: '115px'
-							});
-							background.children(':nth-child(1)').attr('style', function (i, s) {
-								return s + 'display: none!important';
-							});
-							background.children(':nth-child(3)').attr('style', function (i, s) {
-								return s + 'display: none!important';
-							});
-							background.children(':nth-child(3)').find('div').children().attr('style', function (i, s) {
-								return s + 'opacity: 0!important;';
-							});
-							var close = outer.next();
-							close.css({
-								'width': '13px',
-								'height': '13px',
-								'overflow': 'hidden',
-								'position': 'absolute',
-								'right': '56px',
-								'top': '17px',
-								'z-index': '10000',
-								'cursor': 'pointer',
-								'opacity': 1,
-								'transform': 'scale(0.8)'
-							});
-							close.mouseout(function () {
-								$(this).css({
-									opacity: '1'
-								});
-							});
-						});
-
-						return infowindow;
-					}
-
-					scope.$watchCollection(attributes.map, function (newValue) {
-						items = newValue;
-						console.log('map.items', items);
-						updateMarkers();
-					});
-
-					scope.$on('onSetFilters', function ($scope, $filters) {
-						filters = $filters;
-						updateMarkers();
-					});
+			function GooglemapsBoundsFit() {
+				if (!bounds.isEmpty()) {
+					map.fitBounds(bounds);
 				}
 			}
-		};
+
+			function GooglemapsSetType(typeId) {
+				var types = ['hybrid', 'roadmap', 'satellite', 'terrain'];
+				if (types.indexOf(typeId) !== -1) {
+					map.setMapTypeId(typeId);
+				}
+			}
+
+			function GooglemapsInfo() {
+
+				var info = new google.maps.InfoWindow({
+					maxWidth: 350,
+					pixelOffset: new google.maps.Size(0, 15),
+				});
+
+				google.maps.event.addListener(info, 'domready', function () {
+					var outer = $('.gm-style-iw');
+					var background = outer.prev();
+					background.children(':nth-child(2)').css({
+						'display': 'none'
+					});
+					background.children(':nth-child(4)').css({
+						'display': 'none'
+					});
+					outer.parent().parent().css({
+						left: '115px'
+					});
+					background.children(':nth-child(1)').attr('style', function (i, s) {
+						return s + 'display: none!important';
+					});
+					background.children(':nth-child(3)').attr('style', function (i, s) {
+						return s + 'display: none!important';
+					});
+					background.children(':nth-child(3)').find('div').children().attr('style', function (i, s) {
+						return s + 'opacity: 0!important;';
+					});
+					var close = outer.next();
+					close.css({
+						'width': '13px',
+						'height': '13px',
+						'overflow': 'hidden',
+						'position': 'absolute',
+						'right': '56px',
+						'top': '17px',
+						'z-index': '10000',
+						'cursor': 'pointer',
+						'opacity': 1,
+						'transform': 'scale(0.8)'
+					});
+					close.mouseout(function () {
+						$(this).css({
+							opacity: '1'
+						});
+					});
+				});
+
+				return info;
+			}
+
+			function GooglemapsMarker(item) {
+
+				var latLng = new google.maps.LatLng(
+					item.position.latitude,
+					item.position.longitude
+				);
+
+				var marker = new google.maps.Marker({
+					position: latLng,
+					item: item,
+					icon: {
+						url: 'img/maps/marker.png',
+						scaledSize: new google.maps.Size(25, 25),
+						origin: new google.maps.Point(0, 0),
+						anchor: new google.maps.Point(0, 0)
+					},
+					map: map,
+					contentString: '<div id="iw-container">' +
+						'<div class="iw-image" ng-style="{ \'background-image\': cssUrl(selectedBlog.image.url) }"></div>' +
+						'<div class="iw-title" ng-bind="selectedBlog.title"></div>' +
+						'<div class="iw-cta"><button type="button" class="iw-link" ng-click="openBlog(selectedBlog)">Details</button></div>' +
+						'</div>'
+				});
+
+				marker.onClick = function () {
+					var marker = this;
+					$timeout(function () {
+						scope.selectedBlog = marker.item;
+						var html = $compile(marker.contentString)(scope);
+						info.setContent(html[0]);
+						info.open(map, marker);
+					});
+				};
+
+				marker.addListener('click', marker.onClick);
+
+				bounds.extend(latLng);
+
+				return marker;
+			}
+
+			function GooglemapsClusterer(markers) {
+
+				var clusterer = new MarkerClusterer(map, markers, {
+					cssClass: 'cluster',
+					imagePath: '/img/gmap/m'
+				});
+
+				return clusterer;
+
+			}
+
+		}
+
     }]);
 
 }());
@@ -530,9 +412,704 @@
 
 	var app = angular.module('artisan');
 
-	// todo !!!
+	app.service('GoogleMaps', ['$promise', 'environment', function ($promise, environment) {
 
-	app.service('GoogleMaps', ['$q', '$http', '$promise', function ($q, $http, $promise) {
+		var service = this;
+
+		var statics = {
+			maps: GoogleMaps,
+			geocoder: GoogleMapsGeocoder,
+			parse: GoogleMapsParse,
+		};
+
+		angular.extend(service, statics);
+
+		if (!environment.addons.googlemaps) {
+			trhow('GoogleMaps.error missing config object in environment.addons.googlemaps');
+		}
+
+		function GoogleMaps() {
+			return $promise(function (promise) {
+				if (window.google && window.google.maps) {
+					promise.resolve(window.google.maps);
+
+				} else {
+					window.googleMapsAsyncInit = function () {
+						promise.resolve(window.google.maps);
+						window.googleMapsAsyncInit = null;
+					};
+					var apiKey = environment.addons.googlemaps.apiKey;
+					var script = document.createElement('script');
+					script.setAttribute('async', null);
+					script.setAttribute('defer', null);
+					script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback=googleMapsAsyncInit');
+					document.body.appendChild(script);
+				}
+			});
+		}
+
+		function GoogleMapsGeocoder() {
+			var service = this;
+			return $promise(function (promise) {
+				GoogleMaps().then(function (maps) {
+					var geocoder = new maps.Geocoder();
+					promise.resolve(geocoder);
+
+				}, function (error) {
+					promise.reject(error);
+
+				});
+			});
+		}
+
+		function GoogleMapsType(type, item) {
+			var types = {
+				street: 'route',
+				number: 'street_number',
+				locality: 'locality',
+				postalCode: 'postal_code',
+				city: 'administrative_area_level_3',
+				province: 'administrative_area_level_2',
+				region: 'administrative_area_level_1',
+				country: 'country',
+			};
+			var label = null;
+			angular.forEach(item.address_components, function (c) {
+				angular.forEach(c.types, function (t) {
+					if (t === types[type]) {
+						label = c.long_name;
+					}
+				});
+			});
+			// console.log('GoogleMapsType', type, item, label);
+			return label;
+		}
+
+		function GoogleMapsParse(results) {
+			var items = null;
+			if (results.length) {
+				items = results.filter(function (item) {
+					return true; // item.geometry.location_type === 'ROOFTOP' ||
+					// item.geometry.location_type === 'RANGE_INTERPOLATED' ||
+					// item.geometry.location_type === 'GEOMETRIC_CENTER';
+				}).map(function (item) {
+					return {
+						name: item.formatted_address,
+						street: GoogleMapsType('street', item),
+						number: GoogleMapsType('number', item),
+						locality: GoogleMapsType('locality', item),
+						postalCode: GoogleMapsType('postalCode', item),
+						city: GoogleMapsType('city', item),
+						province: GoogleMapsType('province', item),
+						region: GoogleMapsType('region', item),
+						country: GoogleMapsType('country', item),
+						position: {
+							lng: item.geometry.location.lng(),
+							lat: item.geometry.location.lat(),
+						}
+					};
+				});
+				/*
+				var first = response.data.results[0];
+				scope.model.position = first.geometry.location;
+				console.log(scope.model);
+				setLocation();
+				*/
+			}
+			console.log('GoogleMapsParse', results, items);
+			return items;
+		}
+
+    }]);
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.directive('mapbox', ['$http', '$timeout', '$compile', '$promise', 'MapBox', 'environment', function ($http, $timeout, $compile, $promise, MapBox, environment) {
+
+		var directive = {
+			restrict: 'A',
+			scope: {
+				connector: '=mapbox',
+			},
+			link: MapboxLink,
+		};
+
+		if (!environment.addons.mapbox) {
+			trhow('mapbox.error missing config object in environment.addons.mapbox');
+		}
+
+		var config = environment.addons.mapbox;
+
+		return directive;
+
+		function MapboxLink(scope, element, attributes, model) {
+			var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
+
+			var methods = {
+				// methods available for controllers
+				fly: MapboxFly,
+				flyPosition: MapboxFlyPosition,
+				jump: MapboxJump,
+				jumpPosition: MapboxJumpPosition,
+				setMarkers: MapboxMarkersSet,
+				fitBounds: MapboxBoundsFit,
+			};
+
+			if (scope.connector) {
+				angular.extend(scope.connector, methods);
+			}
+
+			function MapboxMap() {
+				return $promise(function (promise) {
+
+					MapBox.get().then(function (mapboxgl) {
+						map = new mapboxgl.Map({
+							container: element[0],
+							style: config.style,
+							interactive: true,
+							logoPosition: 'bottom-right',
+							// center: config.options.center,
+							// zoom: config.options.zoom,
+						});
+						canvas = map.getCanvasContainer();
+						/*
+						scope.map.setAddress = function (item) {
+							// console.log('setAddress', item);
+							scope.map.results = null;
+							flyTo(item.position);
+						};
+						scope.map.search = function () {
+							// console.log('address', scope.map.address);
+							scope.map.results = null;
+							geocodeAddress(scope.map.address);
+							return true;
+						};
+						scope.map.styles = {
+							FICO: 1,
+							SATELLITE: 2,
+						};
+						scope.map.style = scope.map.styles.FICO;
+						scope.map.styleToggle = function () {
+							if (scope.map.style === scope.map.styles.FICO) {
+								scope.map.style = scope.map.styles.SATELLITE;
+								map.setStyle('mapbox://styles/mapbox/satellite-v9');
+							} else {
+								scope.map.style = scope.map.styles.FICO;
+								map.setStyle('mapbox://styles/mapbox/streets-v9');
+							}
+						};
+						scope.map.setStyle = function (style) {
+							scope.map.style = style;
+							if (scope.map.style === scope.map.styles.FICO) {
+								map.setStyle('mapbox://styles/mapbox/streets-v9');
+							} else {
+								map.setStyle('mapbox://styles/mapbox/satellite-v9');
+							}
+						};                
+						*/
+						if (config.options) {
+							map.jumpTo(config.options);
+						}
+						promise.resolve(map);
+					});
+				});
+			}
+
+			function MapboxFly(options) {
+				map.flyTo(options);
+			}
+
+			function MapboxFlyPosition(position) {
+				var options = getOptions({
+					center: [position.lng, position.lat],
+					zoom: 20,
+				});
+				MapboxFly(options);
+			}
+
+			function MapboxJump(options) {
+				map.jumpTo(options);
+			}
+
+			function MapboxJumpPosition(position) {
+				var options = getOptions({
+					center: [position.lng, position.lat],
+					zoom: 20,
+				});
+				map.MapboxJump(options);
+			}
+
+			/*
+			googleMaps.geocoder().then(function (response) {
+			    geocoder = response;
+			    init();
+			});
+			*/
+
+			function getOptions(options) {
+				return angular.extend(angular.copy(config.options), options);
+			}
+
+			function MapboxMarkersRemove() {
+				if (markers) {
+					angular.forEach(markers, function (item) {
+						item.remove();
+					});
+				}
+			}
+
+			function MapboxMarkersSet(items) {
+				MapboxMap().then(function () {
+					MapboxMarkersRemove();
+					markers = [];
+					if (config.clusterer) {
+						MapboxClusterer(items);
+
+					} else {
+						if (items) {
+							angular.forEach(items, function (item) {
+								var marker = MapboxMarkerAdd(item);
+								markers.push(marker);
+							});
+						}
+					}
+				});
+			}
+
+			function MapboxMarkerAdd(item) {
+				var $scope = scope.$new(true);
+				$scope.item = item;
+				var node = document.createElement('div');
+				node.id = 'point';
+				node.className = 'marker ' + item.area.code;
+				node.className += item.type;
+				node.setAttribute('marker', 'item');
+				var marker = new mapboxgl.Marker(node, {
+						offset: [-10, -10]
+					})
+					.setLngLat([item.position.lng, item.position.lat])
+					.addTo(map);
+				var markerElement = angular.element(node);
+				markerElement.on('click', function (e) {
+					// console.log('marker.click', item);
+					scope.$emit('onMarkerClicked', item);
+				});
+				$compile(markerElement)($scope); // Compiling marker
+				return marker;
+			}
+
+			function MapboxCoordinatesGet(item) {
+				var coordinates = null;
+				if (item.position) {
+					coordinates = [
+						item.position.longitude,
+						item.position.latitude,
+						item.position.altitude || 0.0,
+					];
+				}
+				// [0, 1, 2]; longitude, latitude, altitude
+				return coordinates;
+			}
+
+			function MapboxFeaturesGet(items) {
+				var collection = null;
+				if (items) {
+					var features = items.map(function (item) {
+						return {
+							type: 'Feature',
+							properties: angular.extend({}, item),
+							geometry: {
+								type: 'Point',
+								coordinates: MapboxCoordinatesGet(item),
+							}
+						};
+					});
+					collection = {
+						type: 'FeatureCollection',
+						crs: {
+							type: 'name',
+							properties: {
+								name: 'urn:ogc:def:crs:OGC:1.3:CRS84'
+							}
+						},
+						features: features,
+					};
+				}
+				return collection;
+			}
+
+			function MapboxClusterer(items) {
+
+				var collection = MapboxFeaturesGet(items);
+
+				map.on('load', function () {
+					// Add a new source from our GeoJSON data and set the
+					// 'cluster' option to true. GL-JS will add the point_count property to your source data.
+					map.addSource('earthquakes', {
+						type: 'geojson',
+						// Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+						// from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+						// data: '/api/mapbox/earthquakes.geo.json',
+						data: collection,
+						cluster: true,
+						clusterMaxZoom: 14, // Max zoom to cluster points on
+						clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+					});
+
+					map.addLayer({
+						id: 'clusters',
+						type: 'circle',
+						source: 'earthquakes',
+						filter: ['has', 'point_count'],
+						paint: {
+							'circle-color': {
+								property: 'point_count',
+								type: 'interval',
+								stops: [
+                                    [0, '#51bbd6'],
+                                    [100, '#f1f075'],
+                                    [750, '#f28cb1'],
+                                ]
+							},
+							'circle-radius': {
+								property: 'point_count',
+								type: 'interval',
+								stops: [
+                                    [0, 20],
+                                    [100, 30],
+                                    [750, 40]
+                                ]
+							}
+						}
+					});
+
+					map.addLayer({
+						id: 'cluster-count',
+						type: 'symbol',
+						source: 'earthquakes',
+						filter: ['has', 'point_count'],
+						layout: {
+							'text-field': '{point_count_abbreviated}',
+							'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+							'text-size': 12
+						}
+					});
+
+					map.addLayer({
+						id: 'unclustered-point',
+						type: 'circle',
+						source: 'earthquakes',
+						filter: ['!has', 'point_count'],
+						paint: {
+							'circle-color': '#11b4da',
+							'circle-radius': 4,
+							'circle-stroke-width': 1,
+							'circle-stroke-color': '#fff'
+						}
+					});
+				});
+			}
+
+			function MapboxBoundsFit() {
+				if (bounds) {
+					map.fitBounds(bounds, {
+						speed: 1.5,
+						curve: 1,
+						padding: 30,
+						linear: false,
+						maxZoom: 8,
+					});
+				}
+			}
+
+			function geocodeAddress(address) {
+				geocoder.geocode({
+					'address': address
+				}, function (results, status) {
+					$timeout(function () {
+						if (status === 'OK') {
+							connector.results = googleMaps.parse(results);
+						} else {
+							alert('Geocode was not successful for the following reason: ' + status);
+						}
+					});
+				});
+			}
+
+			function reverseGeocode(position) {
+				// console.log('reverseGeocode', position);
+				geocoder.geocode({
+					'location': position
+				}, function (results, status) {
+					$timeout(function () {
+						if (status === 'OK') {
+							connector.results = googleMaps.parse(results);
+						} else {
+							console.log('Geocoder failed due to: ' + status);
+						}
+					});
+				});
+			}
+
+			function geolocalize() {
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(function (p) {
+						$timeout(function () {
+							var position = {
+								lat: p.coords.latitude,
+								lng: p.coords.longitude
+							};
+							flyTo(position);
+							reverseGeocode(position);
+						});
+					}, function (e) {
+						console.log('error', e);
+					});
+				} else {
+					console.log('error', 'Browser doesn\'t support Geolocation');
+				}
+			}
+
+			/*
+			function flyTo(position) {
+			    map.flyTo({
+			        center: [
+			            parseFloat(position.lng),
+			            parseFloat(position.lat)
+			        ],
+			        zoom: 15,
+			        speed: 1.5,
+			        curve: 1,
+			    });
+			}
+			*/
+
+		}
+    }]);
+
+	app.directive('marker', ['$http', '$timeout', function ($http, $timeout) {
+		return {
+			restrict: 'A',
+			scope: {
+				item: '=marker',
+			},
+			template: '<div class="inner">' +
+				'   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
+				'       <path d="M12 0c-5.522 0-10 4.395-10 9.815 0 5.505 4.375 9.268 10 14.185 5.625-4.917 10-8.68 10-14.185 0-5.42-4.478-9.815-10-9.815zm0 18c-4.419 0-8-3.582-8-8s3.581-8 8-8 8 3.582 8 8-3.581 8-8 8z"/>' +
+				'   </svg>' +
+				'   <span ng-bind="item.code"></span>' +
+				'</div>',
+			link: link,
+		};
+
+		function link(scope, element, attributes, model) {
+			// console.log('marker', scope.item);
+		}
+
+    }]);
+
+	/*
+	app.service('GoogleMaps', ['$q', '$http', function ($q, $http) {
+		var _key = 'AIzaSyAYuhIEO-41YT_GdYU6c1N7DyylT_OcMSY';
+		var _init = false;
+
+		this.maps = maps;
+		this.geocoder = geocoder;
+		this.parse = parse;
+
+		function maps() {
+			var deferred = $q.defer();
+			if (_init) {
+				deferred.resolve(window.google.maps);
+			} else {
+				window.googleMapsInit = function () {
+					deferred.resolve(window.google.maps);
+					window.googleMapsInit = null;
+					_init = true;
+				};
+				var script = document.createElement('script');
+				script.setAttribute('async', null);
+				script.setAttribute('defer', null);
+				script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=googleMapsInit');
+				document.body.appendChild(script);
+			}
+			return deferred.promise;
+		}
+
+		function geocoder() {
+			var service = this;
+			var deferred = $q.defer();
+			maps().then(function (maps) {
+				var _geocoder = new maps.Geocoder();
+				deferred.resolve(_geocoder);
+			}, function (error) {
+				deferred.reject(error);
+			});
+			return deferred.promise;
+		}
+
+		function getType(type, item) {
+			var types = {
+				street: 'route',
+				number: 'street_number',
+				locality: 'locality',
+				postalCode: 'postal_code',
+				city: 'administrative_area_level_3',
+				province: 'administrative_area_level_2',
+				region: 'administrative_area_level_1',
+				country: 'country',
+			};
+			var label = null;
+			angular.forEach(item.address_components, function (c) {
+				angular.forEach(c.types, function (t) {
+					if (t === types[type]) {
+						label = c.long_name;
+					}
+				});
+			});
+			// console.log('googleMaps.getType', type, item, label);
+			return label;
+		}
+
+		function parse(results) {
+			var items = null;
+			if (results.length) {
+				items = results.filter(function (item) {
+					return true; // item.geometry.location_type === 'ROOFTOP' ||
+					// item.geometry.location_type === 'RANGE_INTERPOLATED' ||
+					// item.geometry.location_type === 'GEOMETRIC_CENTER';
+				}).map(function (item) {
+					return {
+						name: item.formatted_address,
+						street: getType('street', item),
+						number: getType('number', item),
+						locality: getType('locality', item),
+						postalCode: getType('postalCode', item),
+						city: getType('city', item),
+						province: getType('province', item),
+						region: getType('region', item),
+						country: getType('country', item),
+						position: {
+							lng: item.geometry.location.lng(),
+							lat: item.geometry.location.lat(),
+						}
+					};
+				});
+			}
+			console.log('googleMaps.parse', results, items);
+			return items;
+		}
+
+    }]);
+    */
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.service('MapBox', ['$q', '$http', '$promise', 'environment', function ($q, $http, $promise, environment) {
+
+		var service = this;
+
+		var statics = {
+			get: MapBoxGet,
+		};
+
+		angular.extend(service, statics);
+
+		if (!environment.addons.mapbox) {
+			trhow('MapBox.error missing config object in environment.addons.mapbox');
+		}
+
+		var config = environment.addons.mapbox;
+
+		function MapBoxGet() {
+			return $promise(function (promise) {
+				if (window.mapboxgl) {
+					promise.resolve(window.mapbox);
+				} else {
+					$promise.all([
+                        MapBoxScript('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
+                        MapBoxLink('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
+                    ]).then(function () {
+						window.mapboxgl.accessToken = config.accessToken;
+						promise.resolve(window.mapboxgl);
+					}, function (error) {
+						promise.reject(error);
+					});
+				}
+			});
+		}
+
+		function MapBoxScript(url) {
+			return $promise(function (promise) {
+				try {
+					var id = 'mapboxscript';
+					var script = document.getElementsByTagName('script')[0];
+					if (document.getElementById(id)) {
+						return;
+					}
+					var node = document.createElement('script');
+					node.id = id;
+					node.src = url;
+					node.addEventListener('load', promise.resolve);
+					node.addEventListener('error', promise.reject);
+					script.parentNode.insertBefore(node, script);
+				} catch (error) {
+					promise.reject(error);
+				}
+				/*
+				var node = document.createElement('script');
+				node.src = url;
+				node.addEventListener('load', promise.resolve);
+				node.addEventListener('error', promise.reject);
+				document.body.appendChild(node);
+				*/
+			});
+		}
+
+		function MapBoxLink(url) {
+			return $promise(function (promise) {
+				try {
+					var id = 'mapboxstyle';
+					var link = document.getElementsByTagName('link')[0];
+					if (document.getElementById(id)) {
+						return;
+					}
+					var node = document.createElement('link');
+					node.id = id;
+					node.rel = 'stylesheet';
+					node.href = url;
+					node.addEventListener('load', promise.resolve);
+					node.addEventListener('error', promise.reject);
+					link.parentNode.insertBefore(node, link);
+				} catch (error) {
+					promise.reject(error);
+				}
+				/*
+				var node = document.createElement('link');
+				node.rel = 'stylesheet';
+				node.href = url;
+				node.addEventListener('load', promise.resolve);
+				node.addEventListener('error', promise.reject);
+				document.body.appendChild(node);
+				*/
+			});
+		}
+
+    }]);
+
+	app.service('___GoogleMaps', ['$q', '$http', '$promise', function ($q, $http, $promise) {
 
 		var _key = 'AIzaSyBlgTatREkeIDKEKYL_dtaaDx1yYxmx_iM';
 		var _init = false;
@@ -635,780 +1212,140 @@
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('mapbox', ['$http', '$timeout', '$compile', 'MapBox', function($http, $timeout, $compile, MapBox) {
+	app.provider('environment', ['$locationProvider', '$httpProvider', function ($locationProvider, $httpProvider) {
 
-        var position = {
-            lng: 11.411248,
-            lat: 44.515702,
-        };
+		var provider = this;
 
-        var defaults = {
-            center: [position.lng, position.lat],
-            zoom: 17.63,
-            pitch: 53,
-            bearing: -11.68,
-            speed: 1.5,
-            curve: 1,
-        };
+		var statics = {
+			add: EnvironmentAdd,
+			use: EnvironmentUse,
+		};
 
-        return {
-            restrict: 'A',
-            scope: {
-                sources: '=mapbox',
-            },
-            link: link,
-        };
+		angular.extend(provider, statics);
 
-        function link(scope, element, attributes, model) {
-            var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
+		var defaults = {
+			addons: {
+				facebook: {
+					fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
+					scope: 'public_profile, email', // publish_stream
+					version: 'v2.10',
+				},
+				googlemaps: {
+					clusterer: true,
+					styles: '/googlemaps/applemapesque.json',
+					options: {
+						center: {
+							lat: 43.9023386,
+							lng: 12.8505094
+						},
+						disableDefaultUI: true,
+						mapTypeId: 'roadmap', // "hybrid", "roadmap", "satellite", "terrain"
+						scrollwheel: true,
+						// tilt: 0, // 45
+						zoom: 4.0,
+					},
+				},
+				mapbox: {
+					clusterer: true,
+					options: {
+						bearing: 0.0,
+						center: [
+							12.8505094,
+							43.9023386
+						],
+						curve: 1,
+						pitch: 0.0,
+						speed: 1.5,
+						zoom: 4.0,
+					},
+					version: 'v0.42.0',
+				}
+			},
+			http: {
+				interceptors: [], // ['AuthInterceptorService'],
+				withCredentials: false,
+			},
+			language: {
+				code: 'en',
+				culture: 'en_US',
+				iso: 'ENU',
+				name: 'English',
+			},
+			location: {
+				hash: '!',
+				html5: false,
+			},
+			paths: {},
+		};
 
-            MapBox.get().then(function(mapboxgl) {
-                Init(mapboxgl);
-            });
+		var global = {};
 
-            function Init(mapboxgl) {
-                mapboxgl.accessToken = 'pk.eyJ1IjoiZmljb3dzZGV2IiwiYSI6ImNqNXJzajVobTB5cW8yd25tejhqcjN2c3kifQ.CsUfBV2eN2ftVELq0xwlGA'; // 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ';			
-                map = getMap();
-                navToCenter();
-                scope.$watch('sources', function(sources) {
-                    if (sources) {
-                        // connect methods;
-                        sources.addMarkers = addMarkers;
-                        sources.jumpToMarker = jumpToMarker;
-                        sources.flyToMarker = flyToMarker;
-                    }
-                });
-                addClusters();
-            }
+		if (window.environment) {
+			angular.merge(global, window.environment);
+		}
 
-            function addClusters() {
+		var config = {};
 
-                map.on('load', function() {
-                    // Add a new source from our GeoJSON data and set the
-                    // 'cluster' option to true. GL-JS will add the point_count property to your source data.
-                    map.addSource("earthquakes", {
-                        type: "geojson",
-                        // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-                        // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-                        data: "/api/maps/earthquakes.geojson.js",
-                        cluster: true,
-                        clusterMaxZoom: 14, // Max zoom to cluster points on
-                        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
-                    });
+		var environment = angular.copy(defaults);
+		angular.merge(environment, global);
 
-                    map.addLayer({
-                        id: "clusters",
-                        type: "circle",
-                        source: "earthquakes",
-                        filter: ["has", "point_count"],
-                        paint: {
-                            "circle-color": {
-                                property: "point_count",
-                                type: "interval",
-                                stops: [
-                                    [0, "#51bbd6"],
-                                    [100, "#f1f075"],
-                                    [750, "#f28cb1"],
-                                ]
-                            },
-                            "circle-radius": {
-                                property: "point_count",
-                                type: "interval",
-                                stops: [
-                                    [0, 20],
-                                    [100, 30],
-                                    [750, 40]
-                                ]
-                            }
-                        }
-                    });
+		function EnvironmentSetHttp() {
+			$httpProvider.defaults.headers.common["Accept-Language"] = environment.language.code;
+			$httpProvider.defaults.withCredentials = environment.http.withCredentials;
+			$httpProvider.interceptors.push.apply($httpProvider.interceptors, environment.http.interceptors);
+		}
 
-                    map.addLayer({
-                        id: "cluster-count",
-                        type: "symbol",
-                        source: "earthquakes",
-                        filter: ["has", "point_count"],
-                        layout: {
-                            "text-field": "{point_count_abbreviated}",
-                            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-                            "text-size": 12
-                        }
-                    });
+		function EnvironmentSetLocation() {
+			$locationProvider.html5Mode(environment.location.html5);
+			$locationProvider.hashPrefix(environment.location.hash);
+		}
 
-                    map.addLayer({
-                        id: "unclustered-point",
-                        type: "circle",
-                        source: "earthquakes",
-                        filter: ["!has", "point_count"],
-                        paint: {
-                            "circle-color": "#11b4da",
-                            "circle-radius": 4,
-                            "circle-stroke-width": 1,
-                            "circle-stroke-color": "#fff"
-                        }
-                    });
-                });
-            }
+		function EnvironmentAdd(key, data) {
+			config[key] = config[key] ? angular.merge(config[key], data) : data;
+			EnvironmentSet();
+		}
 
-            var types = {
-                DOCUMENT: 1,
-                EVENT: 2,
-                INFO: 3,
-            };
-
-            /*
-            googleMaps.geocoder().then(function (response) {
-                geocoder = response;
-                init();
-            });
-            */
-
-            function getOptions(options) {
-                return angular.extend(angular.copy(defaults), options);
-            }
-
-            function getMarker(item) {
-                var $scope = scope.$new(true);
-                $scope.item = item;
-                var node = document.createElement('div');
-                node.id = 'point';
-                node.className = 'marker ' + item.area.code;
-                node.className += item.type === types.INFO ? ' info' : '';
-                node.setAttribute('marker', 'item');
-                var marker = new mapboxgl.Marker(node, {
-                        offset: [-10, -10]
-                    })
-                    .setLngLat([item.position.lng, item.position.lat])
-                    .addTo(map);
-                var markerElement = angular.element(node);
-                markerElement.on('click', function(e) {
-                    // console.log('marker.click', item);
-                    scope.$emit('onMarkerClicked', item);
-                });
-                $compile(markerElement)($scope); // Compiling marker
-                return marker;
-            }
-
-            function addMarkers(items) {
-                if (markers) {
-                    angular.forEach(markers, function(item) {
-                        item.remove();
-                    });
-                }
-                markers = [];
-                if (items) {
-                    angular.forEach(items, function(item) {
-                        marker = getMarker(item);
-                        markers.push(marker);
-                    });
-                }
-            }
-
-            function flyTo(position) {
-                var options = getOptions({
-                    center: [position.lng, position.lat],
-                    zoom: 20,
-                });
-                map.flyTo(options);
-            }
-
-            function jumpTo(position) {
-                var options = getOptions({
-                    center: [position.lng, position.lat],
-                    zoom: 20,
-                });
-                map.jumpTo(options);
-            }
-
-            function flyToMarker(item) {
-                // console.log(item);
-                flyTo(item.position);
-            }
-
-            function jumpToMarker(item) {
-                jumpTo(item.position);
-            }
-
-            function getMap() {
-                var map = new mapboxgl.Map({
-                    container: element[0],
-                    style: 'mapbox://styles/ficowsdev/cj8cztc3r8nv32sl5npfr1yip', // 'mapbox://styles/ficowsdev/cj5rsloo232ad2sq9capz9atk', // 'mapbox://styles/mapbox/light-v9', // 'mapbox://styles/actarian/cj5nwbngd1p2z2sqh74l5qwlq',
-                    interactive: true,
-                    logoPosition: 'bottom-right',
-                    center: [position.lng, position.lat],
-                    zoom: 6,
-                });
-
-                canvas = map.getCanvasContainer();
-
-                /*
-                scope.map.setAddress = function (item) {
-                    // console.log('setAddress', item);
-                    scope.map.results = null;
-                    flyTo(item.position);
-                };
-                scope.map.search = function () {
-                    // console.log('address', scope.map.address);
-                    scope.map.results = null;
-                    geocodeAddress(scope.map.address);
-                    return true;
-                };
-                scope.map.styles = {
-                    FICO: 1,
-                    SATELLITE: 2,
-                };
-                scope.map.style = scope.map.styles.FICO;
-                scope.map.styleToggle = function () {
-                    if (scope.map.style === scope.map.styles.FICO) {
-                        scope.map.style = scope.map.styles.SATELLITE;
-                        map.setStyle('mapbox://styles/mapbox/satellite-v9');
-                    } else {
-                        scope.map.style = scope.map.styles.FICO;
-                        map.setStyle('mapbox://styles/mapbox/streets-v9');
-                    }
-                };
-                scope.map.setStyle = function (style) {
-                    scope.map.style = style;
-                    if (scope.map.style === scope.map.styles.FICO) {
-                        map.setStyle('mapbox://styles/mapbox/streets-v9');
-                    } else {
-                        map.setStyle('mapbox://styles/mapbox/satellite-v9');
-                    }
-                };                
-                */
-                return map;
-            }
-
-            function geocodeAddress(address) {
-                geocoder.geocode({
-                    'address': address
-                }, function(results, status) {
-                    $timeout(function() {
-                        if (status === 'OK') {
-                            sources.results = googleMaps.parse(results);
-                        } else {
-                            alert('Geocode was not successful for the following reason: ' + status);
-                        }
-                    });
-                });
-            }
-
-            function reverseGeocode(position) {
-                // console.log('reverseGeocode', position);
-                geocoder.geocode({
-                    'location': position
-                }, function(results, status) {
-                    $timeout(function() {
-                        if (status === 'OK') {
-                            sources.results = googleMaps.parse(results);
-                        } else {
-                            console.log('Geocoder failed due to: ' + status);
-                        }
-                    });
-                });
-            }
-
-            function geolocalize() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(p) {
-                        $timeout(function() {
-                            position = {
-                                lat: p.coords.latitude,
-                                lng: p.coords.longitude
-                            };
-                            flyTo(position);
-                            reverseGeocode(position);
-                        });
-                    }, function(e) {
-                        console.log('error', e);
-                    });
-                } else {
-                    console.log('error', 'Browser doesn\'t support Geolocation');
-                }
-            }
-
-            function flyToFico() {
-                var position = {
-                    lng: 11.411248,
-                    lat: 44.515702,
-                };
-                map.flyTo({
-                    center: [
-                        parseFloat(position.lng),
-                        parseFloat(position.lat)
-                    ],
-                    zoom: 17.63,
-                    pitch: 53,
-                    bearing: -11.68,
-                    speed: 1.5,
-                    curve: 1,
-
-                });
-            }
-
-            function navToCenter() {
-                var position = {
-                    lng: 11.411248,
-                    lat: 44.515702,
-                };
-                map.jumpTo({
-                    center: [
-                        parseFloat(position.lng),
-                        parseFloat(position.lat)
-                    ],
-                    zoom: 17.63,
-                    pitch: 53,
-                    bearing: -11.68,
-                });
-            }
-
-            /*
-            function flyTo(position) {
-                map.flyTo({
-                    center: [
-                        parseFloat(position.lng),
-                        parseFloat(position.lat)
-                    ],
-                    zoom: 15,
-                    speed: 1.5,
-                    curve: 1,
-                });
-            }
-            */
-
-            function fitBounds(bounds) {
-                map.fitBounds(bounds, {
-                    speed: 1.5,
-                    curve: 1,
-                    padding: 30,
-                    linear: false,
-                    maxZoom: 8,
-                });
-            }
-        }
-    }]);
-
-    app.directive('marker', ['$http', '$timeout', function($http, $timeout) {
-        return {
-            restrict: 'A',
-            scope: {
-                item: '=marker',
-            },
-            template: '<div class="inner">' +
-                '   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
-                '       <path d="M12 0c-5.522 0-10 4.395-10 9.815 0 5.505 4.375 9.268 10 14.185 5.625-4.917 10-8.68 10-14.185 0-5.42-4.478-9.815-10-9.815zm0 18c-4.419 0-8-3.582-8-8s3.581-8 8-8 8 3.582 8 8-3.581 8-8 8z"/>' +
-                '   </svg>' +
-                '   <span ng-bind="item.code"></span>' +
-                '</div>',
-            link: link,
-        };
-
-        function link(scope, element, attributes, model) {
-            // console.log('marker', scope.item);
-        }
-
-    }]);
-
-    /*
-	app.service('GoogleMaps', ['$q', '$http', function ($q, $http) {
-		var _key = 'AIzaSyAYuhIEO-41YT_GdYU6c1N7DyylT_OcMSY';
-		var _init = false;
-
-		this.maps = maps;
-		this.geocoder = geocoder;
-		this.parse = parse;
-
-		function maps() {
-			var deferred = $q.defer();
-			if (_init) {
-				deferred.resolve(window.google.maps);
-			} else {
-				window.googleMapsInit = function () {
-					deferred.resolve(window.google.maps);
-					window.googleMapsInit = null;
-					_init = true;
-				};
-				var script = document.createElement('script');
-				script.setAttribute('async', null);
-				script.setAttribute('defer', null);
-				script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=googleMapsInit');
-				document.body.appendChild(script);
+		function EnvironmentSet() {
+			environment = angular.copy(defaults);
+			if (config.environment) {
+				angular.merge(environment, config.environment);
 			}
-			return deferred.promise;
-		}
-
-		function geocoder() {
-			var service = this;
-			var deferred = $q.defer();
-			maps().then(function (maps) {
-				var _geocoder = new maps.Geocoder();
-				deferred.resolve(_geocoder);
-			}, function (error) {
-				deferred.reject(error);
-			});
-			return deferred.promise;
-		}
-
-		function getType(type, item) {
-			var types = {
-				street: 'route',
-				number: 'street_number',
-				locality: 'locality',
-				postalCode: 'postal_code',
-				city: 'administrative_area_level_3',
-				province: 'administrative_area_level_2',
-				region: 'administrative_area_level_1',
-				country: 'country',
-			};
-			var label = null;
-			angular.forEach(item.address_components, function (c) {
-				angular.forEach(c.types, function (t) {
-					if (t === types[type]) {
-						label = c.long_name;
-					}
-				});
-			});
-			// console.log('googleMaps.getType', type, item, label);
-			return label;
-		}
-
-		function parse(results) {
-			var items = null;
-			if (results.length) {
-				items = results.filter(function (item) {
-					return true; // item.geometry.location_type === 'ROOFTOP' ||
-					// item.geometry.location_type === 'RANGE_INTERPOLATED' ||
-					// item.geometry.location_type === 'GEOMETRIC_CENTER';
-				}).map(function (item) {
-					return {
-						name: item.formatted_address,
-						street: getType('street', item),
-						number: getType('number', item),
-						locality: getType('locality', item),
-						postalCode: getType('postalCode', item),
-						city: getType('city', item),
-						province: getType('province', item),
-						region: getType('region', item),
-						country: getType('country', item),
-						position: {
-							lng: item.geometry.location.lng(),
-							lat: item.geometry.location.lat(),
-						}
-					};
-				});
+			var value = EnvironmentGet();
+			if (value) {
+				angular.merge(environment, value);
 			}
-			console.log('googleMaps.parse', results, items);
-			return items;
+			angular.merge(environment, global);
+			EnvironmentSetHttp();
+			EnvironmentSetLocation();
 		}
 
-    }]);
-    */
+		function EnvironmentUse(key) {
+			if (config[key]) {
+				environment = angular.copy(defaults);
+				angular.merge(environment, config[key]);
+				angular.merge(environment, global);
+				EnvironmentSetHttp();
+				EnvironmentSetLocation();
+			}
+		}
 
-}());
-/* global angular */
+		function EnvironmentGet() {
+			for (var key in config) {
+				var value = config[key];
+				if (value.paths && window.location.href.indexOf(value.paths.app) !== -1) {
+					return value;
+				}
+			}
+		}
 
-(function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.service('MapBox', ['$q', '$http', '$promise', function($q, $http, $promise) {
-
-        var service = this;
-
-        var statics = {
-            get: MapBoxGet,
-        };
-
-        angular.extend(service, statics);
-
-        function MapBoxGet() {
-            return $promise(function(promise) {
-                if (window.mapboxgl) {
-                    promise.resolve(window.mapbox);
-                } else {
-                    $promise.all([
-                        MapBoxScript('//api.tiles.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.js'),
-                        MapBoxLink('//api.tiles.mapbox.com/mapbox-gl-js/v0.42.0/mapbox-gl.css'),
-                    ]).then(function() {
-                        promise.resolve(window.mapboxgl);
-                    }, function(error) {
-                        promise.reject(error);
-                    });
-                }
-            });
-        }
-
-        function MapBoxScript(url) {
-            return $promise(function(promise) {
-                try {
-                    var id = 'mapboxscript';
-                    var script = document.getElementsByTagName('script')[0];
-                    if (document.getElementById(id)) {
-                        return;
-                    }
-                    var node = document.createElement('script');
-                    node.id = id;
-                    node.src = url;
-                    node.addEventListener('load', promise.resolve);
-                    node.addEventListener('error', promise.reject);
-                    script.parentNode.insertBefore(node, script);
-                } catch (error) {
-                    promise.reject(error);
-                }
-                /*
-                var node = document.createElement('script');
-                node.src = url;
-                node.addEventListener('load', promise.resolve);
-                node.addEventListener('error', promise.reject);
-                document.body.appendChild(node);
-                */
-            });
-        }
-
-        function MapBoxLink(url) {
-            return $promise(function(promise) {
-                try {
-                    var id = 'mapboxstyle';
-                    var link = document.getElementsByTagName('link')[0];
-                    if (document.getElementById(id)) {
-                        return;
-                    }
-                    var node = document.createElement('link');
-                    node.id = id;
-                    node.rel = 'stylesheet';
-                    node.href = url;
-                    node.addEventListener('load', promise.resolve);
-                    node.addEventListener('error', promise.reject);
-                    link.parentNode.insertBefore(node, link);
-                } catch (error) {
-                    promise.reject(error);
-                }
-                /*
-                var node = document.createElement('link');
-                node.rel = 'stylesheet';
-                node.href = url;
-                node.addEventListener('load', promise.resolve);
-                node.addEventListener('error', promise.reject);
-                document.body.appendChild(node);
-                */
-            });
-        }
-
-    }]);
-
-    app.service('___GoogleMaps', ['$q', '$http', '$promise', function($q, $http, $promise) {
-
-        var _key = 'AIzaSyBlgTatREkeIDKEKYL_dtaaDx1yYxmx_iM';
-        var _init = false;
-
-        this.maps = maps;
-        this.geocoder = geocoder;
-        this.parse = parse;
-
-        function maps() {
-            return $promise(function(promise) {
-                if (_init) {
-                    promise.resolve(window.google.maps);
-                } else {
-                    window.__googleMapsInit = function() {
-                        promise.resolve(window.google.maps);
-                        window.__googleMapsInit = null;
-                        _init = true;
-                    };
-                    var script = document.createElement('script');
-                    script.setAttribute('async', null);
-                    script.setAttribute('defer', null);
-                    script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=__googleMapsInit');
-                    document.body.appendChild(script);
-                }
-            });
-        }
-
-        function geocoder() {
-            var service = this;
-            var deferred = $q.defer();
-            maps().then(function(maps) {
-                var _geocoder = new maps.Geocoder();
-                deferred.resolve(_geocoder);
-            }, function(error) {
-                deferred.reject(error);
-            });
-            return deferred.promise;
-        }
-
-        function getType(type, item) {
-            var types = {
-                street: 'route',
-                number: 'street_number',
-                locality: 'locality',
-                postalCode: 'postal_code',
-                city: 'administrative_area_level_3',
-                province: 'administrative_area_level_2',
-                region: 'administrative_area_level_1',
-                country: 'country',
-            };
-            var label = null;
-            angular.forEach(item.address_components, function(c) {
-                angular.forEach(c.types, function(t) {
-                    if (t === types[type]) {
-                        label = c.long_name;
-                    }
-                });
-            });
-            // console.log('googleMaps.getType', type, item, label);
-            return label;
-        }
-
-        function parse(results) {
-            var items = null;
-            if (results.length) {
-                items = results.filter(function(item) {
-                    return true; // item.geometry.location_type === 'ROOFTOP' ||
-                    // item.geometry.location_type === 'RANGE_INTERPOLATED' ||
-                    // item.geometry.location_type === 'GEOMETRIC_CENTER';
-                }).map(function(item) {
-                    return {
-                        name: item.formatted_address,
-                        street: getType('street', item),
-                        number: getType('number', item),
-                        locality: getType('locality', item),
-                        postalCode: getType('postalCode', item),
-                        city: getType('city', item),
-                        province: getType('province', item),
-                        region: getType('region', item),
-                        country: getType('country', item),
-                        position: {
-                            lng: item.geometry.location.lng(),
-                            lat: item.geometry.location.lat(),
-                        }
-                    };
-                });
-                /*
-                var first = response.data.results[0];
-                scope.model.position = first.geometry.location;
-                console.log(scope.model);
-                setLocation();
-                */
-            }
-            console.log('googleMaps.parse', results, items);
-            return items;
-        }
-
-    }]);
-
-}());
-/* global angular */
-
-(function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.provider('environment', ['$locationProvider', '$httpProvider', function($locationProvider, $httpProvider) {
-
-        var provider = this;
-
-        var statics = {
-            add: EnvironmentAdd,
-            use: EnvironmentUse,
-        };
-
-        angular.extend(provider, statics);
-
-        var defaults = {
-            paths: {
-
-            },
-            location: {
-                html5: false,
-                hash: '!',
-            },
-            http: {
-                withCredentials: false,
-                interceptors: [], // ['AuthInterceptorService'],
-            },
-            addons: {
-                facebook: {
-                    app_id: 340008479796111,
-                    scope: 'public_profile, email', // publish_stream
-                    fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
-                    version: 'v2.10',
-                }
-            },
-            language: {
-                code: 'en',
-                culture: 'en_US',
-                name: 'English',
-                iso: 'ENU',
-            },
-        };
-
-        var global = {};
-
-        if (window.environment) {
-            angular.merge(global, window.environment);
-        }
-
-        var config = {};
-
-        var environment = angular.copy(defaults);
-        angular.merge(environment, global);
-
-        function EnvironmentSetHttp() {
-            $httpProvider.defaults.headers.common["Accept-Language"] = environment.language.code;
-            $httpProvider.defaults.withCredentials = environment.http.withCredentials;
-            $httpProvider.interceptors.push.apply($httpProvider.interceptors, environment.http.interceptors);
-        }
-
-        function EnvironmentSetLocation() {
-            $locationProvider.html5Mode(environment.location.html5);
-            $locationProvider.hashPrefix(environment.location.hash);
-        }
-
-        function EnvironmentAdd(key, data) {
-            config[key] = config[key] ? angular.merge(config[key], data) : data;
-            EnvironmentSet();
-        }
-
-        function EnvironmentSet() {
-            environment = angular.copy(defaults);
-            var value = EnvironmentGet();
-            if (value) {
-                angular.merge(environment, value);
-            }
-            angular.merge(environment, global);
-            EnvironmentSetHttp();
-            EnvironmentSetLocation();
-        }
-
-        function EnvironmentUse(key) {
-            if (config[key]) {
-                environment = angular.copy(defaults);
-                angular.merge(environment, config[key]);
-                angular.merge(environment, global);
-                EnvironmentSetHttp();
-                EnvironmentSetLocation();
-            }
-        }
-
-        function EnvironmentGet() {
-            for (var key in config) {
-                var value = config[key];
-                if (value.paths && window.location.href.indexOf(value.paths.app) !== -1) {
-                    return value;
-                }
-            }
-        }
-
-        provider.$get = function() {
-            return environment;
-        };
+		provider.$get = function () {
+			return environment;
+		};
 
     }]);
 
@@ -3597,7 +3534,7 @@ $(window).on('resize', function () {
 		}
 
 		var statics = {
-			current: ViewCurrent,
+			current: ViewCurrent, // ViewCurrentSimple
 		};
 
 		var methods = {};
@@ -3612,7 +3549,7 @@ $(window).on('resize', function () {
 		function ViewCurrent() {
 			return $promise(function (promise) {
 				var url = $location.path();
-				console.log('View.current', url);
+				console.log('ViewCurrent', url);
 				Api.docs.url(url).then(function (response) {
 					var doc = new Doc(response);
 					var view = new View(doc);
@@ -3622,22 +3559,28 @@ $(window).on('resize', function () {
 					promise.reject(error);
 
 				});
-				/*
-				Api.navs.main().then(function(items) {
-				    var doc = null,
-				        url = $location.path(),
-				        pool = getPool(items);
-				    var item = pool[url];
-				    if (item) {
-				        doc = new Doc(item);
-				    }
-				    promise.resolve(doc);
+			});
+		}
 
-				}, function(error) {
-				    promise.reject(error);
+		function ViewCurrentSimple() {
+			return $promise(function (promise) {
+				console.log('ViewCurrentSimple');
+				Api.navs.main().then(function (items) {
+					var doc = null,
+						view = null,
+						url = $location.path(),
+						pool = ViewPool(items);
+					var item = pool[url];
+					if (item) {
+						doc = new Doc(item);
+						view = new View(doc);
+					}
+					promise.resolve(view);
+
+				}, function (error) {
+					promise.reject(error);
 
 				});
-				*/
 			});
 		}
 
@@ -3663,210 +3606,211 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('Http', ['$http', '$promise', '$timeout', 'environment', function($http, $promise, $timeout, environment) {
+	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function ($http, $promise, $timeout, environment) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            get: HttpGet,
-            post: HttpPost,
-            put: HttpPut,
-            patch: HttpPatch,
-            'delete': HttpDelete,
-            fake: HttpFake,
-        };
+		var statics = {
+			get: HttpGet,
+			post: HttpPost,
+			put: HttpPut,
+			patch: HttpPatch,
+			'delete': HttpDelete,
+			fake: HttpFake,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        // statics methods
+		// statics methods
 
-        function HttpUrl(url) {
-            return environment.paths.api + url;
-        }
+		function HttpUrl(url) {
+			return environment.paths.api + url;
+		}
 
-        function HttpPromise(method, url, data) {
-            return $promise(function(promise) {
-                $http[method](HttpUrl(url), data).then(function(response) {
-                    promise.resolve(response.data);
+		function HttpPromise(method, url, data) {
+			return $promise(function (promise) {
+				$http[method](HttpUrl(url), data).then(function (response) {
+					promise.resolve(response.data);
 
-                }, function(e, status) {
-                    var error = (e && e.data) ? e.data : {};
-                    error.status = e.status;
-                    promise.reject(error);
+				}, function (e, status) {
+					var error = (e && e.data) ? e.data : {};
+					error.status = e.status;
+					promise.reject(error);
 
-                });
-            });
-        }
+				});
+			});
+		}
 
-        function HttpGet(url) {
-            return HttpPromise('get', url);
-        }
+		function HttpGet(url) {
+			return HttpPromise('get', url);
+		}
 
-        function HttpPost(url, data) {
-            return HttpPromise('post', url, data);
-        }
+		function HttpPost(url, data) {
+			return HttpPromise('post', url, data);
+		}
 
-        function HttpPut(url, data) {
-            return HttpPromise('put', url, data);
-        }
+		function HttpPut(url, data) {
+			return HttpPromise('put', url, data);
+		}
 
-        function HttpPatch(url, data) {
-            return HttpPromise('patch', url, data);
-        }
+		function HttpPatch(url, data) {
+			return HttpPromise('patch', url, data);
+		}
 
-        function HttpDelete(url) {
-            return HttpPromise('delete', url);
-        }
+		function HttpDelete(url) {
+			return HttpPromise('delete', url);
+		}
 
-        function HttpFake(data) {
-            var deferred = $q.defer();
-            $timeout(function() {
-                deferred.resolve({
-                    data: data
-                });
-            }, 1000);
-            return deferred.promise;
-        }
+		function HttpFake(data, msec) {
+			msec = msec || 1000;
+			return $promise(function (promise) {
+				$timeout(function () {
+					promise.resolve({
+						data: data
+					});
+				}, msec);
+			});
+		}
 
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('Router', ['$rootScope', '$location', '$timeout', function($rootScope, $location, $timeout) {
+	app.service('Router', ['$rootScope', '$location', '$timeout', function ($rootScope, $location, $timeout) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            isController: RouterIsController,
-            redirect: RouterRedirect,
-            path: RouterPath,
-            apply: RouterApply,
-        };
+		var statics = {
+			isController: RouterIsController,
+			redirect: RouterRedirect,
+			path: RouterPath,
+			apply: RouterApply,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        $rootScope.$on('$routeChangeStart', RouterOnChangeStart);
-        $rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
-        $rootScope.$on('$routeChangeError', RouterOnChangeError);
-        $rootScope.$on('$routeUpdate', RouterOnUpdate);
+		$rootScope.$on('$routeChangeStart', RouterOnChangeStart);
+		$rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
+		$rootScope.$on('$routeChangeError', RouterOnChangeError);
+		$rootScope.$on('$routeUpdate', RouterOnUpdate);
 
-        var $previous, $current, $next;
-        var $previousController, $currentController, $nextController;
+		var $previous, $current, $next;
+		var $previousController, $currentController, $nextController;
 
-        function RouterSetControllers() {
-            $previousController = $previous ? $previous.controller : null;
-            $currentController = $current ? $current.controller : null;
-            $nextController = $next ? $next.controller : null;
-        }
+		function RouterSetControllers() {
+			$previousController = $previous ? $previous.controller : null;
+			$currentController = $current ? $current.controller : null;
+			$nextController = $next ? $next.controller : null;
+		}
 
-        /*
-        $routeChangeStart
-        Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
-        The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
-        */
-        function RouterOnChangeStart(event, next, current) {
-            $previous = null;
-            $current = current ? current.$$route : null;
-            $next = next ? next.$$route : null;
-            RouterSetControllers();
-            console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
-        }
+		/*
+		$routeChangeStart
+		Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
+		The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
+		*/
+		function RouterOnChangeStart(event, next, current) {
+			$previous = null;
+			$current = current ? current.$$route : null;
+			$next = next ? next.$$route : null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
+		}
 
-        /*
-        $routeChangeSuccess
-        Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
-        */
-        function RouterOnChangeSuccess(event, current, previous) {
-            $previous = previous ? previous.$$route : null;
-            $current = current ? current.$$route : null;
-            $next = null;
-            RouterSetControllers();
-            console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
-        }
+		/*
+		$routeChangeSuccess
+		Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
+		*/
+		function RouterOnChangeSuccess(event, current, previous) {
+			$previous = previous ? previous.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
+		}
 
-        /*
-        $routeChangeError
-        Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
-        */
-        function RouterOnChangeError(event, current, previous, rejection) {
-            $previous = null;
-            $current = previous.$$route || null;
-            $next = null;
-            RouterSetControllers();
-            console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
-        }
+		/*
+		$routeChangeError
+		Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
+		*/
+		function RouterOnChangeError(event, current, previous, rejection) {
+			$previous = null;
+			$current = previous.$$route || null;
+			$next = null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
+		}
 
-        /*
-        $routeUpdate
-        The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
-        */
-        function RouterOnUpdate(event, current) {
-            $previous = current ? current.$$route : null;
-            $current = current ? current.$$route : null;
-            $next = null;
-            RouterSetControllers();
-            console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
-        }
+		/*
+		$routeUpdate
+		The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
+		*/
+		function RouterOnUpdate(event, current) {
+			$previous = current ? current.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
+		}
 
-        function RouterIsController(controller) {
-            return $currentController === controller;
-        }
+		function RouterIsController(controller) {
+			return $currentController === controller;
+		}
 
-        // navigation
+		// navigation
 
-        function RouterRedirectTo(path) {
-            $location.$$lastRequestedPath = $location.path();
-            $location.path(path);
-        }
+		function RouterRedirectTo(path) {
+			$location.$$lastRequestedPath = $location.path();
+			$location.path(path);
+		}
 
-        function RouterRetryLastRequestedPath(path) {
-            path = $location.$$lastRequestedPath || path;
-            $location.$$lastRequestedPath = null;
-            $location.path(path);
-        }
+		function RouterRetryLastRequestedPath(path) {
+			path = $location.$$lastRequestedPath || path;
+			$location.$$lastRequestedPath = null;
+			$location.path(path);
+		}
 
-        function RouterRedirect(path, msecs) {
-            if (msecs) {
-                $timeout(function() {
-                    RouterRedirectTo(path);
-                }, msecs);
-            } else {
-                RouterRedirectTo(path);
-            }
-        }
+		function RouterRedirect(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					RouterRedirectTo(path);
+				}, msecs);
+			} else {
+				RouterRedirectTo(path);
+			}
+		}
 
-        function RouterPath(path, msecs) {
-            if (msecs) {
-                $timeout(function() {
-                    RouterRetryLastRequestedPath(path);
-                }, msecs);
-            } else {
-                RouterRetryLastRequestedPath(path);
-            }
-        }
+		function RouterPath(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					RouterRetryLastRequestedPath(path);
+				}, msecs);
+			} else {
+				RouterRetryLastRequestedPath(path);
+			}
+		}
 
-        function RouterApply(path, msecs) {
-            if (msecs) {
-                $timeout(function() {
-                    $location.path(path);
-                }, msecs);
-            } else {
-                $timeout(function() {
-                    $location.path(path);
-                });
-            }
-        }
+		function RouterApply(path, msecs) {
+			if (msecs) {
+				$timeout(function () {
+					$location.path(path);
+				}, msecs);
+			} else {
+				$timeout(function () {
+					$location.path(path);
+				});
+			}
+		}
 
     }]);
 
@@ -4933,6 +4877,44 @@ $(window).on('resize', function () {
 
 /* global angular */
 
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.directive('expandable', ['Events', function (Events) {
+
+		var directive = {
+			restrict: 'A',
+			// template: '<div ng-transclude></div>',
+			// transclude: true,
+			// replace: true,
+			/*
+			templateUrl: function (element, attributes) {
+				return attributes.template || 'artisan/nav/nav';
+            },
+            */
+			link: ExpandableLink,
+		};
+
+		return directive;
+
+		function ExpandableLink(scope, element, attributes, model) {
+
+			function onDown(e) {
+				console.log('ExpandableLink', e);
+			}
+
+			var events = new Events(element).add({
+				down: onDown,
+			}, scope);
+		}
+
+    }]);
+
+}());
+/* global angular */
+
 (function() {
     "use strict";
 
@@ -5573,7 +5555,8 @@ $(window).on('resize', function () {
 	var app = angular.module('artisan');
 
 	app.directive('nav', ['$parse', 'Nav', function ($parse, Nav) {
-		return {
+
+		var directive = {
 			restrict: 'A',
 			templateUrl: function (element, attributes) {
 				return attributes.template || 'artisan/nav/nav';
@@ -5581,31 +5564,37 @@ $(window).on('resize', function () {
 			scope: {
 				items: '=nav',
 			},
-			link: function (scope, element, attributes, model) {
-				scope.$watch('items', function (value) {
-					// console.log(value instanceof Nav, value);
-					if (value) {
-						if (angular.isArray(value)) {
-							var onLink = $parse(attributes.onLink)(scope.$parent);
-							var onNav = $parse(attributes.onNav)(scope.$parent);
-							var nav = new Nav({
-								onLink: onLink,
-								onNav: onNav
-							});
-							nav.setItems(value);
-							scope.item = nav;
-
-						} else if (value instanceof Nav) {
-							scope.item = value;
-						}
-					}
-				});
-			}
+			link: NavLink,
 		};
+
+		return directive;
+
+		function NavLink(scope, element, attributes, model) {
+			scope.$watch('items', function (value) {
+				// console.log(value instanceof Nav, value);
+				if (value) {
+					if (angular.isArray(value)) {
+						var onLink = $parse(attributes.onLink)(scope.$parent);
+						var onNav = $parse(attributes.onNav)(scope.$parent);
+						var nav = new Nav({
+							onLink: onLink,
+							onNav: onNav
+						});
+						nav.setItems(value);
+						scope.item = nav;
+
+					} else if (value instanceof Nav) {
+						scope.item = value;
+					}
+				}
+			});
+		}
+
     }]);
 
 	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
-		return {
+
+		var directive = {
 			restrict: 'A',
 			templateUrl: function (element, attributes) {
 				return attributes.template || 'artisan/nav/nav-item';
@@ -5613,141 +5602,150 @@ $(window).on('resize', function () {
 			scope: {
 				item: '=navItem',
 			},
-			link: function (scope, element, attributes, model) {
-				var navItem = angular.element(element[0].querySelector('.nav-link'));
-
-				var output;
-
-				function itemOpen(item, immediate) {
-					var state = item.$nav.state;
-					state.active = true;
-
-					$timeout(function () {
-						state.immediate = immediate;
-						state.closed = state.closing = false;
-						state.opening = true;
-						$timeout(function () {
-							state.opening = false;
-							state.opened = true;
-						});
-					});
-				}
-
-				function itemClose(item, immediate) {
-					var state = item.$nav.state;
-					state.active = false;
-					$timeout(function () {
-						state.immediate = immediate;
-						state.opened = state.opening = false;
-						state.closing = true;
-						$timeout(function () {
-							state.closing = false;
-							state.closed = true;
-						});
-					});
-					if (item.items) {
-						angular.forEach(item.items, function (o) {
-							itemClose(o, true);
-						});
-					}
-				}
-
-				function itemToggle(item) {
-					// console.log('itemToggle', item);
-					var state = item.$nav.state;
-					state.active = item.items ? !state.active : true;
-					if (state.active) {
-						if (item.$nav.parent) {
-							angular.forEach(item.$nav.parent.items, function (o) {
-								if (o !== item) {
-									itemClose(o, true);
-								}
-							});
-						}
-						itemOpen(item);
-					} else {
-						itemClose(item);
-					}
-					// console.log(state);
-				}
-
-				function onDown(e) {
-					var item = scope.item;
-					// console.log('Item.onDown', item);
-					var state = item.$nav.state;
-					if (state.active) {
-						output = false;
-						trigger();
-					} else if (item.$nav.onNav) {
-						var promise = item.$nav.onNav(item, item.$nav);
-						if (promise && typeof promise.then === 'function') {
-							promise.then(function (resolved) {
-								// go on
-								trigger();
-							}, function (rejected) {
-								// do nothing
-							});
-							output = false;
-						} else {
-							output = promise;
-							trigger();
-						}
-					}
-
-					function trigger() {
-						$timeout(function () {
-							itemToggle(item);
-						});
-					}
-
-					// preventDefault(e);
-				}
-
-				function onClick(e) {
-					// console.log('Item.onClick', e);
-					return preventDefault(e);
-				}
-
-				function preventDefault(e) {
-					if (output === false) {
-						// console.log('Item.preventDefault', e);
-						e.stop();
-						// e.preventDefault();
-						// e.stopPropagation();
-						return false;
-					}
-				}
-
-				var events = new Events(navItem).add({
-					down: onDown,
-					click: onClick,
-				}, scope);
-
-			}
+			link: NavItemLink,
 		};
+
+		return directive;
+
+		function NavItemLink(scope, element, attributes, model) {
+			var navItem = angular.element(element[0].querySelector('.nav-link'));
+
+			var output;
+
+			function itemOpen(item, immediate) {
+				var state = item.$nav.state;
+				state.active = true;
+
+				$timeout(function () {
+					state.immediate = immediate;
+					state.closed = state.closing = false;
+					state.opening = true;
+					$timeout(function () {
+						state.opening = false;
+						state.opened = true;
+					});
+				});
+			}
+
+			function itemClose(item, immediate) {
+				var state = item.$nav.state;
+				state.active = false;
+				$timeout(function () {
+					state.immediate = immediate;
+					state.opened = state.opening = false;
+					state.closing = true;
+					$timeout(function () {
+						state.closing = false;
+						state.closed = true;
+					});
+				});
+				if (item.items) {
+					angular.forEach(item.items, function (o) {
+						itemClose(o, true);
+					});
+				}
+			}
+
+			function itemToggle(item) {
+				// console.log('itemToggle', item);
+				var state = item.$nav.state;
+				state.active = item.items ? !state.active : true;
+				if (state.active) {
+					if (item.$nav.parent) {
+						angular.forEach(item.$nav.parent.items, function (o) {
+							if (o !== item) {
+								itemClose(o, true);
+							}
+						});
+					}
+					itemOpen(item);
+				} else {
+					itemClose(item);
+				}
+				// console.log(state);
+			}
+
+			function onDown(e) {
+				var item = scope.item;
+				// console.log('Item.onDown', item);
+				var state = item.$nav.state;
+				if (state.active) {
+					output = false;
+					trigger();
+				} else if (item.$nav.onNav) {
+					var promise = item.$nav.onNav(item, item.$nav);
+					if (promise && typeof promise.then === 'function') {
+						promise.then(function (resolved) {
+							// go on
+							trigger();
+						}, function (rejected) {
+							// do nothing
+						});
+						output = false;
+					} else {
+						output = promise;
+						trigger();
+					}
+				}
+
+				function trigger() {
+					$timeout(function () {
+						itemToggle(item);
+					});
+				}
+
+				// preventDefault(e);
+			}
+
+			function onClick(e) {
+				// console.log('Item.onClick', e);
+				return preventDefault(e);
+			}
+
+			function preventDefault(e) {
+				if (output === false) {
+					// console.log('Item.preventDefault', e);
+					e.stop();
+					// e.preventDefault();
+					// e.stopPropagation();
+					return false;
+				}
+			}
+
+			var events = new Events(navItem).add({
+				down: onDown,
+				click: onClick,
+			}, scope);
+		}
+
     }]);
 
 	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
-		return {
+
+		var directive = {
 			restrict: 'A',
-			link: function (scope, element, attributes) {
-
-				function onDown(e) {
-					console.log('navTo.onDown', attributes.navTo);
-					$timeout(function () {
-						var callback = $parse(attributes.navTo);
-						callback(scope);
-					});
-					e.preventDefault();
-					return false;
-				}
-
-				var events = new Events(element).add({
-					down: onDown,
-				}, scope);
-
-			}
+			link: NavToLink
 		};
+
+		return directive;
+
+		function NavToLink(scope, element, attributes) {
+			function onDown(e) {
+				console.log('navTo.onDown', attributes.navTo);
+				$timeout(function () {
+					var callback = $parse(attributes.navTo);
+					callback(scope);
+				});
+				e.preventDefault();
+				return false;
+			}
+
+			var events = new Events(element).add({
+				down: onDown,
+			}, scope);
+
+		}
+
     }]);
 
 }());
@@ -6785,8 +6783,9 @@ $(window).on('resize', function () {
 
 	var app = angular.module('artisan');
 
-	app.directive('videoSource', ['$timeout', function ($timeout) {
-		return {
+	app.directive('videoSource', ['$timeout', '$promise', function ($timeout, $promise) {
+
+		var directive = {
 			restrict: 'A',
 			scope: {
 				source: '=videoSource',
@@ -6795,105 +6794,146 @@ $(window).on('resize', function () {
 			templateUrl: function (element, attributes) {
 				return attributes.template || 'artisan/video/video-player';
 			},
-			link: function (scope, element, attributes) {
-				var native = element[0];
-				var video = native.querySelector('video');
-				var img = native.querySelector('img');
-				var infos = {};
-				scope.playing = false;
-				scope.busy = false;
-				scope.toggle = toggle;
-				scope.play = play;
-				scope.pause = pause;
-				scope.infos = infos;
-
-				function toggle() {
-					if (!scope.busy) {
-						scope.busy = true;
-						if (scope.playing) {
-							video.pause();
-						} else {
-							video.play();
-						}
-					}
-				}
-
-				function play() {
-					if (!scope.busy) {
-						scope.busy = true;
-						video.play();
-					}
-				}
-
-				function pause() {
-					if (!scope.busy) {
-						scope.busy = true;
-						video.pause();
-					}
-				}
-
-				function onPlaying(e) {
-					$timeout(function () {
-						scope.playing = true;
-						scope.busy = false;
-					});
-				}
-
-				function onPause(e) {
-					$timeout(function () {
-						scope.playing = false;
-						scope.busy = false;
-					});
-				}
-
-				function onEnded(e) {
-					$timeout(function () {
-						scope.playing = false;
-						scope.busy = false;
-					});
-				}
-
-				function onProgress(e) {
-					$timeout(function () {
-						infos.buffered = video.buffered; // todo: TimeRanges
-						console.log('onProgress', infos);
-					});
-				}
-
-				function onTimeUpdate(e) {
-					$timeout(function () {
-						infos.duration = video.duration;
-						infos.currentTime = video.currentTime;
-						infos.progressTime = infos.currentTime / infos.duration;
-						console.log('onTimeUpdate', infos);
-					});
-				}
-
-				var videoElement = angular.element(video);
-
-				function addListeners() {
-					videoElement.on('playing', onPlaying);
-					videoElement.on('pause', onPause);
-					videoElement.on('ended', onEnded);
-					videoElement.on('progress', onProgress);
-					videoElement.on('timeupdate', onTimeUpdate);
-				}
-
-				function removeListeners() {
-					videoElement.off('playing', onPlaying);
-					videoElement.off('pause', onPause);
-					videoElement.off('ended', onEnded);
-					videoElement.off('progress', onProgress);
-					videoElement.off('timeupdate', onTimeUpdate);
-				}
-
-				addListeners();
-				scope.$on('destroy', function () {
-					removeListeners();
-				});
-
-			}
+			link: VideoSourceLink
 		};
+
+		return directive;
+
+		function VideoSourceLink(scope, element, attributes) {
+
+			var native = element[0];
+			var video = native.querySelector('video');
+			var img = native.querySelector('img');
+			var infos = {};
+			scope.canplay = false;
+			scope.playing = false;
+			scope.busy = false;
+			scope.toggle = toggle;
+			scope.play = play;
+			scope.pause = pause;
+			scope.infos = infos;
+
+			// loop><source src="{{source}}" type="video/mp4"
+
+			function canplay() {
+				return $promise(function (promise) {
+
+					function _onCanPlay(e) {
+						scope.canplay = true;
+						angular.element(video).off('canplay', _onCanPlay);
+						// console.log('videoSource._onCanPlay', e);
+						promise.resolve();
+					}
+
+					if (scope.canplay) {
+						promise.resolve();
+					} else {
+						angular.element(video).on('canplay', _onCanPlay);
+						video.preload = true;
+						video.src = scope.source;
+					}
+				});
+			}
+
+			function toggle() {
+				if (!scope.busy) {
+					scope.busy = true;
+					if (scope.playing) {
+						video.pause();
+					} else {
+						canplay().then(function () {
+							video.play();
+						});
+					}
+				}
+			}
+
+			function play() {
+				if (!scope.busy) {
+					scope.busy = true;
+					canplay().then(function () {
+						video.play();
+					});
+				}
+			}
+
+			function pause() {
+				if (!scope.busy) {
+					scope.busy = true;
+					video.pause();
+				}
+			}
+
+			function onCanPlay(e) {
+				$timeout(function () {
+					scope.canplay = true;
+				});
+			}
+
+			function onPlaying(e) {
+				$timeout(function () {
+					scope.playing = true;
+					scope.busy = false;
+				});
+			}
+
+			function onPause(e) {
+				$timeout(function () {
+					scope.playing = false;
+					scope.busy = false;
+				});
+			}
+
+			function onEnded(e) {
+				$timeout(function () {
+					scope.playing = false;
+					scope.busy = false;
+				});
+			}
+
+			function onProgress(e) {
+				$timeout(function () {
+					infos.buffered = video.buffered; // todo: TimeRanges
+					// console.log('onProgress', infos);
+				});
+			}
+
+			function onTimeUpdate(e) {
+				$timeout(function () {
+					infos.duration = video.duration;
+					infos.currentTime = video.currentTime;
+					infos.progressTime = infos.currentTime / infos.duration;
+					// console.log('onTimeUpdate', infos);
+				});
+			}
+
+			var videoElement = angular.element(video);
+
+			function addListeners() {
+				// videoElement.on('canplay', onCanPlay);
+				videoElement.on('playing', onPlaying);
+				videoElement.on('pause', onPause);
+				videoElement.on('ended', onEnded);
+				videoElement.on('progress', onProgress);
+				videoElement.on('timeupdate', onTimeUpdate);
+			}
+
+			function removeListeners() {
+				// videoElement.off('canplay', onCanPlay);
+				videoElement.off('playing', onPlaying);
+				videoElement.off('pause', onPause);
+				videoElement.off('ended', onEnded);
+				videoElement.off('progress', onProgress);
+				videoElement.off('timeupdate', onTimeUpdate);
+			}
+
+			addListeners();
+			scope.$on('destroy', function () {
+				removeListeners();
+			});
+
+		}
+
     }]);
 
 	/*

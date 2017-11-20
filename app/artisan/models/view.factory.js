@@ -22,7 +22,7 @@
 		}
 
 		var statics = {
-			current: ViewCurrent,
+			current: ViewCurrent, // ViewCurrentSimple
 		};
 
 		var methods = {};
@@ -37,7 +37,7 @@
 		function ViewCurrent() {
 			return $promise(function (promise) {
 				var url = $location.path();
-				console.log('View.current', url);
+				console.log('ViewCurrent', url);
 				Api.docs.url(url).then(function (response) {
 					var doc = new Doc(response);
 					var view = new View(doc);
@@ -47,22 +47,28 @@
 					promise.reject(error);
 
 				});
-				/*
-				Api.navs.main().then(function(items) {
-				    var doc = null,
-				        url = $location.path(),
-				        pool = getPool(items);
-				    var item = pool[url];
-				    if (item) {
-				        doc = new Doc(item);
-				    }
-				    promise.resolve(doc);
+			});
+		}
 
-				}, function(error) {
-				    promise.reject(error);
+		function ViewCurrentSimple() {
+			return $promise(function (promise) {
+				console.log('ViewCurrentSimple');
+				Api.navs.main().then(function (items) {
+					var doc = null,
+						view = null,
+						url = $location.path(),
+						pool = ViewPool(items);
+					var item = pool[url];
+					if (item) {
+						doc = new Doc(item);
+						view = new View(doc);
+					}
+					promise.resolve(view);
+
+				}, function (error) {
+					promise.reject(error);
 
 				});
-				*/
 			});
 		}
 
