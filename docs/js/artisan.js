@@ -1012,200 +1012,200 @@
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.service('MapBox', ['$q', '$http', '$promise', 'environment', function ($q, $http, $promise, environment) {
+    app.service('MapBox', ['$q', '$http', '$promise', 'environment', function($q, $http, $promise, environment) {
 
-		var service = this;
+        var service = this;
 
-		var statics = {
-			get: MapBoxGet,
-		};
+        var statics = {
+            get: MapBoxGet,
+        };
 
-		angular.extend(service, statics);
+        angular.extend(service, statics);
 
-		if (!environment.addons.mapbox) {
-			trhow('MapBox.error missing config object in environment.addons.mapbox');
-		}
+        if (!environment.addons.mapbox) {
+            trhow('MapBox.error missing config object in environment.addons.mapbox');
+        }
 
-		var config = environment.addons.mapbox;
+        var config = environment.addons.mapbox;
 
-		function MapBoxGet() {
-			return $promise(function (promise) {
-				if (window.mapboxgl) {
-					promise.resolve(window.mapbox);
-				} else {
-					$promise.all([
+        function MapBoxGet() {
+            return $promise(function(promise) {
+                if (window.mapboxgl) {
+                    promise.resolve(window.mapboxgl);
+                } else {
+                    $promise.all([
                         MapBoxScript('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
                         MapBoxLink('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
-                    ]).then(function () {
-						window.mapboxgl.accessToken = config.accessToken;
-						promise.resolve(window.mapboxgl);
-					}, function (error) {
-						promise.reject(error);
-					});
-				}
-			});
-		}
+                    ]).then(function() {
+                        window.mapboxgl.accessToken = config.accessToken;
+                        promise.resolve(window.mapboxgl);
+                    }, function(error) {
+                        promise.reject(error);
+                    });
+                }
+            });
+        }
 
-		function MapBoxScript(url) {
-			return $promise(function (promise) {
-				try {
-					var id = 'mapboxscript';
-					var script = document.getElementsByTagName('script')[0];
-					if (document.getElementById(id)) {
-						return;
-					}
-					var node = document.createElement('script');
-					node.id = id;
-					node.src = url;
-					node.addEventListener('load', promise.resolve);
-					node.addEventListener('error', promise.reject);
-					script.parentNode.insertBefore(node, script);
-				} catch (error) {
-					promise.reject(error);
-				}
-				/*
-				var node = document.createElement('script');
-				node.src = url;
-				node.addEventListener('load', promise.resolve);
-				node.addEventListener('error', promise.reject);
-				document.body.appendChild(node);
-				*/
-			});
-		}
+        function MapBoxScript(url) {
+            return $promise(function(promise) {
+                try {
+                    var id = 'mapboxscript';
+                    var script = document.getElementsByTagName('script')[0];
+                    if (document.getElementById(id)) {
+                        promise.resolve();
+                    }
+                    var node = document.createElement('script');
+                    node.id = id;
+                    node.src = url;
+                    node.addEventListener('load', promise.resolve);
+                    node.addEventListener('error', promise.reject);
+                    script.parentNode.insertBefore(node, script);
+                } catch (error) {
+                    promise.reject(error);
+                }
+                /*
+                var node = document.createElement('script');
+                node.src = url;
+                node.addEventListener('load', promise.resolve);
+                node.addEventListener('error', promise.reject);
+                document.body.appendChild(node);
+                */
+            });
+        }
 
-		function MapBoxLink(url) {
-			return $promise(function (promise) {
-				try {
-					var id = 'mapboxstyle';
-					var link = document.getElementsByTagName('link')[0];
-					if (document.getElementById(id)) {
-						return;
-					}
-					var node = document.createElement('link');
-					node.id = id;
-					node.rel = 'stylesheet';
-					node.href = url;
-					node.addEventListener('load', promise.resolve);
-					node.addEventListener('error', promise.reject);
-					link.parentNode.insertBefore(node, link);
-				} catch (error) {
-					promise.reject(error);
-				}
-				/*
-				var node = document.createElement('link');
-				node.rel = 'stylesheet';
-				node.href = url;
-				node.addEventListener('load', promise.resolve);
-				node.addEventListener('error', promise.reject);
-				document.body.appendChild(node);
-				*/
-			});
-		}
+        function MapBoxLink(url) {
+            return $promise(function(promise) {
+                try {
+                    var id = 'mapboxstyle';
+                    var link = document.getElementsByTagName('link')[0];
+                    if (document.getElementById(id)) {
+                        promise.resolve();
+                    }
+                    var node = document.createElement('link');
+                    node.id = id;
+                    node.rel = 'stylesheet';
+                    node.href = url;
+                    node.addEventListener('load', promise.resolve);
+                    node.addEventListener('error', promise.reject);
+                    link.parentNode.insertBefore(node, link);
+                } catch (error) {
+                    promise.reject(error);
+                }
+                /*
+                var node = document.createElement('link');
+                node.rel = 'stylesheet';
+                node.href = url;
+                node.addEventListener('load', promise.resolve);
+                node.addEventListener('error', promise.reject);
+                document.body.appendChild(node);
+                */
+            });
+        }
 
     }]);
 
-	app.service('___GoogleMaps', ['$q', '$http', '$promise', function ($q, $http, $promise) {
+    app.service('___GoogleMaps', ['$q', '$http', '$promise', function($q, $http, $promise) {
 
-		var _key = 'AIzaSyBlgTatREkeIDKEKYL_dtaaDx1yYxmx_iM';
-		var _init = false;
+        var _key = 'AIzaSyBlgTatREkeIDKEKYL_dtaaDx1yYxmx_iM';
+        var _init = false;
 
-		this.maps = maps;
-		this.geocoder = geocoder;
-		this.parse = parse;
+        this.maps = maps;
+        this.geocoder = geocoder;
+        this.parse = parse;
 
-		function maps() {
-			return $promise(function (promise) {
-				if (_init) {
-					promise.resolve(window.google.maps);
-				} else {
-					window.__googleMapsInit = function () {
-						promise.resolve(window.google.maps);
-						window.__googleMapsInit = null;
-						_init = true;
-					};
-					var script = document.createElement('script');
-					script.setAttribute('async', null);
-					script.setAttribute('defer', null);
-					script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=__googleMapsInit');
-					document.body.appendChild(script);
-				}
-			});
-		}
+        function maps() {
+            return $promise(function(promise) {
+                if (_init) {
+                    promise.resolve(window.google.maps);
+                } else {
+                    window.__googleMapsInit = function() {
+                        promise.resolve(window.google.maps);
+                        window.__googleMapsInit = null;
+                        _init = true;
+                    };
+                    var script = document.createElement('script');
+                    script.setAttribute('async', null);
+                    script.setAttribute('defer', null);
+                    script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=__googleMapsInit');
+                    document.body.appendChild(script);
+                }
+            });
+        }
 
-		function geocoder() {
-			var service = this;
-			var deferred = $q.defer();
-			maps().then(function (maps) {
-				var _geocoder = new maps.Geocoder();
-				deferred.resolve(_geocoder);
-			}, function (error) {
-				deferred.reject(error);
-			});
-			return deferred.promise;
-		}
+        function geocoder() {
+            var service = this;
+            var deferred = $q.defer();
+            maps().then(function(maps) {
+                var _geocoder = new maps.Geocoder();
+                deferred.resolve(_geocoder);
+            }, function(error) {
+                deferred.reject(error);
+            });
+            return deferred.promise;
+        }
 
-		function getType(type, item) {
-			var types = {
-				street: 'route',
-				number: 'street_number',
-				locality: 'locality',
-				postalCode: 'postal_code',
-				city: 'administrative_area_level_3',
-				province: 'administrative_area_level_2',
-				region: 'administrative_area_level_1',
-				country: 'country',
-			};
-			var label = null;
-			angular.forEach(item.address_components, function (c) {
-				angular.forEach(c.types, function (t) {
-					if (t === types[type]) {
-						label = c.long_name;
-					}
-				});
-			});
-			// console.log('googleMaps.getType', type, item, label);
-			return label;
-		}
+        function getType(type, item) {
+            var types = {
+                street: 'route',
+                number: 'street_number',
+                locality: 'locality',
+                postalCode: 'postal_code',
+                city: 'administrative_area_level_3',
+                province: 'administrative_area_level_2',
+                region: 'administrative_area_level_1',
+                country: 'country',
+            };
+            var label = null;
+            angular.forEach(item.address_components, function(c) {
+                angular.forEach(c.types, function(t) {
+                    if (t === types[type]) {
+                        label = c.long_name;
+                    }
+                });
+            });
+            // console.log('googleMaps.getType', type, item, label);
+            return label;
+        }
 
-		function parse(results) {
-			var items = null;
-			if (results.length) {
-				items = results.filter(function (item) {
-					return true; // item.geometry.location_type === 'ROOFTOP' ||
-					// item.geometry.location_type === 'RANGE_INTERPOLATED' ||
-					// item.geometry.location_type === 'GEOMETRIC_CENTER';
-				}).map(function (item) {
-					return {
-						name: item.formatted_address,
-						street: getType('street', item),
-						number: getType('number', item),
-						locality: getType('locality', item),
-						postalCode: getType('postalCode', item),
-						city: getType('city', item),
-						province: getType('province', item),
-						region: getType('region', item),
-						country: getType('country', item),
-						position: {
-							lng: item.geometry.location.lng(),
-							lat: item.geometry.location.lat(),
-						}
-					};
-				});
-				/*
-				var first = response.data.results[0];
-				scope.model.position = first.geometry.location;
-				console.log(scope.model);
-				setLocation();
-				*/
-			}
-			console.log('googleMaps.parse', results, items);
-			return items;
-		}
+        function parse(results) {
+            var items = null;
+            if (results.length) {
+                items = results.filter(function(item) {
+                    return true; // item.geometry.location_type === 'ROOFTOP' ||
+                    // item.geometry.location_type === 'RANGE_INTERPOLATED' ||
+                    // item.geometry.location_type === 'GEOMETRIC_CENTER';
+                }).map(function(item) {
+                    return {
+                        name: item.formatted_address,
+                        street: getType('street', item),
+                        number: getType('number', item),
+                        locality: getType('locality', item),
+                        postalCode: getType('postalCode', item),
+                        city: getType('city', item),
+                        province: getType('province', item),
+                        region: getType('region', item),
+                        country: getType('country', item),
+                        position: {
+                            lng: item.geometry.location.lng(),
+                            lat: item.geometry.location.lat(),
+                        }
+                    };
+                });
+                /*
+                var first = response.data.results[0];
+                scope.model.position = first.geometry.location;
+                console.log(scope.model);
+                setLocation();
+                */
+            }
+            console.log('googleMaps.parse', results, items);
+            return items;
+        }
 
     }]);
 
@@ -1455,220 +1455,220 @@ $(window).on('resize', function () {
 
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.service('Dom', ['Point', 'Rect', function (Point, Rect) {
+    app.service('Dom', ['Point', 'Rect', function(Point, Rect) {
 
-		var service = this;
+        var service = this;
 
-		var statics = {
-			getBoundRect: getBoundRect,
-			getClosest: getClosest,
-			getClosestNode: getClosestNode,
-			getDelta: getDelta,
-			getDocumentNode: getDocumentNode,
-			getElement: getElement,
-			getNode: getNode,
-			getNodeOffset: getNodeOffset,
-			getPageScroll: getPageScroll,
-			getParents: getParents,
-			getView: getView,
-			getPointInView: getPointInView,
-			compileController: compileController,
-			downloadFile: downloadFile,
-			ua: getUA(),
-		};
+        var statics = {
+            getBoundRect: getBoundRect,
+            getClosest: getClosest,
+            getClosestNode: getClosestNode,
+            getDelta: getDelta,
+            getDocumentNode: getDocumentNode,
+            getElement: getElement,
+            getNode: getNode,
+            getNodeOffset: getNodeOffset,
+            getPageScroll: getPageScroll,
+            getParents: getParents,
+            getView: getView,
+            getPointInView: getPointInView,
+            compileController: compileController,
+            downloadFile: downloadFile,
+            ua: getUA(),
+        };
 
-		angular.extend(service, statics);
+        angular.extend(service, statics);
 
-		// return node element BoundingClientRect
-		function getBoundRect(node) {
-			node = getNode(node);
-			if (node === window) {
-				node = getDocumentNode();
-			}
-			var rect = node.getBoundingClientRect();
-			return rect;
-		}
+        // return node element BoundingClientRect
+        function getBoundRect(node) {
+            node = getNode(node);
+            if (node === window) {
+                node = getDocumentNode();
+            }
+            var rect = node.getBoundingClientRect();
+            return rect;
+        }
 
-		// return closest parent node that match a selector
-		function getClosest(node, selector) {
-			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
-				if (typeof document.body[fn] == 'function') {
-					matchesFn = fn;
-					return true;
-				}
-				return false;
-			});
-			if (node[matchesFn](selector)) {
-				return node;
-			}
-			while (node !== null) {
-				parent = node.parentElement;
-				if (parent !== null && parent[matchesFn](selector)) {
-					return parent;
-				}
-				node = parent;
-			}
-			return null;
-		}
+        // return closest parent node that match a selector
+        function getClosest(node, selector) {
+            var matchesFn, parent;
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function(fn) {
+                if (typeof document.body[fn] == 'function') {
+                    matchesFn = fn;
+                    return true;
+                }
+                return false;
+            });
+            if (node[matchesFn](selector)) {
+                return node;
+            }
+            while (node !== null) {
+                parent = node.parentElement;
+                if (parent !== null && parent[matchesFn](selector)) {
+                    return parent;
+                }
+                node = parent;
+            }
+            return null;
+        }
 
-		// return closest parent node that math a target node
-		function getClosestNode(node, target) {
-			var parent = null;
-			if (node === target) {
-				return node;
-			}
-			while (node !== null) {
-				parent = node.parentElement;
-				if (parent !== null && parent === target) {
-					return parent;
-				}
-				node = parent;
-			}
-			return null;
-		}
+        // return closest parent node that math a target node
+        function getClosestNode(node, target) {
+            var parent = null;
+            if (node === target) {
+                return node;
+            }
+            while (node !== null) {
+                parent = node.parentElement;
+                if (parent !== null && parent === target) {
+                    return parent;
+                }
+                node = parent;
+            }
+            return null;
+        }
 
-		// return wheel delta
-		function getDelta(event) {
-			var original = event.originalEvent ? event.originalEvent : event;
-			var type = original.type;
-			var delta = null;
-			if (type === 'wheel' || type === 'mousewheel' || type === 'DOMMouseScroll') {
-				var deltaX = original.deltaX || original.wheelDeltaX;
-				var deltaY = original.deltaY || original.wheelDeltaY;
-				delta = new Point(deltaX, deltaY);
-				if (Math.abs(deltaX) > Math.abs(deltaY)) {
-					delta.dir = deltaX < 0 ? 1 : -1;
-				} else {
-					delta.dir = deltaY < 0 ? 1 : -1;
-				}
-			}
-			return delta;
-		}
+        // return wheel delta
+        function getDelta(event) {
+            var original = event.originalEvent ? event.originalEvent : event;
+            var type = original.type;
+            var delta = null;
+            if (type === 'wheel' || type === 'mousewheel' || type === 'DOMMouseScroll') {
+                var deltaX = original.deltaX || original.wheelDeltaX;
+                var deltaY = original.deltaY || original.wheelDeltaY;
+                delta = new Point(deltaX, deltaY);
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    delta.dir = deltaX < 0 ? 1 : -1;
+                } else {
+                    delta.dir = deltaY < 0 ? 1 : -1;
+                }
+            }
+            return delta;
+        }
 
-		// return document element node
-		function getDocumentNode() {
-			var documentNode = (document.documentElement || document.body.parentNode || document.body);
-			return documentNode;
-		}
+        // return document element node
+        function getDocumentNode() {
+            var documentNode = (document.documentElement || document.body.parentNode || document.body);
+            return documentNode;
+        }
 
-		// return an angular element
-		function getElement(element) {
-			return angular.isArray(element) ? element : angular.element(element);
-		}
+        // return an angular element
+        function getElement(element) {
+            return angular.isArray(element) ? element : angular.element(element);
+        }
 
-		// return a native html node
-		function getNode(element) {
-			return angular.isArray(element) ? element[0] : element;
-		}
+        // return a native html node
+        function getNode(element) {
+            return angular.isArray(element) ? element[0] : element;
+        }
 
-		// return a node offset point
-		function getNodeOffset(node) {
-			var offset = new Point();
-			node = getNode(node);
-			if (node && node.nodeType === 1) {
-				offset.x = node.offsetLeft;
-				offset.y = node.offsetTop;
-			}
-			return offset;
-		}
+        // return a node offset point
+        function getNodeOffset(node) {
+            var offset = new Point();
+            node = getNode(node);
+            if (node && node.nodeType === 1) {
+                offset.x = node.offsetLeft;
+                offset.y = node.offsetTop;
+            }
+            return offset;
+        }
 
-		// return the current page scroll
-		function getPageScroll() {
-			var scroll = new Point();
-			var documentNode = getDocumentNode();
-			scroll.x = window.pageXOffset || documentNode.scrollLeft;
-			scroll.y = window.pageYOffset || documentNode.scrollTop;
-			return scroll;
-		}
+        // return the current page scroll
+        function getPageScroll() {
+            var scroll = new Point();
+            var documentNode = getDocumentNode();
+            scroll.x = window.pageXOffset || documentNode.scrollLeft;
+            scroll.y = window.pageYOffset || documentNode.scrollTop;
+            return scroll;
+        }
 
-		// return an array of node parants
-		function getParents(node, topParentNode) {
-			// if no topParentNode defined will bubble up all the way to *document*
-			topParentNode = topParentNode || getDocumentNode();
-			var parents = [];
-			if (node) {
-				parents.push(node);
-				var parentNode = node.parentNode;
-				while (parentNode !== topParentNode) {
-					parents.push(parentNode);
-					parentNode = parentNode.parentNode;
-				}
-				parents.push(topParentNode); // push that topParentNode you wanted to stop at
-			}
-			return parents;
-		}
+        // return an array of node parants
+        function getParents(node, topParentNode) {
+            // if no topParentNode defined will bubble up all the way to *document*
+            topParentNode = topParentNode || getDocumentNode();
+            var parents = [];
+            if (node) {
+                parents.push(node);
+                var parentNode = node.parentNode;
+                while (parentNode && parentNode !== topParentNode) {
+                    parents.push(parentNode);
+                    parentNode = parentNode.parentNode;
+                }
+                parents.push(topParentNode); // push that topParentNode you wanted to stop at
+            }
+            return parents;
+        }
 
-		// return the view rect
-		function getView() {
-			var view = new Rect();
-			if (window.innerWidth !== undefined) {
-				view.width = window.innerWidth;
-				view.height = window.innerHeight;
-			} else {
-				var documentNode = getDocumentNode();
-				view.width = documentNode.clientWidth;
-				view.height = documentNode.clientHeight;
-			}
-			return view;
-		}
+        // return the view rect
+        function getView() {
+            var view = new Rect();
+            if (window.innerWidth !== undefined) {
+                view.width = window.innerWidth;
+                view.height = window.innerHeight;
+            } else {
+                var documentNode = getDocumentNode();
+                view.width = documentNode.clientWidth;
+                view.height = documentNode.clientHeight;
+            }
+            return view;
+        }
 
-		// add to constant
-		var MOUSE_EVENTS = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
-		var TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+        // add to constant
+        var MOUSE_EVENTS = ['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'contextmenu'];
+        var TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
 
-		function getPointInView(event) {
-			var original = event.originalEvent ? event.originalEvent : event;
-			var type = original.type;
-			var point = null;
-			if (TOUCH_EVENTS.indexOf(type) !== -1) {
-				var touch = null;
-				var touches = original.touches.length ? original.touches : original.changedTouches;
-				if (touches && touches.length) {
-					touch = touches[0];
-				}
-				if (touch) {
-					point = new Point();
-					point.x = touch.pageX;
-					point.y = touch.pageY;
-				}
-			} else if (MOUSE_EVENTS.indexOf(type) !== -1) {
-				point = new Point();
-				point.x = original.pageX;
-				point.y = original.pageY;
-			}
-			return point;
-		}
+        function getPointInView(event) {
+            var original = event.originalEvent ? event.originalEvent : event;
+            var type = original.type;
+            var point = null;
+            if (TOUCH_EVENTS.indexOf(type) !== -1) {
+                var touch = null;
+                var touches = original.touches.length ? original.touches : original.changedTouches;
+                if (touches && touches.length) {
+                    touch = touches[0];
+                }
+                if (touch) {
+                    point = new Point();
+                    point.x = touch.pageX;
+                    point.y = touch.pageY;
+                }
+            } else if (MOUSE_EVENTS.indexOf(type) !== -1) {
+                point = new Point();
+                point.x = original.pageX;
+                point.y = original.pageY;
+            }
+            return point;
+        }
 
-		function getUA() {
-			var agent = window.navigator.userAgent.toLowerCase();
-			var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
-			var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
-			var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
-			var mobile = agent.indexOf('mobile') !== -1;
-			var mac = agent.indexOf('macintosh') !== -1;
-			var ua = {
-				agent: agent,
-				safari: safari,
-				msie: msie,
-				chrome: chrome,
-				mobile: mobile,
-				mac: mac,
-			};
-			angular.forEach(ua, function (value, key) {
-				if (value) {
-					angular.element(document.getElementsByTagName('body')).addClass(key);
-				}
-			});
-			return ua;
-		}
+        function getUA() {
+            var agent = window.navigator.userAgent.toLowerCase();
+            var safari = agent.indexOf('safari') !== -1 && agent.indexOf('chrome') === -1;
+            var msie = agent.indexOf('trident') !== -1 || agent.indexOf('edge') !== -1 || agent.indexOf('msie') !== -1;
+            var chrome = !safari && !msie && agent.indexOf('chrome') !== -1;
+            var mobile = agent.indexOf('mobile') !== -1;
+            var mac = agent.indexOf('macintosh') !== -1;
+            var ua = {
+                agent: agent,
+                safari: safari,
+                msie: msie,
+                chrome: chrome,
+                mobile: mobile,
+                mac: mac,
+            };
+            angular.forEach(ua, function(value, key) {
+                if (value) {
+                    angular.element(document.getElementsByTagName('body')).addClass(key);
+                }
+            });
+            return ua;
+        }
 
-		/*
+        /*
     function mobilecheck() {
         var check = false;
         (function(a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true; })(navigator.userAgent || navigator.vendor || window.opera);
@@ -1687,57 +1687,57 @@ $(window).on('resize', function () {
     var isMobileAndTabled = mobileAndTabletcheck();
 		*/
 
-		function compileController(scope, element, html, data) {
-			// console.log('Dom.compileController', element);
-			element = getElement(element);
-			element.html(html);
-			var link = $compile(element.contents());
-			if (data.controller) {
-				var $scope = scope.$new();
-				angular.extend($scope, data);
-				var controller = $controller(data.controller, {
-					$scope: $scope
-				});
-				if (data.controllerAs) {
-					scope[data.controllerAs] = controller;
-				}
-				element.data('$ngControllerController', controller);
-				element.children().data('$ngControllerController', controller);
-				scope = $scope;
-			}
-			link(scope);
-		}
+        function compileController(scope, element, html, data) {
+            // console.log('Dom.compileController', element);
+            element = getElement(element);
+            element.html(html);
+            var link = $compile(element.contents());
+            if (data.controller) {
+                var $scope = scope.$new();
+                angular.extend($scope, data);
+                var controller = $controller(data.controller, {
+                    $scope: $scope
+                });
+                if (data.controllerAs) {
+                    scope[data.controllerAs] = controller;
+                }
+                element.data('$ngControllerController', controller);
+                element.children().data('$ngControllerController', controller);
+                scope = $scope;
+            }
+            link(scope);
+        }
 
-		function downloadFile(content, name, type) {
-			type = type || 'application/octet-stream';
-			var base64 = null;
-			var blob = new Blob([content], {
-				type: type
-			});
-			var reader = new window.FileReader();
-			reader.readAsDataURL(blob);
-			reader.onloadend = function () {
-				base64 = reader.result;
-				download();
-			};
+        function downloadFile(content, name, type) {
+            type = type || 'application/octet-stream';
+            var base64 = null;
+            var blob = new Blob([content], {
+                type: type
+            });
+            var reader = new window.FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = function() {
+                base64 = reader.result;
+                download();
+            };
 
-			function download() {
-				if (document.createEvent) {
-					var anchor = document.createElement('a');
-					anchor.href = base64;
-					if (anchor.download !== undefined) {
-						var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
-						anchor.download = downloadName;
-					}
-					var event = document.createEvent('MouseEvents');
-					event.initEvent('click', true, true);
-					anchor.dispatchEvent(event);
-					return true;
-				}
-				var query = '?download';
-				window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
-			}
-		}
+            function download() {
+                if (document.createEvent) {
+                    var anchor = document.createElement('a');
+                    anchor.href = base64;
+                    if (anchor.download !== undefined) {
+                        var downloadName = name || base64.substring(base64.lastIndexOf('/') + 1, base64.length);
+                        anchor.download = downloadName;
+                    }
+                    var event = document.createEvent('MouseEvents');
+                    event.initEvent('click', true, true);
+                    anchor.dispatchEvent(event);
+                    return true;
+                }
+                var query = '?download';
+                window.open(base64.indexOf('?') > -1 ? base64 : base64 + query, '_self');
+            }
+        }
 
     }]);
 

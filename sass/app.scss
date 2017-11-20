@@ -1,5 +1,6 @@
 @import "mixins";
 @import "colors";
+@import "components/typography";
 @import "views/cards";
 html,
 body {
@@ -10,7 +11,7 @@ body {
 body {
     padding: 40px;
     font-size: 16px;
-    font-family: 'Palanquin', sans-serif;
+    font-family: 'Raleway', sans-serif;
     background: $background;
     color: $foreground;
 }
