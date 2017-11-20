@@ -1,28 +1,34 @@
 [{
-	"inputFiles": [
+    "inputFiles": [
         "bower_components/angular/angular.js",
         "bower_components/angular-messages/angular-messages.js",
         "bower_components/angular-route/angular-route.js",
         "bower_components/angular-sanitize/angular-sanitize.js",
         "bower_components/json-formatter/dist/json-formatter.js"
     ],
-	"outputFileName": "docs/js/vendors.js",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/js/vendors.js",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "bower_components/angular-i18n/angular-locale_en.js"
     ],
-	"outputFileName": "docs/js/locale/en.js",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/js/locale/en.js",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "app/artisan/artisan.module.js",
 
         "app/artisan/addons/facebook/facebook.service.js",
+        "app/artisan/addons/googlemaps/googlemaps.directive.js",
+        "app/artisan/addons/googlemaps/googlemaps.service.js",
+        "app/artisan/addons/mapbox/mapbox.directive.js",
+        "app/artisan/addons/mapbox/mapbox.service.js",
+
+        "app/artisan/config/environment.provider.js",
 
         "app/artisan/core/animate/animate.factory.js",
         "app/artisan/core/dom/dom.service.js",
@@ -59,58 +65,61 @@
 
         "app/artisan/ui/interactions/tap.directive.js"
     ],
-	"outputFileName": "docs/js/artisan.js",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/js/artisan.js",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "app/app.module.js",
         "app/app.api.js",
-        "app/app.config.js",
         "app/app.routes.js",
         "app/app.run.js",
+        "app/config/environment.js",
+        "app/config/environment.local.js",
+        "app/config/environment.production.js",
+        "app/config/environment.stage.js",
         "app/controllers/contact-us.controller.js",
         "app/controllers/home.controller.js",
         "app/controllers/root.controller.js",
         "app/controllers/slug.controller.js"
     ],
-	"outputFileName": "docs/js/app.js",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/js/app.js",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "bower_components/animate.css/animate.css",
         "bower_components/json-formatter/dist/json-formatter.css",
         "bower_components/dat.gui/build/dat.gui.css"
     ],
-	"outputFileName": "docs/css/vendors.css",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/css/vendors.css",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "docs/css/bootstrap.css"
     ],
-	"outputFileName": "docs/css/bootstrap.css",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/css/bootstrap.css",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "docs/css/artisan.css"
     ],
-	"outputFileName": "docs/css/artisan.css",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/css/artisan.css",
+    "minify": {
+        "enabled": true
+    }
 }, {
-	"inputFiles": [
+    "inputFiles": [
         "docs/css/app.css"
     ],
-	"outputFileName": "docs/css/app.css",
-	"minify": {
-		"enabled": true
-	}
+    "outputFileName": "docs/css/app.css",
+    "minify": {
+        "enabled": true
+    }
 }]

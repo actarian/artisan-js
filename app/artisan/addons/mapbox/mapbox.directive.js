@@ -1,318 +1,385 @@
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	// todo !!!
+    app.directive('mapbox', ['$http', '$timeout', '$compile', 'MapBox', function($http, $timeout, $compile, MapBox) {
 
-	app.directive('mapbox', ['$http', '$timeout', '$compile', 'GoogleMaps', function ($http, $timeout, $compile, googleMaps) {
-		if (!mapboxgl) {
-			return;
-		}
-		mapboxgl.accessToken = 'pk.eyJ1IjoiZmljb3dzZGV2IiwiYSI6ImNqNXJzajVobTB5cW8yd25tejhqcjN2c3kifQ.CsUfBV2eN2ftVELq0xwlGA'; // 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ';
+        var position = {
+            lng: 11.411248,
+            lat: 44.515702,
+        };
 
-		var position = {
-			lng: 11.411248,
-			lat: 44.515702,
-		};
+        var defaults = {
+            center: [position.lng, position.lat],
+            zoom: 17.63,
+            pitch: 53,
+            bearing: -11.68,
+            speed: 1.5,
+            curve: 1,
+        };
 
-		var defaults = {
-			center: [position.lng, position.lat],
-			zoom: 17.63,
-			pitch: 53,
-			bearing: -11.68,
-			speed: 1.5,
-			curve: 1,
-		};
+        return {
+            restrict: 'A',
+            scope: {
+                sources: '=mapbox',
+            },
+            link: link,
+        };
 
-		return {
-			restrict: 'A',
-			scope: {
-				sources: '=mapbox',
-			},
-			link: link,
-		};
+        function link(scope, element, attributes, model) {
+            var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
 
-		function link(scope, element, attributes, model) {
-			var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
+            MapBox.get().then(function(mapboxgl) {
+                Init(mapboxgl);
+            });
 
-			init();
+            function Init(mapboxgl) {
+                mapboxgl.accessToken = 'pk.eyJ1IjoiZmljb3dzZGV2IiwiYSI6ImNqNXJzajVobTB5cW8yd25tejhqcjN2c3kifQ.CsUfBV2eN2ftVELq0xwlGA'; // 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ';			
+                map = getMap();
+                navToCenter();
+                scope.$watch('sources', function(sources) {
+                    if (sources) {
+                        // connect methods;
+                        sources.addMarkers = addMarkers;
+                        sources.jumpToMarker = jumpToMarker;
+                        sources.flyToMarker = flyToMarker;
+                    }
+                });
+                addClusters();
+            }
 
-			var types = {
-				DOCUMENT: 1,
-				EVENT: 2,
-				INFO: 3,
-			};
+            function addClusters() {
 
-			/*
-			googleMaps.geocoder().then(function (response) {
-			    geocoder = response;
-			    init();
-			});
-			*/
+                map.on('load', function() {
+                    // Add a new source from our GeoJSON data and set the
+                    // 'cluster' option to true. GL-JS will add the point_count property to your source data.
+                    map.addSource("earthquakes", {
+                        type: "geojson",
+                        // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+                        // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+                        data: "/api/maps/earthquakes.geojson.js",
+                        cluster: true,
+                        clusterMaxZoom: 14, // Max zoom to cluster points on
+                        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+                    });
 
-			function getOptions(options) {
-				return angular.extend(angular.copy(defaults), options);
-			}
+                    map.addLayer({
+                        id: "clusters",
+                        type: "circle",
+                        source: "earthquakes",
+                        filter: ["has", "point_count"],
+                        paint: {
+                            "circle-color": {
+                                property: "point_count",
+                                type: "interval",
+                                stops: [
+                                    [0, "#51bbd6"],
+                                    [100, "#f1f075"],
+                                    [750, "#f28cb1"],
+                                ]
+                            },
+                            "circle-radius": {
+                                property: "point_count",
+                                type: "interval",
+                                stops: [
+                                    [0, 20],
+                                    [100, 30],
+                                    [750, 40]
+                                ]
+                            }
+                        }
+                    });
 
-			function getMarker(item) {
-				var $scope = scope.$new(true);
-				$scope.item = item;
-				var node = document.createElement('div');
-				node.id = 'point';
-				node.className = 'marker ' + item.area.code;
-				node.className += item.type === types.INFO ? ' info' : '';
-				node.setAttribute('marker', 'item');
-				var marker = new mapboxgl.Marker(node, {
-						offset: [-10, -10]
-					})
-					.setLngLat([item.position.lng, item.position.lat])
-					.addTo(map);
-				var markerElement = angular.element(node);
-				markerElement.on('click', function (e) {
-					// console.log('marker.click', item);
-					scope.$emit('onMarkerClicked', item);
-				});
-				$compile(markerElement)($scope); // Compiling marker
-				return marker;
-			}
+                    map.addLayer({
+                        id: "cluster-count",
+                        type: "symbol",
+                        source: "earthquakes",
+                        filter: ["has", "point_count"],
+                        layout: {
+                            "text-field": "{point_count_abbreviated}",
+                            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+                            "text-size": 12
+                        }
+                    });
 
-			function addMarkers(items) {
-				if (markers) {
-					angular.forEach(markers, function (item) {
-						item.remove();
-					});
-				}
-				markers = [];
-				if (items) {
-					angular.forEach(items, function (item) {
-						marker = getMarker(item);
-						markers.push(marker);
-					});
-				}
-			}
+                    map.addLayer({
+                        id: "unclustered-point",
+                        type: "circle",
+                        source: "earthquakes",
+                        filter: ["!has", "point_count"],
+                        paint: {
+                            "circle-color": "#11b4da",
+                            "circle-radius": 4,
+                            "circle-stroke-width": 1,
+                            "circle-stroke-color": "#fff"
+                        }
+                    });
+                });
+            }
 
-			function flyTo(position) {
-				var options = getOptions({
-					center: [position.lng, position.lat],
-					zoom: 20,
-				});
-				map.flyTo(options);
-			}
+            var types = {
+                DOCUMENT: 1,
+                EVENT: 2,
+                INFO: 3,
+            };
 
-			function jumpTo(position) {
-				var options = getOptions({
-					center: [position.lng, position.lat],
-					zoom: 20,
-				});
-				map.jumpTo(options);
-			}
+            /*
+            googleMaps.geocoder().then(function (response) {
+                geocoder = response;
+                init();
+            });
+            */
 
-			function flyToMarker(item) {
-				// console.log(item);
-				flyTo(item.position);
-			}
+            function getOptions(options) {
+                return angular.extend(angular.copy(defaults), options);
+            }
 
-			function jumpToMarker(item) {
-				jumpTo(item.position);
-			}
+            function getMarker(item) {
+                var $scope = scope.$new(true);
+                $scope.item = item;
+                var node = document.createElement('div');
+                node.id = 'point';
+                node.className = 'marker ' + item.area.code;
+                node.className += item.type === types.INFO ? ' info' : '';
+                node.setAttribute('marker', 'item');
+                var marker = new mapboxgl.Marker(node, {
+                        offset: [-10, -10]
+                    })
+                    .setLngLat([item.position.lng, item.position.lat])
+                    .addTo(map);
+                var markerElement = angular.element(node);
+                markerElement.on('click', function(e) {
+                    // console.log('marker.click', item);
+                    scope.$emit('onMarkerClicked', item);
+                });
+                $compile(markerElement)($scope); // Compiling marker
+                return marker;
+            }
 
-			function init() {
-				map = getMap();
-				navToCenter();
-				scope.$watch('sources', function (sources) {
-					if (sources) {
-						// connect methods;
-						sources.addMarkers = addMarkers;
-						sources.jumpToMarker = jumpToMarker;
-						sources.flyToMarker = flyToMarker;
-					}
-				});
-			}
+            function addMarkers(items) {
+                if (markers) {
+                    angular.forEach(markers, function(item) {
+                        item.remove();
+                    });
+                }
+                markers = [];
+                if (items) {
+                    angular.forEach(items, function(item) {
+                        marker = getMarker(item);
+                        markers.push(marker);
+                    });
+                }
+            }
 
-			function getMap() {
-				var map = new mapboxgl.Map({
-					container: element[0],
-					style: 'mapbox://styles/ficowsdev/cj8cztc3r8nv32sl5npfr1yip', // 'mapbox://styles/ficowsdev/cj5rsloo232ad2sq9capz9atk', // 'mapbox://styles/mapbox/light-v9', // 'mapbox://styles/actarian/cj5nwbngd1p2z2sqh74l5qwlq',
-					interactive: true,
-					logoPosition: 'bottom-right',
-					center: [position.lng, position.lat],
-					zoom: 6,
-				});
+            function flyTo(position) {
+                var options = getOptions({
+                    center: [position.lng, position.lat],
+                    zoom: 20,
+                });
+                map.flyTo(options);
+            }
 
-				canvas = map.getCanvasContainer();
+            function jumpTo(position) {
+                var options = getOptions({
+                    center: [position.lng, position.lat],
+                    zoom: 20,
+                });
+                map.jumpTo(options);
+            }
 
-				/*
-				scope.map.setAddress = function (item) {
-				    // console.log('setAddress', item);
-				    scope.map.results = null;
-				    flyTo(item.position);
-				};
-				scope.map.search = function () {
-				    // console.log('address', scope.map.address);
-				    scope.map.results = null;
-				    geocodeAddress(scope.map.address);
-				    return true;
-				};
-				scope.map.styles = {
-				    FICO: 1,
-				    SATELLITE: 2,
-				};
-				scope.map.style = scope.map.styles.FICO;
-				scope.map.styleToggle = function () {
-				    if (scope.map.style === scope.map.styles.FICO) {
-				        scope.map.style = scope.map.styles.SATELLITE;
-				        map.setStyle('mapbox://styles/mapbox/satellite-v9');
-				    } else {
-				        scope.map.style = scope.map.styles.FICO;
-				        map.setStyle('mapbox://styles/mapbox/streets-v9');
-				    }
-				};
-				scope.map.setStyle = function (style) {
-				    scope.map.style = style;
-				    if (scope.map.style === scope.map.styles.FICO) {
-				        map.setStyle('mapbox://styles/mapbox/streets-v9');
-				    } else {
-				        map.setStyle('mapbox://styles/mapbox/satellite-v9');
-				    }
-				};                
-				*/
-				return map;
-			}
+            function flyToMarker(item) {
+                // console.log(item);
+                flyTo(item.position);
+            }
 
-			function geocodeAddress(address) {
-				geocoder.geocode({
-					'address': address
-				}, function (results, status) {
-					$timeout(function () {
-						if (status === 'OK') {
-							sources.results = googleMaps.parse(results);
-						} else {
-							alert('Geocode was not successful for the following reason: ' + status);
-						}
-					});
-				});
-			}
+            function jumpToMarker(item) {
+                jumpTo(item.position);
+            }
 
-			function reverseGeocode(position) {
-				// console.log('reverseGeocode', position);
-				geocoder.geocode({
-					'location': position
-				}, function (results, status) {
-					$timeout(function () {
-						if (status === 'OK') {
-							sources.results = googleMaps.parse(results);
-						} else {
-							console.log('Geocoder failed due to: ' + status);
-						}
-					});
-				});
-			}
+            function getMap() {
+                var map = new mapboxgl.Map({
+                    container: element[0],
+                    style: 'mapbox://styles/ficowsdev/cj8cztc3r8nv32sl5npfr1yip', // 'mapbox://styles/ficowsdev/cj5rsloo232ad2sq9capz9atk', // 'mapbox://styles/mapbox/light-v9', // 'mapbox://styles/actarian/cj5nwbngd1p2z2sqh74l5qwlq',
+                    interactive: true,
+                    logoPosition: 'bottom-right',
+                    center: [position.lng, position.lat],
+                    zoom: 6,
+                });
 
-			function geolocalize() {
-				if (navigator.geolocation) {
-					navigator.geolocation.getCurrentPosition(function (p) {
-						$timeout(function () {
-							position = {
-								lat: p.coords.latitude,
-								lng: p.coords.longitude
-							};
-							flyTo(position);
-							reverseGeocode(position);
-						});
-					}, function (e) {
-						console.log('error', e);
-					});
-				} else {
-					console.log('error', 'Browser doesn\'t support Geolocation');
-				}
-			}
+                canvas = map.getCanvasContainer();
 
-			function flyToFico() {
-				var position = {
-					lng: 11.411248,
-					lat: 44.515702,
-				};
-				map.flyTo({
-					center: [
+                /*
+                scope.map.setAddress = function (item) {
+                    // console.log('setAddress', item);
+                    scope.map.results = null;
+                    flyTo(item.position);
+                };
+                scope.map.search = function () {
+                    // console.log('address', scope.map.address);
+                    scope.map.results = null;
+                    geocodeAddress(scope.map.address);
+                    return true;
+                };
+                scope.map.styles = {
+                    FICO: 1,
+                    SATELLITE: 2,
+                };
+                scope.map.style = scope.map.styles.FICO;
+                scope.map.styleToggle = function () {
+                    if (scope.map.style === scope.map.styles.FICO) {
+                        scope.map.style = scope.map.styles.SATELLITE;
+                        map.setStyle('mapbox://styles/mapbox/satellite-v9');
+                    } else {
+                        scope.map.style = scope.map.styles.FICO;
+                        map.setStyle('mapbox://styles/mapbox/streets-v9');
+                    }
+                };
+                scope.map.setStyle = function (style) {
+                    scope.map.style = style;
+                    if (scope.map.style === scope.map.styles.FICO) {
+                        map.setStyle('mapbox://styles/mapbox/streets-v9');
+                    } else {
+                        map.setStyle('mapbox://styles/mapbox/satellite-v9');
+                    }
+                };                
+                */
+                return map;
+            }
+
+            function geocodeAddress(address) {
+                geocoder.geocode({
+                    'address': address
+                }, function(results, status) {
+                    $timeout(function() {
+                        if (status === 'OK') {
+                            sources.results = googleMaps.parse(results);
+                        } else {
+                            alert('Geocode was not successful for the following reason: ' + status);
+                        }
+                    });
+                });
+            }
+
+            function reverseGeocode(position) {
+                // console.log('reverseGeocode', position);
+                geocoder.geocode({
+                    'location': position
+                }, function(results, status) {
+                    $timeout(function() {
+                        if (status === 'OK') {
+                            sources.results = googleMaps.parse(results);
+                        } else {
+                            console.log('Geocoder failed due to: ' + status);
+                        }
+                    });
+                });
+            }
+
+            function geolocalize() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(p) {
+                        $timeout(function() {
+                            position = {
+                                lat: p.coords.latitude,
+                                lng: p.coords.longitude
+                            };
+                            flyTo(position);
+                            reverseGeocode(position);
+                        });
+                    }, function(e) {
+                        console.log('error', e);
+                    });
+                } else {
+                    console.log('error', 'Browser doesn\'t support Geolocation');
+                }
+            }
+
+            function flyToFico() {
+                var position = {
+                    lng: 11.411248,
+                    lat: 44.515702,
+                };
+                map.flyTo({
+                    center: [
                         parseFloat(position.lng),
                         parseFloat(position.lat)
                     ],
-					zoom: 17.63,
-					pitch: 53,
-					bearing: -11.68,
-					speed: 1.5,
-					curve: 1,
+                    zoom: 17.63,
+                    pitch: 53,
+                    bearing: -11.68,
+                    speed: 1.5,
+                    curve: 1,
 
-				});
-			}
+                });
+            }
 
-			function navToCenter() {
-				var position = {
-					lng: 11.411248,
-					lat: 44.515702,
-				};
-				map.jumpTo({
-					center: [
-                            parseFloat(position.lng),
-                            parseFloat(position.lat)
+            function navToCenter() {
+                var position = {
+                    lng: 11.411248,
+                    lat: 44.515702,
+                };
+                map.jumpTo({
+                    center: [
+                        parseFloat(position.lng),
+                        parseFloat(position.lat)
                     ],
-					zoom: 17.63,
-					pitch: 53,
-					bearing: -11.68,
-				});
-			}
+                    zoom: 17.63,
+                    pitch: 53,
+                    bearing: -11.68,
+                });
+            }
 
-			/*
-			function flyTo(position) {
-			    map.flyTo({
-			        center: [
-			            parseFloat(position.lng),
-			            parseFloat(position.lat)
-			        ],
-			        zoom: 15,
-			        speed: 1.5,
-			        curve: 1,
-			    });
-			}
-			*/
+            /*
+            function flyTo(position) {
+                map.flyTo({
+                    center: [
+                        parseFloat(position.lng),
+                        parseFloat(position.lat)
+                    ],
+                    zoom: 15,
+                    speed: 1.5,
+                    curve: 1,
+                });
+            }
+            */
 
-			function fitBounds(bounds) {
-				map.fitBounds(bounds, {
-					speed: 1.5,
-					curve: 1,
-					padding: 30,
-					linear: false,
-					maxZoom: 8,
-				});
-			}
-		}
+            function fitBounds(bounds) {
+                map.fitBounds(bounds, {
+                    speed: 1.5,
+                    curve: 1,
+                    padding: 30,
+                    linear: false,
+                    maxZoom: 8,
+                });
+            }
+        }
     }]);
 
-	app.directive('marker', ['$http', '$timeout', function ($http, $timeout) {
-		return {
-			restrict: 'A',
-			scope: {
-				item: '=marker',
-			},
-			template: '<div class="inner">' +
-				'   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
-				'       <path d="M12 0c-5.522 0-10 4.395-10 9.815 0 5.505 4.375 9.268 10 14.185 5.625-4.917 10-8.68 10-14.185 0-5.42-4.478-9.815-10-9.815zm0 18c-4.419 0-8-3.582-8-8s3.581-8 8-8 8 3.582 8 8-3.581 8-8 8z"/>' +
-				'   </svg>' +
-				'   <span ng-bind="item.code"></span>' +
-				'</div>',
-			link: link,
-		};
+    app.directive('marker', ['$http', '$timeout', function($http, $timeout) {
+        return {
+            restrict: 'A',
+            scope: {
+                item: '=marker',
+            },
+            template: '<div class="inner">' +
+                '   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
+                '       <path d="M12 0c-5.522 0-10 4.395-10 9.815 0 5.505 4.375 9.268 10 14.185 5.625-4.917 10-8.68 10-14.185 0-5.42-4.478-9.815-10-9.815zm0 18c-4.419 0-8-3.582-8-8s3.581-8 8-8 8 3.582 8 8-3.581 8-8 8z"/>' +
+                '   </svg>' +
+                '   <span ng-bind="item.code"></span>' +
+                '</div>',
+            link: link,
+        };
 
-		function link(scope, element, attributes, model) {
-			// console.log('marker', scope.item);
-		}
+        function link(scope, element, attributes, model) {
+            // console.log('marker', scope.item);
+        }
 
     }]);
 
-	/*
+    /*
 	app.service('GoogleMaps', ['$q', '$http', function ($q, $http) {
 		var _key = 'AIzaSyAYuhIEO-41YT_GdYU6c1N7DyylT_OcMSY';
 		var _init = false;
