@@ -19,14 +19,14 @@
 
 		var statics = {};
 
-		var methods = {
+		var publics = {
 			set: set,
 			transform: transform,
 			transformOrigin: transformOrigin,
 		};
 
 		angular.extend(Style, statics);
-		angular.extend(Style.prototype, methods);
+		angular.extend(Style.prototype, publics);
 
 		return Style;
 

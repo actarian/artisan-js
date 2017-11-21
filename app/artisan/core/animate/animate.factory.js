@@ -15,14 +15,14 @@
 
 		var statics = {};
 
-		var methods = {
+		var publics = {
 			pause: pause,
 			play: play,
 			toggle: toggle,
 		};
 
 		angular.extend(Animate, statics);
-		angular.extend(Animate.prototype, methods);
+		angular.extend(Animate.prototype, publics);
 
 		return Animate;
 

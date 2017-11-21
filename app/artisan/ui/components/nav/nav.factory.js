@@ -24,7 +24,7 @@
 			path: NavPath,
 		};
 
-		var methods = {
+		var publics = {
 			addItem: addItem,
 			addItems: addItems,
 			getLink: getLink,
@@ -34,7 +34,7 @@
 		};
 
 		angular.extend(Nav, statics);
-		angular.extend(Nav.prototype, methods);
+		angular.extend(Nav.prototype, publics);
 
 		return Nav;
 

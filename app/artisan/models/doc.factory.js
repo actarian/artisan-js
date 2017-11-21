@@ -15,10 +15,10 @@
 
 		var statics = {};
 
-		var methods = {};
+		var publics = {};
 
 		angular.extend(Doc, statics);
-		angular.extend(Doc.prototype, methods);
+		angular.extend(Doc.prototype, publics);
 
 		return Doc;
 

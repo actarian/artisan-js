@@ -17,7 +17,7 @@
 
 		var statics = {};
 
-		var methods = {
+		var publics = {
 			busy: busy,
 			classes: classes,
 			enabled: enabled,
@@ -31,7 +31,7 @@
 		};
 
 		angular.extend(State, statics);
-		angular.extend(State.prototype, methods);
+		angular.extend(State.prototype, publics);
 
 		return State;
 

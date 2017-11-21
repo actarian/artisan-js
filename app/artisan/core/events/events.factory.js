@@ -45,14 +45,14 @@
 			}
 		}
 
-		var methods = {
+		var statics = {};
+
+		var publics = {
 			stop: stop,
 		};
 
-		var statics = {};
-
-		angular.extend(Event.prototype, methods);
 		angular.extend(Event, statics);
+		angular.extend(Event.prototype, publics);
 		return Event;
 
 		// prototype methods
@@ -205,7 +205,12 @@
 			}
 		}
 
-		var methods = {
+		var statics = {
+			getTouch: getTouch,
+			getRelativeTouch: getRelativeTouch,
+		};
+
+		var publics = {
 			add: add,
 			remove: remove,
 			removeStandardEvents: removeStandardEvents,
@@ -214,13 +219,8 @@
 			removeScrollEvents: removeScrollEvents,
 		};
 
-		var statics = {
-			getTouch: getTouch,
-			getRelativeTouch: getRelativeTouch,
-		};
-
-		angular.extend(Events.prototype, methods);
 		angular.extend(Events, statics);
+		angular.extend(Events.prototype, publics);
 		return Events;
 
 		// prototype methods

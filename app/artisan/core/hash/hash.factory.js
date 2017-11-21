@@ -35,7 +35,7 @@
 			get: HashGet,
 		};
 
-		var methods = {
+		var publics = {
 			has: has,
 			getId: getId,
 			get: get,
@@ -55,7 +55,7 @@
 		Hash.prototype = new Array;
 
 		angular.extend(Hash, statics);
-		angular.extend(Hash.prototype, methods);
+		angular.extend(Hash.prototype, publics);
 
 		return Hash;
 

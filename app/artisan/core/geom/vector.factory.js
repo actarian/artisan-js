@@ -22,7 +22,7 @@
 			size: VectorSize,
 		};
 
-		var methods = {
+		var publics = {
 			add: add,
 			copy: copy,
 			cross: cross,
@@ -38,7 +38,7 @@
 		};
 
 		angular.extend(Vector, statics);
-		angular.extend(Vector.prototype, methods);
+		angular.extend(Vector.prototype, publics);
 
 		return Vector;
 

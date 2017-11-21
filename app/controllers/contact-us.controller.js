@@ -12,14 +12,14 @@
 		var googlemaps = {};
 		var mapbox = {};
 
-		var methods = {
+		var publics = {
 			state: state,
 			state2: state2,
 			googlemaps: googlemaps,
 			mapbox: mapbox,
 		};
 
-		angular.extend($scope, methods); // todo
+		angular.extend($scope, publics); // todo
 
 		View.current().then(function (view) {
 			$scope.view = view;

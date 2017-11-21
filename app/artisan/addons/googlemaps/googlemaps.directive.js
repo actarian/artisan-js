@@ -32,7 +32,7 @@
 			var filters = {};
 			var markers = [];
 
-			var methods = {
+			var publics = {
 				// methods available for controllers
 				/*
 				fly: MapboxFly,
@@ -45,7 +45,7 @@
 			};
 
 			if (scope.connector) {
-				angular.extend(scope.connector, methods);
+				angular.extend(scope.connector, publics);
 			}
 
 			Googlemaps();

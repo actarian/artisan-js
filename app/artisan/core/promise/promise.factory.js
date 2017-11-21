@@ -20,10 +20,10 @@
 			all: $promiseAll,
 		};
 
-		var methods = {};
+		var publics = {};
 
 		angular.extend($promise, statics);
-		angular.extend($promise.prototype, methods);
+		angular.extend($promise.prototype, publics);
 
 		return $promise;
 

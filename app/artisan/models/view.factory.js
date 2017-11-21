@@ -25,10 +25,10 @@
 			current: ViewCurrent, // ViewCurrentSimple
 		};
 
-		var methods = {};
+		var publics = {};
 
 		angular.extend(View, statics);
-		angular.extend(View.prototype, methods);
+		angular.extend(View.prototype, publics);
 
 		return View;
 

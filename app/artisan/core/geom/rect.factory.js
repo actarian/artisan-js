@@ -18,7 +18,7 @@
 			mult: RectMultiply,
 		};
 
-		var methods = {
+		var publics = {
 			bottom: bottom,
 			bottomLeft: bottomLeft,
 			bottomRight: bottomRight,
@@ -47,7 +47,7 @@
 		};
 
 		angular.extend(Rect, statics);
-		angular.extend(Rect.prototype, methods);
+		angular.extend(Rect.prototype, publics);
 
 		return Rect;
 

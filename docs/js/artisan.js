@@ -201,7 +201,7 @@
 			var filters = {};
 			var markers = [];
 
-			var methods = {
+			var publics = {
 				// methods available for controllers
 				/*
 				fly: MapboxFly,
@@ -214,7 +214,7 @@
 			};
 
 			if (scope.connector) {
-				angular.extend(scope.connector, methods);
+				angular.extend(scope.connector, publics);
 			}
 
 			Googlemaps();
@@ -551,7 +551,7 @@
 		function MapboxLink(scope, element, attributes, model) {
 			var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
 
-			var methods = {
+			var publics = {
 				// methods available for controllers
 				fly: MapboxFly,
 				flyPosition: MapboxFlyPosition,
@@ -562,7 +562,7 @@
 			};
 
 			if (scope.connector) {
-				angular.extend(scope.connector, methods);
+				angular.extend(scope.connector, publics);
 			}
 
 			function MapboxMap() {
@@ -1367,14 +1367,14 @@
 
 		var statics = {};
 
-		var methods = {
+		var publics = {
 			pause: pause,
 			play: play,
 			toggle: toggle,
 		};
 
 		angular.extend(Animate, statics);
-		angular.extend(Animate.prototype, methods);
+		angular.extend(Animate.prototype, publics);
 
 		return Animate;
 
@@ -1789,14 +1789,14 @@ $(window).on('resize', function () {
 			}
 		}
 
-		var methods = {
+		var statics = {};
+
+		var publics = {
 			stop: stop,
 		};
 
-		var statics = {};
-
-		angular.extend(Event.prototype, methods);
 		angular.extend(Event, statics);
+		angular.extend(Event.prototype, publics);
 		return Event;
 
 		// prototype methods
@@ -1949,7 +1949,12 @@ $(window).on('resize', function () {
 			}
 		}
 
-		var methods = {
+		var statics = {
+			getTouch: getTouch,
+			getRelativeTouch: getRelativeTouch,
+		};
+
+		var publics = {
 			add: add,
 			remove: remove,
 			removeStandardEvents: removeStandardEvents,
@@ -1958,13 +1963,8 @@ $(window).on('resize', function () {
 			removeScrollEvents: removeScrollEvents,
 		};
 
-		var statics = {
-			getTouch: getTouch,
-			getRelativeTouch: getRelativeTouch,
-		};
-
-		angular.extend(Events.prototype, methods);
 		angular.extend(Events, statics);
+		angular.extend(Events.prototype, publics);
 		return Events;
 
 		// prototype methods
@@ -2247,7 +2247,7 @@ $(window).on('resize', function () {
 			multiply: PointMultiply,
 		};
 
-		var methods = {
+		var publics = {
 			clone: clone,
 			copy: copy,
 			difference: difference,
@@ -2260,7 +2260,7 @@ $(window).on('resize', function () {
 		};
 
 		angular.extend(Point, statics);
-		angular.extend(Point.prototype, methods);
+		angular.extend(Point.prototype, publics);
 
 		return Point;
 
@@ -2345,7 +2345,7 @@ $(window).on('resize', function () {
 			mult: RectMultiply,
 		};
 
-		var methods = {
+		var publics = {
 			bottom: bottom,
 			bottomLeft: bottomLeft,
 			bottomRight: bottomRight,
@@ -2374,7 +2374,7 @@ $(window).on('resize', function () {
 		};
 
 		angular.extend(Rect, statics);
-		angular.extend(Rect.prototype, methods);
+		angular.extend(Rect.prototype, publics);
 
 		return Rect;
 
@@ -2607,7 +2607,7 @@ $(window).on('resize', function () {
 			size: VectorSize,
 		};
 
-		var methods = {
+		var publics = {
 			add: add,
 			copy: copy,
 			cross: cross,
@@ -2623,7 +2623,7 @@ $(window).on('resize', function () {
 		};
 
 		angular.extend(Vector, statics);
-		angular.extend(Vector.prototype, methods);
+		angular.extend(Vector.prototype, publics);
 
 		return Vector;
 
@@ -2764,7 +2764,7 @@ $(window).on('resize', function () {
 			get: HashGet,
 		};
 
-		var methods = {
+		var publics = {
 			has: has,
 			getId: getId,
 			get: get,
@@ -2784,7 +2784,7 @@ $(window).on('resize', function () {
 		Hash.prototype = new Array;
 
 		angular.extend(Hash, statics);
-		angular.extend(Hash.prototype, methods);
+		angular.extend(Hash.prototype, publics);
 
 		return Hash;
 
@@ -2966,10 +2966,10 @@ $(window).on('resize', function () {
 			all: $promiseAll,
 		};
 
-		var methods = {};
+		var publics = {};
 
 		angular.extend($promise, statics);
-		angular.extend($promise.prototype, methods);
+		angular.extend($promise.prototype, publics);
 
 		return $promise;
 
@@ -2999,7 +2999,7 @@ $(window).on('resize', function () {
 
 		var statics = {};
 
-		var methods = {
+		var publics = {
 			busy: busy,
 			classes: classes,
 			enabled: enabled,
@@ -3013,7 +3013,7 @@ $(window).on('resize', function () {
 		};
 
 		angular.extend(State, statics);
-		angular.extend(State.prototype, methods);
+		angular.extend(State.prototype, publics);
 
 		return State;
 
@@ -3167,14 +3167,14 @@ $(window).on('resize', function () {
 
 		var statics = {};
 
-		var methods = {
+		var publics = {
 			set: set,
 			transform: transform,
 			transformOrigin: transformOrigin,
 		};
 
 		angular.extend(Style, statics);
-		angular.extend(Style.prototype, methods);
+		angular.extend(Style.prototype, publics);
 
 		return Style;
 
@@ -3496,10 +3496,10 @@ $(window).on('resize', function () {
 
 		var statics = {};
 
-		var methods = {};
+		var publics = {};
 
 		angular.extend(Doc, statics);
-		angular.extend(Doc.prototype, methods);
+		angular.extend(Doc.prototype, publics);
 
 		return Doc;
 
@@ -3537,10 +3537,10 @@ $(window).on('resize', function () {
 			current: ViewCurrent, // ViewCurrentSimple
 		};
 
-		var methods = {};
+		var publics = {};
 
 		angular.extend(View, statics);
-		angular.extend(View.prototype, methods);
+		angular.extend(View.prototype, publics);
 
 		return View;
 
@@ -3675,6 +3675,140 @@ $(window).on('resize', function () {
 					});
 				}, msec);
 			});
+		}
+
+    }]);
+
+}());
+/* global angular */
+
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.factory('Preload', ['$promise', function ($promise) {
+
+		function Preload(path) {
+			var preload = this;
+			preload.path = path;
+			preload.loaded = 0;
+			preload.total = 0;
+			preload.progress = 0;
+		}
+
+		var statics = {
+			all: PreloadAll,
+		};
+
+		var publics = {
+			start: PreloadStart,
+			image: PreloadImage,
+		};
+
+		angular.extend(Preload, statics);
+		angular.extend(Preload.prototype, publics);
+
+		return Preload;
+
+		// statics methods
+
+		function PreloadAll(paths, callback) {
+			return $promise(function (promise) {
+				var preloads = paths.map(function (path) {
+					return new Preload(path);
+				});
+				var progress = {
+					loaded: 0,
+					total: 0,
+					progress: 0,
+					preloads: preloads
+				};
+				var i = setInterval(update, 1000 / 10);
+				$promise.all(
+					preloads.map(function (preload) {
+						return preload.start();
+					})
+				).then(function () {
+					clearInterval(i);
+					update();
+					promise.resolve(preloads.slice());
+					// destroy();
+				}, function (error) {
+					promise.reject(error);
+					// destroy();
+				});
+
+				function update() {
+					progress.loaded = 0;
+					progress.total = 0;
+					angular.forEach(preloads, function (preload) {
+						progress.loaded += preload.loaded;
+						progress.total += preload.total;
+					});
+					var percent = progress.total ? progress.loaded / progress.total : 0;
+					if (percent > progress.progress) {
+						progress.progress = percent;
+						if (callback) {
+							callback(progress);
+						}
+					}
+				}
+
+				function destroy() {
+					angular.forEach(preloads, function (preload) {
+						preload.buffer = null;
+						preload.xhr = null;
+					});
+				}
+			});
+		}
+
+		// instance methods
+
+		function PreloadStart() {
+			var preload = this;
+			return $promise(function (promise) {
+				var xhr = new XMLHttpRequest();
+				xhr.responseType = "arraybuffer";
+				xhr.open("GET", preload.path, true);
+				xhr.onloadstart = function (e) {
+					/*
+					preload.loaded = 0;
+					preload.total = 1;
+					preload.progress = 0;
+					*/
+				};
+				xhr.onprogress = function (e) {
+					preload.loaded = e.loaded;
+					preload.total = e.total;
+					preload.progress = e.total ? e.loaded / e.total : 0;
+				};
+				xhr.onloadend = function (e) {
+					preload.loaded = preload.total;
+					preload.progress = 1;
+				};
+				xhr.onload = function () {
+					preload.buffer = xhr.response;
+					promise.resolve(preload);
+				};
+				xhr.onerror = function (error) {
+					console.log('Preload.xhr.onerror', error);
+					preload.loaded = preload.total;
+					preload.progress = 1;
+					promise.reject(error);
+				};
+				xhr.send();
+				preload.xhr = xhr;
+			});
+		}
+
+		function PreloadImage() {
+			var preload = this;
+			var blob = new Blob([this.buffer]);
+			var image = new Image();
+			image.src = window.URL.createObjectURL(blob);
+			return image;
 		}
 
     }]);
@@ -5775,7 +5909,7 @@ $(window).on('resize', function () {
 			path: NavPath,
 		};
 
-		var methods = {
+		var publics = {
 			addItem: addItem,
 			addItems: addItems,
 			getLink: getLink,
@@ -5785,7 +5919,7 @@ $(window).on('resize', function () {
 		};
 
 		angular.extend(Nav, statics);
-		angular.extend(Nav.prototype, methods);
+		angular.extend(Nav.prototype, publics);
 
 		return Nav;
 

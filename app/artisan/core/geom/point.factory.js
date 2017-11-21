@@ -17,7 +17,7 @@
 			multiply: PointMultiply,
 		};
 
-		var methods = {
+		var publics = {
 			clone: clone,
 			copy: copy,
 			difference: difference,
@@ -30,7 +30,7 @@
 		};
 
 		angular.extend(Point, statics);
-		angular.extend(Point.prototype, methods);
+		angular.extend(Point.prototype, publics);
 
 		return Point;
 

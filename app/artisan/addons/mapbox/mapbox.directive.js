@@ -26,7 +26,7 @@
 		function MapboxLink(scope, element, attributes, model) {
 			var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
 
-			var methods = {
+			var publics = {
 				// methods available for controllers
 				fly: MapboxFly,
 				flyPosition: MapboxFlyPosition,
@@ -37,7 +37,7 @@
 			};
 
 			if (scope.connector) {
-				angular.extend(scope.connector, methods);
+				angular.extend(scope.connector, publics);
 			}
 
 			function MapboxMap() {
