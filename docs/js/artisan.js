@@ -3512,94 +3512,136 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('View', ['Api', '$promise', '$location', '$routeParams', 'environment', 'Doc', function (Api, $promise, $location, $routeParams, environment, Doc) {
+    app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function($promise, $location, $route, $routeParams, Router) {
 
-		function View(doc) {
-			var url = $location.path(),
-				params = $routeParams;
-			var view = {
-				environment: environment,
-				route: {
-					url: url,
-					params: params,
-				},
-				doc: doc,
-			};
-			angular.extend(this, view);
-		}
+        function Route(current) {
 
-		var statics = {
-			current: ViewCurrent, // ViewCurrentSimple
-		};
+            var route = {
+                controller: current.$$route.controller,
+                params: current.params,
+                path: $location.path(),
+                pathParams: current.pathParams,
+                originalPath: current.$$route.originalPath,
+                templateUrl: current.loadedTemplateUrl,
+            };
+            angular.extend(this, route);
+        }
 
-		var publics = {};
+        var statics = {
+            current: RouteCurrent,
+        };
 
-		angular.extend(View, statics);
-		angular.extend(View.prototype, publics);
+        var publics = {};
 
-		return View;
+        angular.extend(Route, statics);
+        angular.extend(Route.prototype, publics);
 
-		// static methods
+        return Route;
 
-		function ViewCurrent() {
-			return $promise(function (promise) {
-				var url = $location.path();
-				console.log('ViewCurrent', url);
-				Api.docs.url(url).then(function (response) {
-					var doc = new Doc(response);
-					var view = new View(doc);
-					promise.resolve(view);
+        // static methods
 
-				}, function (error) {
-					promise.reject(error);
+        function RouteCurrent() {
+            return new Route($route.current);
+        }
 
-				});
-			});
-		}
+        // prototype methods
 
-		function ViewCurrentSimple() {
-			return $promise(function (promise) {
-				console.log('ViewCurrentSimple');
-				Api.navs.main().then(function (items) {
-					var doc = null,
-						view = null,
-						url = $location.path(),
-						pool = ViewPool(items);
-					var item = pool[url];
-					if (item) {
-						doc = new Doc(item);
-						view = new View(doc);
-					}
-					promise.resolve(view);
+    }]);
 
-				}, function (error) {
-					promise.reject(error);
+}());
+/* global angular */
 
-				});
-			});
-		}
+(function() {
+    "use strict";
 
-		function ViewPool(items) {
-			var pool = {};
+    var app = angular.module('artisan');
 
-			function _getPool(items) {
-				if (items) {
-					angular.forEach(items, function (item) {
-						pool[item.url] = item;
-						_getPool(item.items);
-					});
-				}
-			}
-			_getPool(items);
-			return pool;
-		}
+    app.factory('View', ['Api', '$promise', 'environment', 'Doc', 'Route', function(Api, $promise, environment, Doc, Route) {
 
-		// prototype methods
+        function View(doc, route) {
+            var view = {
+                doc: doc,
+                environment: environment,
+                route: route,
+            };
+            angular.extend(this, view);
+        }
+
+        var statics = {
+            current: ViewCurrent, // ViewCurrentSimple
+        };
+
+        var publics = {};
+
+        angular.extend(View, statics);
+        angular.extend(View.prototype, publics);
+
+        return View;
+
+        // static methods
+
+        function ViewCurrent() {
+            return $promise(function(promise) {
+                var route = Route.current();
+                var path = route.path;
+                console.log('ViewCurrent', path);
+                Api.docs.url(path).then(function(response) {
+                    var doc = new Doc(response);
+                    var view = new View(doc, route);
+                    promise.resolve(view);
+
+                }, function(error) {
+                    promise.reject(error);
+
+                });
+            });
+        }
+
+        function ViewCurrentSimple() {
+            return $promise(function(promise) {
+                console.log('ViewCurrentSimple');
+                var route = Route.current();
+                var path = route.path;
+                Api.navs.main().then(function(items) {
+                    var doc = null,
+                        view = null,
+                        path = path,
+                        pool = ViewPool(items);
+                    var item = pool[path];
+                    if (item) {
+                        doc = new Doc(item);
+                        view = new View(doc, route);
+                    }
+                    promise.resolve(view);
+
+                }, function(error) {
+                    promise.reject(error);
+
+                });
+            });
+        }
+
+        function ViewPool(items) {
+            var pool = {};
+
+            function _getPool(items) {
+                if (items) {
+                    angular.forEach(items, function(item) {
+                        pool[item.url] = item;
+                        _getPool(item.items);
+                    });
+                }
+            }
+            _getPool(items);
+            return pool;
+        }
+
+        // prototype methods
 
     }]);
 
@@ -3682,269 +3724,269 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('Preload', ['$promise', function ($promise) {
+    app.factory('Preload', ['$promise', function($promise) {
 
-		function Preload(path) {
-			var preload = this;
-			preload.path = path;
-			preload.loaded = 0;
-			preload.total = 0;
-			preload.progress = 0;
-		}
+        function Preload(path) {
+            var preload = this;
+            preload.path = path;
+            preload.loaded = 0;
+            preload.total = 0;
+            preload.progress = 0;
+        }
 
-		var statics = {
-			all: PreloadAll,
-		};
+        var statics = {
+            all: PreloadAll,
+        };
 
-		var publics = {
-			start: PreloadStart,
-			image: PreloadImage,
-		};
+        var publics = {
+            start: PreloadStart,
+            image: PreloadImage,
+        };
 
-		angular.extend(Preload, statics);
-		angular.extend(Preload.prototype, publics);
+        angular.extend(Preload, statics);
+        angular.extend(Preload.prototype, publics);
 
-		return Preload;
+        return Preload;
 
-		// statics methods
+        // statics methods
 
-		function PreloadAll(paths, callback) {
-			return $promise(function (promise) {
-				var preloads = paths.map(function (path) {
-					return new Preload(path);
-				});
-				var progress = {
-					loaded: 0,
-					total: 0,
-					progress: 0,
-					preloads: preloads
-				};
-				var i = setInterval(update, 1000 / 10);
-				$promise.all(
-					preloads.map(function (preload) {
-						return preload.start();
-					})
-				).then(function () {
-					clearInterval(i);
-					update();
-					promise.resolve(preloads.slice());
-					// destroy();
-				}, function (error) {
-					promise.reject(error);
-					// destroy();
-				});
+        function PreloadAll(paths, callback) {
+            return $promise(function(promise) {
+                var preloads = paths.map(function(path) {
+                    return new Preload(path);
+                });
+                var progress = {
+                    loaded: 0,
+                    total: 0,
+                    progress: 0,
+                    preloads: preloads
+                };
+                var i = setInterval(update, 1000 / 10);
+                $promise.all(
+                    preloads.map(function(preload) {
+                        return preload.start();
+                    })
+                ).then(function() {
+                    clearInterval(i);
+                    update();
+                    promise.resolve(preloads.slice());
+                    // destroy();
+                }, function(error) {
+                    promise.reject(error);
+                    // destroy();
+                });
 
-				function update() {
-					progress.loaded = 0;
-					progress.total = 0;
-					angular.forEach(preloads, function (preload) {
-						progress.loaded += preload.loaded;
-						progress.total += preload.total;
-					});
-					var percent = progress.total ? progress.loaded / progress.total : 0;
-					if (percent > progress.progress) {
-						progress.progress = percent;
-						if (callback) {
-							callback(progress);
-						}
-					}
-				}
+                function update() {
+                    progress.loaded = 0;
+                    progress.total = 0;
+                    angular.forEach(preloads, function(preload) {
+                        progress.loaded += preload.loaded;
+                        progress.total += preload.total;
+                    });
+                    var percent = progress.total ? progress.loaded / progress.total : 0;
+                    if (percent > progress.progress) {
+                        progress.progress = percent;
+                        if (callback) {
+                            callback(progress);
+                        }
+                    }
+                }
 
-				function destroy() {
-					angular.forEach(preloads, function (preload) {
-						preload.buffer = null;
-						preload.xhr = null;
-					});
-				}
-			});
-		}
+                function destroy() {
+                    angular.forEach(preloads, function(preload) {
+                        preload.buffer = null;
+                        preload.xhr = null;
+                    });
+                }
+            });
+        }
 
-		// instance methods
+        // instance methods
 
-		function PreloadStart() {
-			var preload = this;
-			return $promise(function (promise) {
-				var xhr = new XMLHttpRequest();
-				xhr.responseType = "arraybuffer";
-				xhr.open("GET", preload.path, true);
-				xhr.onloadstart = function (e) {
-					/*
-					preload.loaded = 0;
-					preload.total = 1;
-					preload.progress = 0;
-					*/
-				};
-				xhr.onprogress = function (e) {
-					preload.loaded = e.loaded;
-					preload.total = e.total;
-					preload.progress = e.total ? e.loaded / e.total : 0;
-				};
-				xhr.onloadend = function (e) {
-					preload.loaded = preload.total;
-					preload.progress = 1;
-				};
-				xhr.onload = function () {
-					preload.buffer = xhr.response;
-					promise.resolve(preload);
-				};
-				xhr.onerror = function (error) {
-					console.log('Preload.xhr.onerror', error);
-					preload.loaded = preload.total;
-					preload.progress = 1;
-					promise.reject(error);
-				};
-				xhr.send();
-				preload.xhr = xhr;
-			});
-		}
+        function PreloadStart() {
+            var preload = this;
+            return $promise(function(promise) {
+                var xhr = new XMLHttpRequest();
+                xhr.responseType = "arraybuffer";
+                xhr.open("GET", preload.path, true);
+                xhr.onloadstart = function(e) {
+                    /*
+                    preload.loaded = 0;
+                    preload.total = 1;
+                    preload.progress = 0;
+                    */
+                };
+                xhr.onprogress = function(e) {
+                    preload.loaded = e.loaded;
+                    preload.total = e.total;
+                    preload.progress = e.total ? e.loaded / e.total : 0;
+                };
+                xhr.onloadend = function(e) {
+                    preload.loaded = preload.total;
+                    preload.progress = 1;
+                };
+                xhr.onload = function() {
+                    preload.buffer = xhr.response;
+                    promise.resolve(preload);
+                };
+                xhr.onerror = function(error) {
+                    console.log('Preload.xhr.onerror', error);
+                    preload.loaded = preload.total;
+                    preload.progress = 1;
+                    promise.reject(error);
+                };
+                xhr.send();
+                preload.xhr = xhr;
+            });
+        }
 
-		function PreloadImage() {
-			var preload = this;
-			var blob = new Blob([this.buffer]);
-			var image = new Image();
-			image.src = window.URL.createObjectURL(blob);
-			return image;
-		}
+        function PreloadImage() {
+            var preload = this;
+            var blob = new Blob([preload.buffer]);
+            var image = new Image();
+            image.src = window.URL.createObjectURL(blob);
+            return image;
+        }
 
     }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.service('Router', ['$rootScope', '$location', '$timeout', function ($rootScope, $location, $timeout) {
+    app.service('Router', ['$rootScope', '$location', '$route', '$timeout', function($rootScope, $location, $route, $timeout) {
 
-		var service = this;
+        var service = this;
 
-		var statics = {
-			isController: RouterIsController,
-			redirect: RouterRedirect,
-			path: RouterPath,
-			apply: RouterApply,
-		};
+        var statics = {
+            isController: RouterIsController,
+            redirect: RouterRedirect,
+            path: RouterPath,
+            apply: RouterApply,
+        };
 
-		angular.extend(service, statics);
+        angular.extend(service, statics);
 
-		$rootScope.$on('$routeChangeStart', RouterOnChangeStart);
-		$rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
-		$rootScope.$on('$routeChangeError', RouterOnChangeError);
-		$rootScope.$on('$routeUpdate', RouterOnUpdate);
+        $rootScope.$on('$routeChangeStart', RouterOnChangeStart);
+        $rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
+        $rootScope.$on('$routeChangeError', RouterOnChangeError);
+        $rootScope.$on('$routeUpdate', RouterOnUpdate);
 
-		var $previous, $current, $next;
-		var $previousController, $currentController, $nextController;
+        var $previous, $current, $next;
+        var $previousController, $currentController, $nextController;
 
-		function RouterSetControllers() {
-			$previousController = $previous ? $previous.controller : null;
-			$currentController = $current ? $current.controller : null;
-			$nextController = $next ? $next.controller : null;
-		}
+        function RouterSetControllers() {
+            $previousController = $previous ? $previous.controller : null;
+            $currentController = $current ? $current.controller : null;
+            $nextController = $next ? $next.controller : null;
+        }
 
-		/*
-		$routeChangeStart
-		Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
-		The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
-		*/
-		function RouterOnChangeStart(event, next, current) {
-			$previous = null;
-			$current = current ? current.$$route : null;
-			$next = next ? next.$$route : null;
-			RouterSetControllers();
-			// console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
-		}
+        /*
+        $routeChangeStart
+        Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
+        The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
+        */
+        function RouterOnChangeStart(event, next, current) {
+            $previous = null;
+            $current = current ? current.$$route : null;
+            $next = next ? next.$$route : null;
+            RouterSetControllers();
+            // console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
+        }
 
-		/*
-		$routeChangeSuccess
-		Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
-		*/
-		function RouterOnChangeSuccess(event, current, previous) {
-			$previous = previous ? previous.$$route : null;
-			$current = current ? current.$$route : null;
-			$next = null;
-			RouterSetControllers();
-			// console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
-		}
+        /*
+        $routeChangeSuccess
+        Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
+        */
+        function RouterOnChangeSuccess(event, current, previous) {
+            $previous = previous ? previous.$$route : null;
+            $current = current ? current.$$route : null;
+            $next = null;
+            RouterSetControllers();
+            // console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
+        }
 
-		/*
-		$routeChangeError
-		Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
-		*/
-		function RouterOnChangeError(event, current, previous, rejection) {
-			$previous = null;
-			$current = previous.$$route || null;
-			$next = null;
-			RouterSetControllers();
-			// console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
-		}
+        /*
+        $routeChangeError
+        Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
+        */
+        function RouterOnChangeError(event, current, previous, rejection) {
+            $previous = null;
+            $current = previous.$$route || null;
+            $next = null;
+            RouterSetControllers();
+            // console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
+        }
 
-		/*
-		$routeUpdate
-		The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
-		*/
-		function RouterOnUpdate(event, current) {
-			$previous = current ? current.$$route : null;
-			$current = current ? current.$$route : null;
-			$next = null;
-			RouterSetControllers();
-			// console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
-		}
+        /*
+        $routeUpdate
+        The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
+        */
+        function RouterOnUpdate(event, current) {
+            $previous = current ? current.$$route : null;
+            $current = current ? current.$$route : null;
+            $next = null;
+            RouterSetControllers();
+            // console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
+        }
 
-		function RouterIsController(controller) {
-			return $currentController === controller;
-		}
+        function RouterIsController(controller) {
+            return $currentController === controller;
+        }
 
-		// navigation
+        // navigation
 
-		function RouterRedirectTo(path) {
-			$location.$$lastRequestedPath = $location.path();
-			$location.path(path);
-		}
+        function RouterRedirectTo(path) {
+            $location.$$lastRequestedPath = $location.path();
+            $location.path(path);
+        }
 
-		function RouterRetryLastRequestedPath(path) {
-			path = $location.$$lastRequestedPath || path;
-			$location.$$lastRequestedPath = null;
-			$location.path(path);
-		}
+        function RouterRetryLastRequestedPath(path) {
+            path = $location.$$lastRequestedPath || path;
+            $location.$$lastRequestedPath = null;
+            $location.path(path);
+        }
 
-		function RouterRedirect(path, msecs) {
-			if (msecs) {
-				$timeout(function () {
-					RouterRedirectTo(path);
-				}, msecs);
-			} else {
-				RouterRedirectTo(path);
-			}
-		}
+        function RouterRedirect(path, msecs) {
+            if (msecs) {
+                $timeout(function() {
+                    RouterRedirectTo(path);
+                }, msecs);
+            } else {
+                RouterRedirectTo(path);
+            }
+        }
 
-		function RouterPath(path, msecs) {
-			if (msecs) {
-				$timeout(function () {
-					RouterRetryLastRequestedPath(path);
-				}, msecs);
-			} else {
-				RouterRetryLastRequestedPath(path);
-			}
-		}
+        function RouterPath(path, msecs) {
+            if (msecs) {
+                $timeout(function() {
+                    RouterRetryLastRequestedPath(path);
+                }, msecs);
+            } else {
+                RouterRetryLastRequestedPath(path);
+            }
+        }
 
-		function RouterApply(path, msecs) {
-			if (msecs) {
-				$timeout(function () {
-					$location.path(path);
-				}, msecs);
-			} else {
-				$timeout(function () {
-					$location.path(path);
-				});
-			}
-		}
+        function RouterApply(path, msecs) {
+            if (msecs) {
+                $timeout(function() {
+                    $location.path(path);
+                }, msecs);
+            } else {
+                $timeout(function() {
+                    $location.path(path);
+                });
+            }
+        }
 
     }]);
 

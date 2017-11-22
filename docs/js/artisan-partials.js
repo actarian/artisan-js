@@ -13,14 +13,6 @@ $templateCache.put("artisan/errors/errors","<ul class=\"nav padding-bottom-lg-20
     "    </li>\n" +
     "</ul>")
 
-$templateCache.put("artisan/header/header","<nav class=\"navbar\">\n" +
-    "    <a class=\"navbar-brand\" href=\"#\" ng-href=\"\">\n" +
-    "        <img class=\"hidden-print\" width=\"34\" src=\"img/logo_websolute.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
-    "        <img class=\"visible-print-inline-block\" width=\"34\" src=\"img/logo_websolute_positive.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
-    "    </a>\n" +
-    "    <ul class=\"nav navbar-nav hidden-xs-down\" ng-transclude=\"header\"></ul>\n" +
-    "</nav>")
-
 $templateCache.put("artisan/forms/checkbox","<input type=\"hidden\" name=\"{{field}}\" ng-model=\"ngModel\" ng-required=\"required\" />\n" +
     "<div class=\"form-check form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\">\n" +
@@ -97,6 +89,23 @@ $templateCache.put("artisan/forms/text","<div class=\"form-group form-group-{{ty
     "    <control-messages></control-messages>\n" +
     "</div>")
 
+$templateCache.put("artisan/header/header","<nav class=\"navbar\">\n" +
+    "    <a class=\"navbar-brand\" href=\"#\" ng-href=\"\">\n" +
+    "        <img class=\"hidden-print\" width=\"34\" src=\"img/logo_websolute.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
+    "        <img class=\"visible-print-inline-block\" width=\"34\" src=\"img/logo_websolute_positive.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
+    "    </a>\n" +
+    "    <ul class=\"nav navbar-nav hidden-xs-down\" ng-transclude=\"header\"></ul>\n" +
+    "</nav>")
+
+$templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.link}}\"><span ng-bind=\"item.name\"></span></a>\n" +
+    "<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
+    "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
+    "</ul>")
+
+$templateCache.put("artisan/nav/nav","<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
+    "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
+    "</ul>")
+
 $templateCache.put("artisan/modals/modal","<div class=\"modal-header\">\n" +
     "    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Chiudi\" ng-click=\"modal.reject()\">\n" +
     "                <span aria-hidden=\"true\">&times;</span>\n" +
@@ -116,15 +125,6 @@ $templateCache.put("artisan/modals/modals","<div class=\"modals\" ng-class=\"{ v
     "        <div class=\"modal-content\" modal-view=\"modal\"></div>\n" +
     "    </div>\n" +
     "</div>")
-
-$templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.link}}\"><span ng-bind=\"item.name\"></span></a>\n" +
-    "<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
-    "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
-    "</ul>")
-
-$templateCache.put("artisan/nav/nav","<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
-    "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
-    "</ul>")
 
 $templateCache.put("artisan/video/video-player","<div class=\"video-player\" ng-class=\"{ playing: playing }\">\n" +
     "    <div class=\"video-item\" ng-click=\"toggle()\">\n" +
