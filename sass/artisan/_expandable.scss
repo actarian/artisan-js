@@ -1,0 +1,11 @@
+@import '../variables';
+@import '../mixins';
+.expandable-placeholder {
+    background: #111;
+}
+
+.expandable-expanding {
+    display: block;
+    position: fixed;
+    z-index: 100000;
+}
