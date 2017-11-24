@@ -1,150 +1,279 @@
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('expandable', ['State', 'Events', function(State, Events) {
+	app.directive('expandable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
 
-        var directive = {
-            restrict: 'A',
-            // template: '<div ng-transclude></div>',
-            // transclude: true,
-            // replace: true,
-            /*
+		var directive = {
+			restrict: 'A',
+			// template: '<div ng-transclude></div>',
+			// transclude: true,
+			// replace: true,
+			/*
 			templateUrl: function (element, attributes) {
 				return attributes.template || 'artisan/nav/nav';
             },
             */
-            link: ExpandableLink,
-        };
+			link: ExpandableLink,
+		};
 
-        return directive;
+		return directive;
 
-        function ExpandableLink(scope, element, attributes, model) {
+		function ExpandableLink(scope, element, attributes, model) {
 
-            var state = new State();
+			var state = new State();
+			state.pow = 0;
 
-            var node = element[0],
-                placeholderNode = document.createElement('div'),
-                placeholder = angular.element(placeholderNode);
-            placeholder.addClass('expandable-placeholder');
+			var relative, absolute;
 
-            var fromRect, toRect, cssText;
+			var target, targetElement;
 
-            var expanded = false;
+			var from, to, current,
+				boundingClientRect, styleObj, originalCssText;
 
-            function getStyle(node) {
-                var style = window.getComputedStyle(node, null);
-                var styleObj = {
-                    'display': style.getPropertyValue('display'),
-                    'position': style.getPropertyValue('position'),
-                    'width': style.getPropertyValue('width'),
-                    'height': style.getPropertyValue('height'),
-                    'top': style.getPropertyValue('top'),
-                    'right': style.getPropertyValue('right'),
-                    'bottom': style.getPropertyValue('bottom'),
-                    'left': style.getPropertyValue('left'),
-                    'margin-top': style.getPropertyValue('margin-top'),
-                    'margin-right': style.getPropertyValue('margin-right'),
-                    'margin-bottom': style.getPropertyValue('margin-bottom'),
-                    'margin-left': style.getPropertyValue('margin-left'),
-                    'padding-top': style.getPropertyValue('padding-top'),
-                    'padding-right': style.getPropertyValue('padding-right'),
-                    'padding-bottom': style.getPropertyValue('padding-bottom'),
-                    'padding-left': style.getPropertyValue('padding-left'),
-                    'background-color': style.getPropertyValue('background-color'),
-                };
-                console.log(styleObj);
-                return styleObj;
-            }
+			var absolute, relative;
 
-            function getTextStyle(style) {
-                var text = '';
-                angular.forEach(style, function(value, key) {
-                    text += key + ': ' + value + '; ';
-                });
-                return text;
-            }
+			var expanded = false;
 
-            function add() {
-                var styleObj = getStyle(node);
-                var styleText = getTextStyle(styleObj);
-                placeholderNode.style.cssText = styleText;
-                node.parentNode.insertBefore(placeholderNode, node);
-                cssText = node.style.cssText;
-                element.addClass('expandable-expanding');
-            }
+			var placeholder = document.createElement('div'),
+				placeholderElement = angular.element(placeholder);
+			placeholderElement.addClass('expandable-placeholder');
 
-            function remove() {
-                node.style.cssText = cssText;
-                element.removeClass('expandable-expanding');
-                placeholderNode.parentNode.removeChild(placeholderNode);
-            }
+			function getStyle(node) {
+				var style = window.getComputedStyle(node, null);
+				var styleObj = {
+					'display': style.getPropertyValue('display'),
+					'position': style.getPropertyValue('position'),
+					'width': style.getPropertyValue('width'),
+					'height': style.getPropertyValue('height'),
+					'top': style.getPropertyValue('top'),
+					'right': style.getPropertyValue('right'),
+					'bottom': style.getPropertyValue('bottom'),
+					'left': style.getPropertyValue('left'),
+					'margin-top': style.getPropertyValue('margin-top'),
+					'margin-right': style.getPropertyValue('margin-right'),
+					'margin-bottom': style.getPropertyValue('margin-bottom'),
+					'margin-left': style.getPropertyValue('margin-left'),
+					'padding-top': style.getPropertyValue('padding-top'),
+					'padding-right': style.getPropertyValue('padding-right'),
+					'padding-bottom': style.getPropertyValue('padding-bottom'),
+					'padding-left': style.getPropertyValue('padding-left'),
+					'background-color': style.getPropertyValue('background-color'),
+				};
+				return styleObj;
+			}
 
-            function expand() {
-                var rect = node.getBoundingClientRect();
-                fromRect = {
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height,
-                };
-                toRect = {
-                    top: 10,
-                    left: 10,
-                    width: 100,
-                    height: 100,
-                };
-                console.log('fromRect', fromRect);
-                add();
-                dynamics.css(node, fromRect);
-                dynamics.animate(node, toRect, {
-                    type: dynamics.spring,
-                    frequency: 200,
-                    friction: 200,
-                    duration: 1500,
-                    complete: function() {
-                        state.idle();
-                    }
-                });
-            }
+			function getTextStyle(style) {
+				var text = '';
+				angular.forEach(style, function (value, key) {
+					text += key + ': ' + value + '; ';
+				});
+				return text;
+			}
 
-            function contract() {
-                dynamics.animate(node, fromRect, {
-                    type: dynamics.spring,
-                    frequency: 200,
-                    friction: 200,
-                    duration: 1500,
-                    complete: function() {
-                        remove();
-                        state.idle();
-                    }
-                });
-            }
+			function setStyle(node, style) {
+				node.style.cssText = getTextStyle(style);
+			}
 
-            function toggle() {
-                if (state.busy()) {
-                    expanded = !expanded;
-                    if (expanded) {
-                        expand();
-                    } else {
-                        contract();
-                    }
-                }
-            }
+			function add() {
+				styleObj = getStyle(target);
+				setStyle(placeholder, styleObj);
+				target.parentNode.insertBefore(placeholder, target);
+				originalCssText = target.style.cssText;
+				targetElement.addClass('expandable-expanding');
+				Dom.getParents(target).each(function (element, node) {
+					element.addClass('expandable-parent');
+				});
+			}
 
-            function onDown(e) {
-                console.log('ExpandableLink', e);
-                toggle();
-            }
+			function remove() {
+				target.style.cssText = originalCssText;
+				targetElement.removeClass('expandable-expanding');
+				placeholder.parentNode.removeChild(placeholder);
+				Dom.getParents(target).each(function (element, node) {
+					element.removeClass('expandable-parent');
+				});
+			}
 
-            var events = new Events(element).add({
-                down: onDown,
-            }, scope);
+			function setRects() {
+				if (targetElement && targetElement.hasClass('expandable-expanding')) {
+					boundingClientRect = placeholder.getBoundingClientRect();
+				} else {
+					boundingClientRect = target.getBoundingClientRect();
+				}
+				from = {
+					top: 0,
+					left: 0,
+					width: boundingClientRect.width, // parseInt(styleObj.width), // boundingClientRect.width,
+					height: boundingClientRect.height, // parseInt(styleObj.height), // boundingClientRect.height,
+				};
+				to = {
+					top: 0 + (relative.top || 0),
+					left: 0 + (relative.left || 0),
+					width: from.width + (relative.right || 0),
+					height: from.height + (relative.bottom || 0),
+				};
+				if (absolute.top) {
+					to.top = absolute.top - boundingClientRect.top;
+				}
+				if (absolute.left) {
+					to.left = absolute.left - boundingClientRect.left;
+				}
+				if (absolute.right) {
+					var absoluteRight = (window.innerWidth - absolute.right);
+					var absoluteLeft = boundingClientRect.left + to.left;
+					to.width = absoluteRight - absoluteLeft;
+				}
+				if (absolute.bottom) {
+					var absoluteBottom = (window.innerHeight - absolute.bottom);
+					var absoluteTop = boundingClientRect.top + to.top;
+					to.height = absoluteBottom - absoluteTop;
+				}
+			}
 
-        }
+			function expand() {
+				if (!expanded) {
+					setRects();
+					add();
+					current = angular.copy(from);
+					setStyle(target, from);
+					dynamics.animate(state, {
+						pow: 1
+					}, {
+						type: dynamics.easeInOut,
+						duration: 350,
+						complete: function () {
+							expanded = true;
+							state.idle();
+						},
+						change: function () {
+							update();
+						}
+					});
+				} else {
+					state.idle();
+				}
+			}
+
+			function contract() {
+				if (expanded) {
+					dynamics.animate(state, {
+						pow: 0
+					}, {
+						type: dynamics.easeInOut,
+						duration: 350,
+						complete: function () {
+							expanded = false;
+							remove();
+							state.idle();
+						},
+						change: function () {
+							update();
+						}
+					});
+				} else {
+					state.idle();
+				}
+			}
+
+			function update() {
+				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
+				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
+				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
+				current.height = (from.height + (to.height - from.height) * state.pow) + 'px';
+				setStyle(target, current);
+			}
+
+			function toggle() {
+				if (state.busy()) {
+					if (expanded) {
+						contract();
+					} else {
+						expand();
+					}
+				}
+			}
+
+			function set() {
+				relative = attributes.expandableRelative ? $parse(attributes.expandableRelative)(scope) : {};
+				absolute = attributes.expandableAbsolute ? $parse(attributes.expandableAbsolute)(scope) : {};
+				target = element[0].querySelector(attributes.expandable);
+				if (target) {
+					targetElement = angular.element(target);
+				}
+			}
+
+			function onDown(e) {
+				set();
+				if (target) {
+					expand();
+				}
+			}
+
+			function onUp(e) {
+				if (Dom.getClosestNode(e.target, element[0])) {
+					// nope
+				} else {
+					set();
+					if (target) {
+						contract();
+					}
+				}
+			}
+
+			function onResize(e) {
+				if (expanded || state.isBusy) {
+					setRects();
+					update();
+				}
+			}
+
+			function onKeyDown(e) {
+				var key = e.key.toLowerCase();
+				switch (key) {
+					case 'escape':
+						set();
+						if (target) {
+							contract();
+						}
+						break;
+					case 'enter':
+						set();
+						if (target && target.tagName && target.tagName.toLowerCase() === 'input') {
+							contract();
+						}
+						break;
+				}
+			}
+
+			function addListeners() {
+				element
+					.on('mousedown touchstart', onDown)
+					.on('keydown', onKeyDown);
+				angular.element(window)
+					.on('click', onUp)
+					.on('resize', onResize);
+			}
+
+			function removeListeners() {
+				element
+					.off('mousedown touchstart', onDown)
+					.off('keydown', onKeyDown);
+				angular.element(window)
+					.off('click', onUp)
+					.off('resize', onResize);
+			}
+
+			scope.$on('$destroy', function () {
+				removeListeners();
+			});
+
+			addListeners();
+
+		}
 
     }]);
 
