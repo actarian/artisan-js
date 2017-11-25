@@ -51,6 +51,7 @@
 
         "app/artisan/net/http/http.service.js",
         "app/artisan/net/preload/preload.factory.js",
+        "app/artisan/net/once/once.service.js",
         "app/artisan/net/router/router.service.js",
         "app/artisan/net/silent/silent.service.js",
         "app/artisan/net/storage/storage.service.js",

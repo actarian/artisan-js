@@ -8,517 +8,496 @@
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.service('FacebookService', ['$promise', 'environment', function ($promise, environment) {
+    app.service('FacebookService', ['$promise', 'Once', 'environment', function($promise, Once, environment) {
 
-		var service = this;
+        var service = this;
 
-		var statics = {
-			login: FacebookLogin,
-			logout: FacebookLogout,
-			status: FacebookStatus,
-			getMe: FacebookGetMe,
-			getMyPicture: FacebookGetMyPicture,
-		};
+        var statics = {
+            login: FacebookLogin,
+            logout: FacebookLogout,
+            status: FacebookStatus,
+            getMe: FacebookGetMe,
+            getMyPicture: FacebookGetMyPicture,
+        };
 
-		angular.extend(service, statics);
+        angular.extend(service, statics);
 
-		// private vars
+        // private vars
 
-		if (!environment.addons.facebook) {
-			trhow('FacebookService.error missing config object in environment.addons.facebook');
-		}
+        if (!environment.addons.facebook) {
+            trhow('FacebookService.error missing config object in environment.addons.facebook');
+        }
 
-		var config = environment.addons.facebook;
+        var config = environment.addons.facebook;
 
-		// statics methods
+        // statics methods
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-		 *  calling facebook initializer on page load to avoid popup blockers via asyncronous loading  *
-		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+         *  calling facebook initializer on page load to avoid popup blockers via asyncronous loading  *
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		Facebook();
+        Facebook();
 
-		function Facebook() {
-			return $promise(function (promise) {
-				if (window.FB !== undefined) {
-					promise.resolve(window.FB);
-				} else {
-					FacebookInit().then(function (success) {
-						promise.resolve(window.FB);
-					}, function (error) {
-						promise.reject(error);
-					});
-				}
-			});
-		}
+        function Facebook() {
+            return $promise(function(promise) {
+                if (window.FB !== undefined) {
+                    promise.resolve(window.FB);
+                } else {
+                    FacebookInit().then(function(success) {
+                        promise.resolve(window.FB);
+                    }, function(error) {
+                        promise.reject(error);
+                    });
+                }
+            });
+        }
 
-		function FacebookStatus(response, promise, init) {
-			service.authResponse = null;
-			if (response.status === 'connected') {
-				service.authResponse = response.authResponse;
-				promise.resolve(response);
-			} else if (response.status === 'not_authorized') {
-				if (init) {
-					promise.resolve(response);
-				} else {
-					promise.reject(response);
-				}
-			} else {
-				promise.reject(response);
-			}
-		}
+        function FacebookStatus(response, promise, init) {
+            service.authResponse = null;
+            if (response.status === 'connected') {
+                service.authResponse = response.authResponse;
+                promise.resolve(response);
+            } else if (response.status === 'not_authorized') {
+                if (init) {
+                    promise.resolve(response);
+                } else {
+                    promise.reject(response);
+                }
+            } else {
+                promise.reject(response);
+            }
+        }
 
-		function FacebookGetMe(fields) {
-			fields = fields || config.fields;
-			return $promise(function (promise) {
-				FacebookLogin().then(function (facebook) {
-					console.log('FacebookGetMe', facebook);
-					facebook.api('/me', {
-						fields: fields
-					}, function (response) {
-						if (!response || response.error) {
-							promise.reject('Error occured');
-						} else {
-							promise.resolve(response);
-						}
-					});
-				});
-			});
-		}
+        function FacebookGetMe(fields) {
+            fields = fields || config.fields;
+            return $promise(function(promise) {
+                FacebookLogin().then(function(facebook) {
+                    console.log('FacebookGetMe', facebook);
+                    facebook.api('/me', {
+                        fields: fields
+                    }, function(response) {
+                        if (!response || response.error) {
+                            promise.reject('Error occured');
+                        } else {
+                            promise.resolve(response);
+                        }
+                    });
+                });
+            });
+        }
 
-		function FacebookGetMyPicture(size) {
-			size = size || 300;
-			return $promise(function (promise) {
-				FacebookLogin().then(function (facebook) {
-					facebook.api('/me/picture', {
-						width: size,
-						height: size,
-						type: 'square'
-					}, function (response) {
-						if (!response || response.error) {
-							promise.reject('Error occured');
-						} else {
-							promise.resolve(response);
-						}
-					});
-				});
-			});
-		}
+        function FacebookGetMyPicture(size) {
+            size = size || 300;
+            return $promise(function(promise) {
+                FacebookLogin().then(function(facebook) {
+                    facebook.api('/me/picture', {
+                        width: size,
+                        height: size,
+                        type: 'square'
+                    }, function(response) {
+                        if (!response || response.error) {
+                            promise.reject('Error occured');
+                        } else {
+                            promise.resolve(response);
+                        }
+                    });
+                });
+            });
+        }
 
-		function FacebookLogin() {
-			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
-					console.log('FacebookLogin', facebook);
-					facebook.login(function (response) {
-						FacebookStatus(response, promise);
-					}, {
-						scope: config.scope
-					});
-				});
-			});
-		}
+        function FacebookLogin() {
+            return $promise(function(promise) {
+                Facebook().then(function(facebook) {
+                    console.log('FacebookLogin', facebook);
+                    facebook.login(function(response) {
+                        FacebookStatus(response, promise);
+                    }, {
+                        scope: config.scope
+                    });
+                });
+            });
+        }
 
-		function FacebookLogout() {
-			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
-					facebook.logout(function (response) {
-						promise.resolve(response);
-					});
-				});
-			});
-		}
+        function FacebookLogout() {
+            return $promise(function(promise) {
+                Facebook().then(function(facebook) {
+                    facebook.logout(function(response) {
+                        promise.resolve(response);
+                    });
+                });
+            });
+        }
 
-		function FacebookInit() {
-			return $promise(function (promise) {
-				window.fbAsyncInit = function () {
-					console.log('FacebookInit.fbAsyncInit', window.FB);
-					window.FB.init({
-						appId: config.app_id,
-						status: true,
-						cookie: true,
-						xfbml: true,
-						version: config.version,
-					});
-					promise.resolve(window.FB);
-					// window.fbAsyncInit = null;
-				};
-				try {
-					(function (d, s, id) {
-						var js, fjs = d.getElementsByTagName(s)[0];
-						if (d.getElementById(id)) {
-							return;
-						}
-						js = d.createElement(s);
-						js.id = id;
-						js.src = '//connect.facebook.net/' + environment.language.culture + '/sdk.js';
-						fjs.parentNode.insertBefore(js, fjs);
-					}(document, 'script', 'facebook-jssdk'));
-				} catch (error) {
-					promise.reject(error);
-				}
-			});
-		}
+        function FacebookInit() {
+            return $promise(function(promise) {
+                Once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
+                    // console.log('FacebookInit.fbAsyncInit', window.FB);
+                    window.FB.init({
+                        appId: config.app_id,
+                        status: true,
+                        cookie: true,
+                        xfbml: true,
+                        version: config.version,
+                    });
+                    promise.resolve(window.FB);
+                    // window.fbAsyncInit = null;
+                }, function(error) {
+                    promise.reject(error);
+                });
+            });
+        }
 
     }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	// todo !!!
+    // todo !!!
 
-	app.directive('googlemaps', ['$timeout', '$compile', '$promise', 'Http', 'GoogleMaps', 'environment', function ($timeout, $compile, $promise, Http, GoogleMaps, environment) {
+    app.directive('googlemaps', ['$timeout', '$compile', '$promise', 'Http', 'GoogleMaps', 'environment', function($timeout, $compile, $promise, Http, GoogleMaps, environment) {
 
-		var directive = {
-			restrict: 'A',
-			scope: {
-				connector: '=googlemaps',
-			},
-			link: GooglemapsLink,
-		};
+        var directive = {
+            restrict: 'A',
+            scope: {
+                connector: '=googlemaps',
+            },
+            link: GooglemapsLink,
+        };
 
-		if (!environment.addons.googlemaps) {
-			trhow('googlemaps.error missing config object in environment.addons.googlemaps');
-		}
+        if (!environment.addons.googlemaps) {
+            trhow('googlemaps.error missing config object in environment.addons.googlemaps');
+        }
 
-		var config = environment.addons.googlemaps;
+        var config = environment.addons.googlemaps;
 
-		return directive;
+        return directive;
 
-		function GooglemapsLink(scope, element, attributes) {
-			console.log('GooglemapsLink', arguments);
+        function GooglemapsLink(scope, element, attributes) {
+            console.log('GooglemapsLink', arguments);
 
-			var map, options, info, bounds, clusterer;
-			var filters = {};
-			var markers = [];
+            var map, options, info, bounds, clusterer;
+            var filters = {};
+            var markers = [];
 
-			var publics = {
-				// methods available for controllers
-				/*
-				fly: MapboxFly,
-				flyPosition: MapboxFlyPosition,
-				jump: MapboxJump,
-				jumpPosition: MapboxJumpPosition,
-				*/
-				setMarkers: GooglemapsMarkersSet,
-				setType: GooglemapsSetType,
-			};
+            var publics = {
+                // methods available for controllers
+                /*
+                fly: MapboxFly,
+                flyPosition: MapboxFlyPosition,
+                jump: MapboxJump,
+                jumpPosition: MapboxJumpPosition,
+                */
+                setMarkers: GooglemapsMarkersSet,
+                setType: GooglemapsSetType,
+            };
 
-			if (scope.connector) {
-				angular.extend(scope.connector, publics);
-			}
+            if (scope.connector) {
+                angular.extend(scope.connector, publics);
+            }
 
-			Googlemaps();
+            Googlemaps();
 
-			function Googlemaps() {
-				return $promise(function (promise) {
-					GoogleMaps.maps().then(function (maps) {
-						GooglemapsOptions().then(function (options) {
-							map = new google.maps.Map(element[0], options);
-							info = GooglemapsInfo();
-							promise.resolve(map);
-						});
-					});
-				});
-			}
+            function Googlemaps() {
+                return $promise(function(promise) {
+                    GoogleMaps.maps().then(function() {
+                        GooglemapsOptions().then(function(options) {
+                            map = new google.maps.Map(element[0], options);
+                            info = GooglemapsInfo();
+                            promise.resolve(map);
+                        });
+                    });
+                });
+            }
 
-			function GooglemapsOptions() {
-				return $promise(function (promise) {
-					var options = angular.copy(config.options);
-					if (config.styles) {
-						Http.get(config.styles).then(function (styles) {
-							options.styles = styles;
-							promise.resolve(options);
+            function GooglemapsOptions() {
+                return $promise(function(promise) {
+                    var options = angular.copy(config.options);
+                    if (config.styles) {
+                        Http.get(config.styles).then(function(styles) {
+                            options.styles = styles;
+                            promise.resolve(options);
 
-						}, function (error) {
-							console.log('GooglemapsOptions.error', 'unable to load styles', config.styles);
-							promise.resolve(options);
+                        }, function(error) {
+                            console.log('GooglemapsOptions.error', 'unable to load styles', config.styles);
+                            promise.resolve(options);
 
-						});
+                        });
 
-					} else {
-						promise.resolve(options);
-					}
-				});
-			}
+                    } else {
+                        promise.resolve(options);
+                    }
+                });
+            }
 
-			function GooglemapsMarkersRemove() {
-				angular.forEach(markers, function (marker) {
-					marker.setMap(null);
-				});
-			}
+            function GooglemapsMarkersRemove() {
+                angular.forEach(markers, function(marker) {
+                    marker.setMap(null);
+                });
+            }
 
-			function GooglemapsMarkersSet(items) {
-				Googlemaps().then(function (map) {
-					GooglemapsMarkersRemove();
-					bounds = new google.maps.LatLngBounds();
+            function GooglemapsMarkersSet(items) {
+                Googlemaps().then(function(map) {
+                    GooglemapsMarkersRemove();
+                    bounds = new google.maps.LatLngBounds();
 
-					markers = items.filter(function (item) {
-						var has = true;
-						if (filters.month) {
-							has = has && filters.month.items.has(item.id);
-						}
-						if (filters.category) {
-							has = has && item.categories.indexOf(filters.category.key) !== -1;
-						}
-						return has;
+                    markers = items.filter(function(item) {
+                        var has = true;
+                        if (filters.month) {
+                            has = has && filters.month.items.has(item.id);
+                        }
+                        if (filters.category) {
+                            has = has && item.categories.indexOf(filters.category.key) !== -1;
+                        }
+                        return has;
 
-					}).map(function (item) {
-						return GooglemapsMarker(item);
+                    }).map(function(item) {
+                        return GooglemapsMarker(item);
 
-					});
+                    });
 
-					if (config.clusterer) {
-						clusterer = GooglemapsClusterer(markers);
-					}
+                    if (config.clusterer) {
+                        clusterer = GooglemapsClusterer(markers);
+                    }
 
-				});
-			}
+                });
+            }
 
-			function GooglemapsBoundsFit() {
-				if (!bounds.isEmpty()) {
-					map.fitBounds(bounds);
-				}
-			}
+            function GooglemapsBoundsFit() {
+                if (!bounds.isEmpty()) {
+                    map.fitBounds(bounds);
+                }
+            }
 
-			function GooglemapsSetType(typeId) {
-				var types = ['hybrid', 'roadmap', 'satellite', 'terrain'];
-				if (types.indexOf(typeId) !== -1) {
-					map.setMapTypeId(typeId);
-				}
-			}
+            function GooglemapsSetType(typeId) {
+                var types = ['hybrid', 'roadmap', 'satellite', 'terrain'];
+                if (types.indexOf(typeId) !== -1) {
+                    map.setMapTypeId(typeId);
+                }
+            }
 
-			function GooglemapsInfo() {
+            function GooglemapsInfo() {
 
-				var info = new google.maps.InfoWindow({
-					maxWidth: 350,
-					pixelOffset: new google.maps.Size(0, 15),
-				});
+                var info = new google.maps.InfoWindow({
+                    maxWidth: 350,
+                    pixelOffset: new google.maps.Size(0, 15),
+                });
 
-				google.maps.event.addListener(info, 'domready', function () {
-					var outer = $('.gm-style-iw');
-					var background = outer.prev();
-					background.children(':nth-child(2)').css({
-						'display': 'none'
-					});
-					background.children(':nth-child(4)').css({
-						'display': 'none'
-					});
-					outer.parent().parent().css({
-						left: '115px'
-					});
-					background.children(':nth-child(1)').attr('style', function (i, s) {
-						return s + 'display: none!important';
-					});
-					background.children(':nth-child(3)').attr('style', function (i, s) {
-						return s + 'display: none!important';
-					});
-					background.children(':nth-child(3)').find('div').children().attr('style', function (i, s) {
-						return s + 'opacity: 0!important;';
-					});
-					var close = outer.next();
-					close.css({
-						'width': '13px',
-						'height': '13px',
-						'overflow': 'hidden',
-						'position': 'absolute',
-						'right': '56px',
-						'top': '17px',
-						'z-index': '10000',
-						'cursor': 'pointer',
-						'opacity': 1,
-						'transform': 'scale(0.8)'
-					});
-					close.mouseout(function () {
-						$(this).css({
-							opacity: '1'
-						});
-					});
-				});
+                google.maps.event.addListener(info, 'domready', function() {
+                    var outer = $('.gm-style-iw');
+                    var background = outer.prev();
+                    background.children(':nth-child(2)').css({
+                        'display': 'none'
+                    });
+                    background.children(':nth-child(4)').css({
+                        'display': 'none'
+                    });
+                    outer.parent().parent().css({
+                        left: '115px'
+                    });
+                    background.children(':nth-child(1)').attr('style', function(i, s) {
+                        return s + 'display: none!important';
+                    });
+                    background.children(':nth-child(3)').attr('style', function(i, s) {
+                        return s + 'display: none!important';
+                    });
+                    background.children(':nth-child(3)').find('div').children().attr('style', function(i, s) {
+                        return s + 'opacity: 0!important;';
+                    });
+                    var close = outer.next();
+                    close.css({
+                        'width': '13px',
+                        'height': '13px',
+                        'overflow': 'hidden',
+                        'position': 'absolute',
+                        'right': '56px',
+                        'top': '17px',
+                        'z-index': '10000',
+                        'cursor': 'pointer',
+                        'opacity': 1,
+                        'transform': 'scale(0.8)'
+                    });
+                    close.mouseout(function() {
+                        $(this).css({
+                            opacity: '1'
+                        });
+                    });
+                });
 
-				return info;
-			}
+                return info;
+            }
 
-			function GooglemapsMarker(item) {
+            function GooglemapsMarker(item) {
 
-				var latLng = new google.maps.LatLng(
-					item.position.latitude,
-					item.position.longitude
-				);
+                var latLng = new google.maps.LatLng(
+                    item.position.latitude,
+                    item.position.longitude
+                );
 
-				var marker = new google.maps.Marker({
-					position: latLng,
-					item: item,
-					icon: {
-						url: 'img/maps/marker.png',
-						scaledSize: new google.maps.Size(25, 25),
-						origin: new google.maps.Point(0, 0),
-						anchor: new google.maps.Point(0, 0)
-					},
-					map: map,
-					contentString: '<div id="iw-container">' +
-						'<div class="iw-image" ng-style="{ \'background-image\': cssUrl(selectedBlog.image.url) }"></div>' +
-						'<div class="iw-title" ng-bind="selectedBlog.title"></div>' +
-						'<div class="iw-cta"><button type="button" class="iw-link" ng-click="openBlog(selectedBlog)">Details</button></div>' +
-						'</div>'
-				});
+                var marker = new google.maps.Marker({
+                    position: latLng,
+                    item: item,
+                    icon: {
+                        url: 'img/maps/marker.png',
+                        scaledSize: new google.maps.Size(25, 25),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(0, 0)
+                    },
+                    map: map,
+                    contentString: '<div id="iw-container">' +
+                        '<div class="iw-image" ng-style="{ \'background-image\': cssUrl(selectedBlog.image.url) }"></div>' +
+                        '<div class="iw-title" ng-bind="selectedBlog.title"></div>' +
+                        '<div class="iw-cta"><button type="button" class="iw-link" ng-click="openBlog(selectedBlog)">Details</button></div>' +
+                        '</div>'
+                });
 
-				marker.onClick = function () {
-					var marker = this;
-					$timeout(function () {
-						scope.selectedBlog = marker.item;
-						var html = $compile(marker.contentString)(scope);
-						info.setContent(html[0]);
-						info.open(map, marker);
-					});
-				};
+                marker.onClick = function() {
+                    var marker = this;
+                    $timeout(function() {
+                        scope.selectedBlog = marker.item;
+                        var html = $compile(marker.contentString)(scope);
+                        info.setContent(html[0]);
+                        info.open(map, marker);
+                    });
+                };
 
-				marker.addListener('click', marker.onClick);
+                marker.addListener('click', marker.onClick);
 
-				bounds.extend(latLng);
+                bounds.extend(latLng);
 
-				return marker;
-			}
+                return marker;
+            }
 
-			function GooglemapsClusterer(markers) {
+            function GooglemapsClusterer(markers) {
 
-				var clusterer = new MarkerClusterer(map, markers, {
-					cssClass: 'cluster',
-					imagePath: '/img/gmap/m'
-				});
+                var clusterer = new MarkerClusterer(map, markers, {
+                    cssClass: 'cluster',
+                    imagePath: '/img/gmap/m'
+                });
 
-				return clusterer;
+                return clusterer;
 
-			}
+            }
 
-		}
+        }
 
     }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.service('GoogleMaps', ['$promise', 'environment', function ($promise, environment) {
+    app.service('GoogleMaps', ['$promise', 'Once', 'environment', function($promise, Once, environment) {
 
-		var service = this;
+        var service = this;
 
-		var statics = {
-			maps: GoogleMaps,
-			geocoder: GoogleMapsGeocoder,
-			parse: GoogleMapsParse,
-		};
+        var statics = {
+            maps: GoogleMaps,
+            geocoder: GoogleMapsGeocoder,
+            parse: GoogleMapsParse,
+        };
 
-		angular.extend(service, statics);
+        angular.extend(service, statics);
 
-		if (!environment.addons.googlemaps) {
-			trhow('GoogleMaps.error missing config object in environment.addons.googlemaps');
-		}
+        if (!environment.addons.googlemaps) {
+            trhow('GoogleMaps.error missing config object in environment.addons.googlemaps');
+        }
 
-		function GoogleMaps() {
-			return $promise(function (promise) {
-				if (window.google && window.google.maps) {
-					promise.resolve(window.google.maps);
+        function GoogleMaps() {
+            return $promise(function(promise) {
+                var apiKey = environment.addons.googlemaps.apiKey;
+                Once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
+                    promise.resolve(window.google.maps);
+                }, function(error) {
+                    promise.reject(error);
+                });
+            });
+        }
 
-				} else {
-					window.googleMapsAsyncInit = function () {
-						promise.resolve(window.google.maps);
-						window.googleMapsAsyncInit = null;
-					};
-					var apiKey = environment.addons.googlemaps.apiKey;
-					var script = document.createElement('script');
-					script.setAttribute('async', null);
-					script.setAttribute('defer', null);
-					script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback=googleMapsAsyncInit');
-					document.body.appendChild(script);
-				}
-			});
-		}
+        function GoogleMapsGeocoder() {
+            var service = this;
+            return $promise(function(promise) {
+                GoogleMaps().then(function(maps) {
+                    var geocoder = new maps.Geocoder();
+                    promise.resolve(geocoder);
 
-		function GoogleMapsGeocoder() {
-			var service = this;
-			return $promise(function (promise) {
-				GoogleMaps().then(function (maps) {
-					var geocoder = new maps.Geocoder();
-					promise.resolve(geocoder);
+                }, function(error) {
+                    promise.reject(error);
 
-				}, function (error) {
-					promise.reject(error);
+                });
+            });
+        }
 
-				});
-			});
-		}
+        function GoogleMapsType(type, item) {
+            var types = {
+                street: 'route',
+                number: 'street_number',
+                locality: 'locality',
+                postalCode: 'postal_code',
+                city: 'administrative_area_level_3',
+                province: 'administrative_area_level_2',
+                region: 'administrative_area_level_1',
+                country: 'country',
+            };
+            var label = null;
+            angular.forEach(item.address_components, function(c) {
+                angular.forEach(c.types, function(t) {
+                    if (t === types[type]) {
+                        label = c.long_name;
+                    }
+                });
+            });
+            // console.log('GoogleMapsType', type, item, label);
+            return label;
+        }
 
-		function GoogleMapsType(type, item) {
-			var types = {
-				street: 'route',
-				number: 'street_number',
-				locality: 'locality',
-				postalCode: 'postal_code',
-				city: 'administrative_area_level_3',
-				province: 'administrative_area_level_2',
-				region: 'administrative_area_level_1',
-				country: 'country',
-			};
-			var label = null;
-			angular.forEach(item.address_components, function (c) {
-				angular.forEach(c.types, function (t) {
-					if (t === types[type]) {
-						label = c.long_name;
-					}
-				});
-			});
-			// console.log('GoogleMapsType', type, item, label);
-			return label;
-		}
-
-		function GoogleMapsParse(results) {
-			var items = null;
-			if (results.length) {
-				items = results.filter(function (item) {
-					return true; // item.geometry.location_type === 'ROOFTOP' ||
-					// item.geometry.location_type === 'RANGE_INTERPOLATED' ||
-					// item.geometry.location_type === 'GEOMETRIC_CENTER';
-				}).map(function (item) {
-					return {
-						name: item.formatted_address,
-						street: GoogleMapsType('street', item),
-						number: GoogleMapsType('number', item),
-						locality: GoogleMapsType('locality', item),
-						postalCode: GoogleMapsType('postalCode', item),
-						city: GoogleMapsType('city', item),
-						province: GoogleMapsType('province', item),
-						region: GoogleMapsType('region', item),
-						country: GoogleMapsType('country', item),
-						position: {
-							lng: item.geometry.location.lng(),
-							lat: item.geometry.location.lat(),
-						}
-					};
-				});
-				/*
-				var first = response.data.results[0];
-				scope.model.position = first.geometry.location;
-				console.log(scope.model);
-				setLocation();
-				*/
-			}
-			console.log('GoogleMapsParse', results, items);
-			return items;
-		}
+        function GoogleMapsParse(results) {
+            var items = null;
+            if (results.length) {
+                items = results.filter(function(item) {
+                    return true; // item.geometry.location_type === 'ROOFTOP' ||
+                    // item.geometry.location_type === 'RANGE_INTERPOLATED' ||
+                    // item.geometry.location_type === 'GEOMETRIC_CENTER';
+                }).map(function(item) {
+                    return {
+                        name: item.formatted_address,
+                        street: GoogleMapsType('street', item),
+                        number: GoogleMapsType('number', item),
+                        locality: GoogleMapsType('locality', item),
+                        postalCode: GoogleMapsType('postalCode', item),
+                        city: GoogleMapsType('city', item),
+                        province: GoogleMapsType('province', item),
+                        region: GoogleMapsType('region', item),
+                        country: GoogleMapsType('country', item),
+                        position: {
+                            lng: item.geometry.location.lng(),
+                            lat: item.geometry.location.lat(),
+                        }
+                    };
+                });
+                /*
+                var first = response.data.results[0];
+                scope.model.position = first.geometry.location;
+                console.log(scope.model);
+                setLocation();
+                */
+            }
+            console.log('GoogleMapsParse', results, items);
+            return items;
+        }
 
     }]);
 
@@ -1017,7 +996,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('MapBox', ['$q', '$http', '$promise', 'environment', function($q, $http, $promise, environment) {
+    app.service('MapBox', ['$q', '$http', '$promise', 'Once', 'environment', function($q, $http, $promise, Once, environment) {
 
         var service = this;
 
@@ -1039,8 +1018,8 @@
                     promise.resolve(window.mapboxgl);
                 } else {
                     $promise.all([
-                        MapBoxScript('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
-                        MapBoxLink('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
+                        Once.script('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
+                        Once.link('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
                     ]).then(function() {
                         window.mapboxgl.accessToken = config.accessToken;
                         promise.resolve(window.mapboxgl);
@@ -1049,162 +1028,6 @@
                     });
                 }
             });
-        }
-
-        function MapBoxScript(url) {
-            return $promise(function(promise) {
-                try {
-                    var id = 'mapboxscript';
-                    var script = document.getElementsByTagName('script')[0];
-                    if (document.getElementById(id)) {
-                        promise.resolve();
-                    }
-                    var node = document.createElement('script');
-                    node.id = id;
-                    node.src = url;
-                    node.addEventListener('load', promise.resolve);
-                    node.addEventListener('error', promise.reject);
-                    script.parentNode.insertBefore(node, script);
-                } catch (error) {
-                    promise.reject(error);
-                }
-                /*
-                var node = document.createElement('script');
-                node.src = url;
-                node.addEventListener('load', promise.resolve);
-                node.addEventListener('error', promise.reject);
-                document.body.appendChild(node);
-                */
-            });
-        }
-
-        function MapBoxLink(url) {
-            return $promise(function(promise) {
-                try {
-                    var id = 'mapboxstyle';
-                    var link = document.getElementsByTagName('link')[0];
-                    if (document.getElementById(id)) {
-                        promise.resolve();
-                    }
-                    var node = document.createElement('link');
-                    node.id = id;
-                    node.rel = 'stylesheet';
-                    node.href = url;
-                    node.addEventListener('load', promise.resolve);
-                    node.addEventListener('error', promise.reject);
-                    link.parentNode.insertBefore(node, link);
-                } catch (error) {
-                    promise.reject(error);
-                }
-                /*
-                var node = document.createElement('link');
-                node.rel = 'stylesheet';
-                node.href = url;
-                node.addEventListener('load', promise.resolve);
-                node.addEventListener('error', promise.reject);
-                document.body.appendChild(node);
-                */
-            });
-        }
-
-    }]);
-
-    app.service('___GoogleMaps', ['$q', '$http', '$promise', function($q, $http, $promise) {
-
-        var _key = 'AIzaSyBlgTatREkeIDKEKYL_dtaaDx1yYxmx_iM';
-        var _init = false;
-
-        this.maps = maps;
-        this.geocoder = geocoder;
-        this.parse = parse;
-
-        function maps() {
-            return $promise(function(promise) {
-                if (_init) {
-                    promise.resolve(window.google.maps);
-                } else {
-                    window.__googleMapsInit = function() {
-                        promise.resolve(window.google.maps);
-                        window.__googleMapsInit = null;
-                        _init = true;
-                    };
-                    var script = document.createElement('script');
-                    script.setAttribute('async', null);
-                    script.setAttribute('defer', null);
-                    script.setAttribute('src', 'https://maps.googleapis.com/maps/api/js?key=' + _key + '&callback=__googleMapsInit');
-                    document.body.appendChild(script);
-                }
-            });
-        }
-
-        function geocoder() {
-            var service = this;
-            var deferred = $q.defer();
-            maps().then(function(maps) {
-                var _geocoder = new maps.Geocoder();
-                deferred.resolve(_geocoder);
-            }, function(error) {
-                deferred.reject(error);
-            });
-            return deferred.promise;
-        }
-
-        function getType(type, item) {
-            var types = {
-                street: 'route',
-                number: 'street_number',
-                locality: 'locality',
-                postalCode: 'postal_code',
-                city: 'administrative_area_level_3',
-                province: 'administrative_area_level_2',
-                region: 'administrative_area_level_1',
-                country: 'country',
-            };
-            var label = null;
-            angular.forEach(item.address_components, function(c) {
-                angular.forEach(c.types, function(t) {
-                    if (t === types[type]) {
-                        label = c.long_name;
-                    }
-                });
-            });
-            // console.log('googleMaps.getType', type, item, label);
-            return label;
-        }
-
-        function parse(results) {
-            var items = null;
-            if (results.length) {
-                items = results.filter(function(item) {
-                    return true; // item.geometry.location_type === 'ROOFTOP' ||
-                    // item.geometry.location_type === 'RANGE_INTERPOLATED' ||
-                    // item.geometry.location_type === 'GEOMETRIC_CENTER';
-                }).map(function(item) {
-                    return {
-                        name: item.formatted_address,
-                        street: getType('street', item),
-                        number: getType('number', item),
-                        locality: getType('locality', item),
-                        postalCode: getType('postalCode', item),
-                        city: getType('city', item),
-                        province: getType('province', item),
-                        region: getType('region', item),
-                        country: getType('country', item),
-                        position: {
-                            lng: item.geometry.location.lng(),
-                            lat: item.geometry.location.lat(),
-                        }
-                    };
-                });
-                /*
-                var first = response.data.results[0];
-                scope.model.position = first.geometry.location;
-                console.log(scope.model);
-                setLocation();
-                */
-            }
-            console.log('googleMaps.parse', results, items);
-            return items;
         }
 
     }]);
@@ -3858,6 +3681,98 @@ $(window).on('resize', function () {
             var image = new Image();
             image.src = window.URL.createObjectURL(blob);
             return image;
+        }
+
+    }]);
+
+}());
+/* global angular */
+
+(function() {
+    "use strict";
+
+    var app = angular.module('artisan');
+
+    app.service('Once', ['$promise', function($promise) {
+
+        var service = this;
+
+        var statics = {
+            load: OnceLoad,
+            script: OnceScript,
+            link: OnceLink,
+        };
+
+        angular.extend(service, statics);
+
+        var paths = {},
+            uid = 0;
+
+        function OnceLoad(path, callback) {
+            if (path.indexOf('.js')) {
+                return OnceScript(path, callback);
+
+            } else if (path.indexOf('.css')) {
+                return OnceLink(path);
+
+            }
+        }
+
+        function OnceScript(path, callback) {
+            return $promise(function(promise) {
+                try {
+                    var id = (paths[path] = paths[path] || ++uid);
+                    id = 'OnceScript' + id;
+                    if (document.getElementById(id)) {
+                        promise.resolve();
+                    } else {
+                        var scripts = document.getElementsByTagName('script');
+                        var script = scripts[scripts.length - 1];
+                        var node = document.createElement('script');
+                        node.id = id;
+                        if (callback) {
+                            if (callback === true) {
+                                callback = id;
+                                path = path.split('{{callback}}').join(callback);
+                            }
+                            window[callback] = function(data) {
+                                promise.resolve(data);
+                            };
+                        } else {
+                            node.addEventListener('load', promise.resolve);
+                        }
+                        node.addEventListener('error', promise.reject);
+                        node.src = path;
+                        script.parentNode.insertBefore(node, script.nextSibling);
+                    }
+                } catch (error) {
+                    promise.reject(error);
+                }
+            });
+        }
+
+        function OnceLink(path) {
+            return $promise(function(promise) {
+                try {
+                    var id = (paths[path] = paths[path] || ++uid);
+                    id = 'OnceStyle' + id;
+                    if (document.getElementById(id)) {
+                        promise.resolve();
+                    } else {
+                        var links = document.getElementsByTagName('link');
+                        var link = links[links.length - 1];
+                        var node = document.createElement('link');
+                        node.id = id;
+                        node.rel = 'stylesheet';
+                        node.href = path;
+                        node.addEventListener('load', promise.resolve);
+                        node.addEventListener('error', promise.reject);
+                        link.parentNode.insertBefore(node, link.nextSibling);
+                    }
+                } catch (error) {
+                    promise.reject(error);
+                }
+            });
         }
 
     }]);
