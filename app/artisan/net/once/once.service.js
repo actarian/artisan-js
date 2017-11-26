@@ -5,7 +5,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('Once', ['$promise', function($promise) {
+    app.service('$once', ['$promise', function($promise) {
 
         var service = this;
 

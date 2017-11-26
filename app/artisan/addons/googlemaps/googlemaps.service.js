@@ -5,7 +5,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('GoogleMaps', ['$promise', 'Once', 'environment', function($promise, Once, environment) {
+    app.service('GoogleMaps', ['$promise', '$once', 'environment', function($promise, $once, environment) {
 
         var service = this;
 
@@ -24,7 +24,7 @@
         function GoogleMaps() {
             return $promise(function(promise) {
                 var apiKey = environment.addons.googlemaps.apiKey;
-                Once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
+                $once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
                     promise.resolve(window.google.maps);
                 }, function(error) {
                     promise.reject(error);

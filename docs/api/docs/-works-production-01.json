@@ -1,6 +1,6 @@
 {
     "id": 202010,
-    "url": "/works/production/01",
+    "path": "/works/production/01",
     "name": "Production 01",
     "meta": {
         "app_id": "156171878319496",
@@ -10,6 +10,6 @@
         "locale": "en",
         "title": "When Great Minds Don’t Think Alike",
         "type": "article",
-        "url": "https://actarian.github.io/artisan/"
+        "path": "https://actarian.github.io/artisan/"
     }
 }

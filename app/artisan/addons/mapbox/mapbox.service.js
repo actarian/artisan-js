@@ -5,7 +5,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('MapBox', ['$q', '$http', '$promise', 'Once', 'environment', function($q, $http, $promise, Once, environment) {
+    app.service('MapBox', ['$q', '$http', '$promise', '$once', 'environment', function($q, $http, $promise, $once, environment) {
 
         var service = this;
 
@@ -27,8 +27,8 @@
                     promise.resolve(window.mapboxgl);
                 } else {
                     $promise.all([
-                        Once.script('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
-                        Once.link('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
+                        $once.script('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
+                        $once.link('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
                     ]).then(function() {
                         window.mapboxgl.accessToken = config.accessToken;
                         promise.resolve(window.mapboxgl);

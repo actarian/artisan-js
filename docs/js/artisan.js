@@ -13,7 +13,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('FacebookService', ['$promise', 'Once', 'environment', function($promise, Once, environment) {
+    app.service('FacebookService', ['$promise', '$once', 'environment', function($promise, $once, environment) {
 
         var service = this;
 
@@ -135,7 +135,7 @@
 
         function FacebookInit() {
             return $promise(function(promise) {
-                Once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
+                $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
                     // console.log('FacebookInit.fbAsyncInit', window.FB);
                     window.FB.init({
                         appId: config.app_id,
@@ -400,7 +400,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('GoogleMaps', ['$promise', 'Once', 'environment', function($promise, Once, environment) {
+    app.service('GoogleMaps', ['$promise', '$once', 'environment', function($promise, $once, environment) {
 
         var service = this;
 
@@ -419,7 +419,7 @@
         function GoogleMaps() {
             return $promise(function(promise) {
                 var apiKey = environment.addons.googlemaps.apiKey;
-                Once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
+                $once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
                     promise.resolve(window.google.maps);
                 }, function(error) {
                     promise.reject(error);
@@ -996,7 +996,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('MapBox', ['$q', '$http', '$promise', 'Once', 'environment', function($q, $http, $promise, Once, environment) {
+    app.service('MapBox', ['$q', '$http', '$promise', '$once', 'environment', function($q, $http, $promise, $once, environment) {
 
         var service = this;
 
@@ -1018,8 +1018,8 @@
                     promise.resolve(window.mapboxgl);
                 } else {
                     $promise.all([
-                        Once.script('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
-                        Once.link('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
+                        $once.script('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
+                        $once.link('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
                     ]).then(function() {
                         window.mapboxgl.accessToken = config.accessToken;
                         promise.resolve(window.mapboxgl);
@@ -3420,7 +3420,7 @@ $(window).on('resize', function () {
                 var route = Route.current();
                 var path = route.path;
                 console.log('ViewCurrent', path);
-                Api.docs.url(path).then(function(response) {
+                Api.docs.path(path).then(function(response) {
                     var doc = new Doc(response);
                     var view = new View(doc, route);
                     promise.resolve(view);
@@ -3462,7 +3462,7 @@ $(window).on('resize', function () {
             function _getPool(items) {
                 if (items) {
                     angular.forEach(items, function(item) {
-                        pool[item.url] = item;
+                        pool[item.path] = item;
                         _getPool(item.items);
                     });
                 }
@@ -3478,76 +3478,76 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function ($http, $promise, $timeout, environment) {
+    app.service('Http', ['$http', '$promise', '$timeout', 'environment', function($http, $promise, $timeout, environment) {
 
-		var service = this;
+        var service = this;
 
-		var statics = {
-			get: HttpGet,
-			post: HttpPost,
-			put: HttpPut,
-			patch: HttpPatch,
-			'delete': HttpDelete,
-			fake: HttpFake,
-		};
+        var statics = {
+            get: HttpGet,
+            post: HttpPost,
+            put: HttpPut,
+            patch: HttpPatch,
+            'delete': HttpDelete,
+            fake: HttpFake,
+        };
 
-		angular.extend(service, statics);
+        angular.extend(service, statics);
 
-		// statics methods
+        // statics methods
 
-		function HttpUrl(url) {
-			return environment.paths.api + url;
-		}
+        function HttpPath(path) {
+            return environment.paths.api + path;
+        }
 
-		function HttpPromise(method, url, data) {
-			return $promise(function (promise) {
-				$http[method](HttpUrl(url), data).then(function (response) {
-					promise.resolve(response.data);
+        function HttpPromise(method, path, data) {
+            return $promise(function(promise) {
+                $http[method](HttpPath(path), data).then(function(response) {
+                    promise.resolve(response.data);
 
-				}, function (e, status) {
-					var error = (e && e.data) ? e.data : {};
-					error.status = e.status;
-					promise.reject(error);
+                }, function(e, status) {
+                    var error = (e && e.data) ? e.data : {};
+                    error.status = e.status;
+                    promise.reject(error);
 
-				});
-			});
-		}
+                });
+            });
+        }
 
-		function HttpGet(url) {
-			return HttpPromise('get', url);
-		}
+        function HttpGet(path) {
+            return HttpPromise('get', path);
+        }
 
-		function HttpPost(url, data) {
-			return HttpPromise('post', url, data);
-		}
+        function HttpPost(path, data) {
+            return HttpPromise('post', path, data);
+        }
 
-		function HttpPut(url, data) {
-			return HttpPromise('put', url, data);
-		}
+        function HttpPut(path, data) {
+            return HttpPromise('put', path, data);
+        }
 
-		function HttpPatch(url, data) {
-			return HttpPromise('patch', url, data);
-		}
+        function HttpPatch(path, data) {
+            return HttpPromise('patch', path, data);
+        }
 
-		function HttpDelete(url) {
-			return HttpPromise('delete', url);
-		}
+        function HttpDelete(path) {
+            return HttpPromise('delete', path);
+        }
 
-		function HttpFake(data, msec) {
-			msec = msec || 1000;
-			return $promise(function (promise) {
-				$timeout(function () {
-					promise.resolve({
-						data: data
-					});
-				}, msec);
-			});
-		}
+        function HttpFake(data, msec) {
+            msec = msec || 1000;
+            return $promise(function(promise) {
+                $timeout(function() {
+                    promise.resolve({
+                        data: data
+                    });
+                }, msec);
+            });
+        }
 
     }]);
 
@@ -3693,7 +3693,7 @@ $(window).on('resize', function () {
 
     var app = angular.module('artisan');
 
-    app.service('Once', ['$promise', function($promise) {
+    app.service('$once', ['$promise', function($promise) {
 
         var service = this;
 
@@ -5889,330 +5889,325 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.directive('nav', ['$parse', 'Nav', function ($parse, Nav) {
+    app.directive('nav', ['$parse', 'Nav', function($parse, Nav) {
 
-		var directive = {
-			restrict: 'A',
-			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/nav/nav';
-			},
-			scope: {
-				items: '=nav',
-			},
-			link: NavLink,
-		};
+        var directive = {
+            restrict: 'A',
+            templateUrl: function(element, attributes) {
+                return attributes.template || 'artisan/nav/nav';
+            },
+            scope: {
+                items: '=nav',
+            },
+            link: NavLink,
+        };
 
-		return directive;
+        return directive;
 
-		function NavLink(scope, element, attributes, model) {
-			scope.$watch('items', function (value) {
-				// console.log(value instanceof Nav, value);
-				if (value) {
-					if (angular.isArray(value)) {
-						var onLink = $parse(attributes.onLink)(scope.$parent);
-						var onNav = $parse(attributes.onNav)(scope.$parent);
-						var nav = new Nav({
-							onLink: onLink,
-							onNav: onNav
-						});
-						nav.setItems(value);
-						scope.item = nav;
+        function NavLink(scope, element, attributes, model) {
+            scope.$watch('items', function(value) {
+                // console.log(value instanceof Nav, value);
+                if (value) {
+                    if (angular.isArray(value)) {
+                        var onPath = $parse(attributes.onPath)(scope.$parent);
+                        var onNav = $parse(attributes.onNav)(scope.$parent);
+                        var nav = new Nav({
+                            onPath: onPath,
+                            onNav: onNav
+                        });
+                        nav.setItems(value);
+                        scope.item = nav;
 
-					} else if (value instanceof Nav) {
-						scope.item = value;
-					}
-				}
-			});
-		}
-
-    }]);
-
-	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
-
-		var directive = {
-			restrict: 'A',
-			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/nav/nav-item';
-			},
-			scope: {
-				item: '=navItem',
-			},
-			link: NavItemLink,
-		};
-
-		return directive;
-
-		function NavItemLink(scope, element, attributes, model) {
-			var navItem = angular.element(element[0].querySelector('.nav-link'));
-
-			var output;
-
-			function itemOpen(item, immediate) {
-				var state = item.$nav.state;
-				state.active = true;
-
-				$timeout(function () {
-					state.immediate = immediate;
-					state.closed = state.closing = false;
-					state.opening = true;
-					$timeout(function () {
-						state.opening = false;
-						state.opened = true;
-					});
-				});
-			}
-
-			function itemClose(item, immediate) {
-				var state = item.$nav.state;
-				state.active = false;
-				$timeout(function () {
-					state.immediate = immediate;
-					state.opened = state.opening = false;
-					state.closing = true;
-					$timeout(function () {
-						state.closing = false;
-						state.closed = true;
-					});
-				});
-				if (item.items) {
-					angular.forEach(item.items, function (o) {
-						itemClose(o, true);
-					});
-				}
-			}
-
-			function itemToggle(item) {
-				// console.log('itemToggle', item);
-				var state = item.$nav.state;
-				state.active = item.items ? !state.active : true;
-				if (state.active) {
-					if (item.$nav.parent) {
-						angular.forEach(item.$nav.parent.items, function (o) {
-							if (o !== item) {
-								itemClose(o, true);
-							}
-						});
-					}
-					itemOpen(item);
-				} else {
-					itemClose(item);
-				}
-				// console.log(state);
-			}
-
-			function onDown(e) {
-				var item = scope.item;
-				// console.log('Item.onDown', item);
-				var state = item.$nav.state;
-				if (state.active) {
-					output = false;
-					trigger();
-				} else if (item.$nav.onNav) {
-					var promise = item.$nav.onNav(item, item.$nav);
-					if (promise && typeof promise.then === 'function') {
-						promise.then(function (resolved) {
-							// go on
-							trigger();
-						}, function (rejected) {
-							// do nothing
-						});
-						output = false;
-					} else {
-						output = promise;
-						trigger();
-					}
-				}
-
-				function trigger() {
-					$timeout(function () {
-						itemToggle(item);
-					});
-				}
-
-				// preventDefault(e);
-			}
-
-			function onClick(e) {
-				// console.log('Item.onClick', e);
-				return preventDefault(e);
-			}
-
-			function preventDefault(e) {
-				if (output === false) {
-					// console.log('Item.preventDefault', e);
-					e.stop();
-					// e.preventDefault();
-					// e.stopPropagation();
-					return false;
-				}
-			}
-
-			var events = new Events(navItem).add({
-				down: onDown,
-				click: onClick,
-			}, scope);
-		}
+                    } else if (value instanceof Nav) {
+                        scope.item = value;
+                    }
+                }
+            });
+        }
 
     }]);
 
-	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
+    app.directive('navItem', ['$timeout', 'Events', function($timeout, Events) {
 
-		var directive = {
-			restrict: 'A',
-			link: NavToLink
-		};
+        var directive = {
+            restrict: 'A',
+            templateUrl: function(element, attributes) {
+                return attributes.template || 'artisan/nav/nav-item';
+            },
+            scope: {
+                item: '=navItem',
+            },
+            link: NavItemLink,
+        };
 
-		return directive;
+        return directive;
 
-		function NavToLink(scope, element, attributes) {
-			function onDown(e) {
-				console.log('navTo.onDown', attributes.navTo);
-				$timeout(function () {
-					var callback = $parse(attributes.navTo);
-					callback(scope);
-				});
-				e.preventDefault();
-				return false;
-			}
+        function NavItemLink(scope, element, attributes, model) {
+            var navItem = angular.element(element[0].querySelector('.nav-link'));
 
-			var events = new Events(element).add({
-				down: onDown,
-			}, scope);
+            var output;
 
-		}
+            function itemOpen(item, immediate) {
+                var state = item.$nav.state;
+                state.active = true;
+                $timeout(function() {
+                    state.immediate = immediate;
+                    state.closed = state.closing = false;
+                    state.opening = true;
+                    $timeout(function() {
+                        state.opening = false;
+                        state.opened = true;
+                    });
+                });
+            }
+
+            function itemClose(item, immediate) {
+                var state = item.$nav.state;
+                state.active = false;
+                $timeout(function() {
+                    state.immediate = immediate;
+                    state.opened = state.opening = false;
+                    state.closing = true;
+                    $timeout(function() {
+                        state.closing = false;
+                        state.closed = true;
+                    });
+                });
+                if (item.items) {
+                    angular.forEach(item.items, function(o) {
+                        itemClose(o, true);
+                    });
+                }
+            }
+
+            function itemToggle(item) {
+                // console.log('itemToggle', item);
+                var state = item.$nav.state;
+                state.active = item.items ? !state.active : true;
+                if (state.active) {
+                    if (item.$nav.parent) {
+                        angular.forEach(item.$nav.parent.items, function(o) {
+                            if (o !== item) {
+                                itemClose(o, true);
+                            }
+                        });
+                    }
+                    itemOpen(item);
+                } else {
+                    itemClose(item);
+                }
+                // console.log(state);
+            }
+
+            function onDown(e) {
+                var item = scope.item;
+                // console.log('Item.onDown', item);
+                var state = item.$nav.state;
+                if (state.active) {
+                    output = false;
+                    trigger();
+                } else if (item.$nav.onNav) {
+                    var promise = item.$nav.onNav(item, item.$nav);
+                    if (promise && typeof promise.then === 'function') {
+                        promise.then(function(resolved) {
+                            // go on
+                            trigger();
+                        }, function(rejected) {
+                            // do nothing
+                        });
+                        output = false;
+                    } else {
+                        output = promise;
+                        trigger();
+                    }
+                }
+
+                function trigger() {
+                    $timeout(function() {
+                        itemToggle(item);
+                    });
+                }
+                // preventDefault(e);
+            }
+
+            function onClick(e) {
+                // console.log('Item.onClick', e);
+                return preventDefault(e);
+            }
+
+            function preventDefault(e) {
+                if (output === false) {
+                    // console.log('Item.preventDefault', e);
+                    e.stop();
+                    // e.preventDefault();
+                    // e.stopPropagation();
+                    return false;
+                }
+            }
+            var events = new Events(navItem).add({
+                down: onDown,
+                click: onClick,
+            }, scope);
+        }
+
+    }]);
+
+    app.directive('navTo', ['$parse', '$timeout', 'Events', function($parse, $timeout, Events) {
+
+        var directive = {
+            restrict: 'A',
+            link: NavToLink
+        };
+
+        return directive;
+
+        function NavToLink(scope, element, attributes) {
+            function onDown(e) {
+                console.log('navTo.onDown', attributes.navTo);
+                $timeout(function() {
+                    var callback = $parse(attributes.navTo);
+                    callback(scope);
+                });
+                e.preventDefault();
+                return false;
+            }
+            var events = new Events(element).add({
+                down: onDown,
+            }, scope);
+        }
 
     }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('Nav', ['Silent', function (Silent) {
+    app.factory('Nav', ['Silent', function(Silent) {
 
-		function Nav(options) {
-			var nav = this;
-			var defaults = {
-				items: [],
-			}
-			angular.extend(nav, defaults);
-			if (options) {
-				angular.extend(nav, options);
-			}
-			nav.setNav(nav, null);
-		}
+        function Nav(options) {
+            var nav = this;
+            var defaults = {
+                items: [],
+            }
+            angular.extend(nav, defaults);
+            if (options) {
+                angular.extend(nav, options);
+            }
+            nav.setNav(nav, null);
+        }
 
-		var statics = {
-			silent: NavSilent,
-			path: NavPath,
-		};
+        var statics = {
+            silent: NavSilent,
+            path: NavPath,
+        };
 
-		var publics = {
-			addItem: addItem,
-			addItems: addItems,
-			getLink: getLink,
-			setItems: setItems,
-			setNav: setNav,
-			setNavs: setNavs,
-		};
+        var publics = {
+            addItem: addItem,
+            addItems: addItems,
+            getPath: getPath,
+            setItems: setItems,
+            setNav: setNav,
+            setNavs: setNavs,
+        };
 
-		angular.extend(Nav, statics);
-		angular.extend(Nav.prototype, publics);
+        angular.extend(Nav, statics);
+        angular.extend(Nav.prototype, publics);
 
-		return Nav;
+        return Nav;
 
-		// static methods
+        // static methods
 
-		function NavSilent(path) {
-			Silent.silent(path);
-		}
+        function NavSilent(path) {
+            Silent.silent(path);
+        }
 
-		function NavPath(path) {
-			Silent.path(path);
-		}
+        function NavPath(path) {
+            Silent.path(path);
+        }
 
-		// prototype methods
+        // prototype methods
 
-		function setItems(items) {
-			var nav = this;
-			nav.path = Silent.path();
-			nav.items = items;
-			nav.setNavs(items, nav);
-		}
+        function setItems(items) {
+            var nav = this;
+            nav.path = Silent.path();
+            nav.items = items;
+            nav.setNavs(items, nav);
+        }
 
-		function setNavs(items, parent) {
-			var nav = this;
-			if (items) {
-				angular.forEach(items, function (item) {
-					nav.setNav(item, parent);
-					nav.setNavs(item.items, item);
-				});
-			}
-		}
+        function setNavs(items, parent) {
+            var nav = this;
+            if (items) {
+                angular.forEach(items, function(item) {
+                    nav.setNav(item, parent);
+                    nav.setNavs(item.items, item);
+                });
+            }
+        }
 
-		function setNav(item, parent) {
-			var nav = this;
-			var $nav = {
-				parent: parent || null,
-				level: parent ? parent.$nav.level + 1 : 0,
-				state: {},
-				addItems: function (x) {
-					nav.addItems(x, item);
-				},
-				onNav: nav.onNav,
-			};
-			item.$nav = $nav;
-			$nav.link = nav.getLink(item);
-			if ($nav.link === nav.path) {
-				$nav.state.active = true;
-				$nav.state.opened = true;
-				while ($nav.parent) {
-					$nav = $nav.parent.$nav;
-					$nav.state.active = true;
-					$nav.state.opened = true;
-				}
-			}
-		}
+        function setNav(item, parent) {
+            var nav = this;
+            var $nav = {
+                parent: parent || null,
+                level: parent ? parent.$nav.level + 1 : 0,
+                state: {},
+                addItems: function(x) {
+                    nav.addItems(x, item);
+                },
+                onNav: nav.onNav,
+            };
+            item.$nav = $nav;
+            $nav.path = nav.getPath(item);
+            if ($nav.path === nav.path) {
+                $nav.state.active = true;
+                $nav.state.opened = true;
+                while ($nav.parent) {
+                    $nav = $nav.parent.$nav;
+                    $nav.state.active = true;
+                    $nav.state.opened = true;
+                }
+            }
+        }
 
-		function addItems(itemOrItems, parent) {
-			var nav = this;
-			if (angular.isArray(itemOrItems)) {
-				angular.forEach(itemOrItems, function (item) {
-					nav.addItem(item, parent);
-				});
-			} else {
-				nav.addItem(itemOrItems, parent);
-			}
-		}
+        function addItems(itemOrItems, parent) {
+            var nav = this;
+            if (angular.isArray(itemOrItems)) {
+                angular.forEach(itemOrItems, function(item) {
+                    nav.addItem(item, parent);
+                });
+            } else {
+                nav.addItem(itemOrItems, parent);
+            }
+        }
 
-		function addItem(item, parent) {
-			var nav = this,
-				onLink = nav.onLink,
-				onNav = nav.onNav;
-			nav.setNav(item, parent);
-			if (parent) {
-				parent.items = parent.items || [];
-				parent.items.push(item);
-			}
-		}
+        function addItem(item, parent) {
+            var nav = this,
+                onPath = nav.onPath,
+                onNav = nav.onNav;
+            nav.setNav(item, parent);
+            if (parent) {
+                parent.items = parent.items || [];
+                parent.items.push(item);
+            }
+        }
 
-		function getLink(item) {
-			var link = null;
-			if (this.onLink) {
-				link = this.onLink(item, item.$nav);
-			} else {
-				link = item.link;
-			}
-			return link;
-		}
+        function getPath(item) {
+            var path = null;
+            if (this.onPath) {
+                path = this.onPath(item, item.$nav);
+            } else {
+                path = item.path;
+            }
+            return path;
+        }
 
     }]);
 

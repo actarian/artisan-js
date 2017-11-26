@@ -1,18 +1,18 @@
 {
     "id": 2020,
-    "url": "/works/production",
+    "path": "/works/production",
     "name": "Production",
     "items": [{
         "id": 202010,
-        "url": "/works/production/01",
+        "path": "/works/production/01",
         "name": "Production 01"
     }, {
         "id": 202020,
-        "url": "/works/production/02",
+        "path": "/works/production/02",
         "name": "Production 02"
     }, {
         "id": 202030,
-        "url": "/works/production/03",
+        "path": "/works/production/03",
         "name": "Production 03"
     }],
     "meta": {
@@ -23,6 +23,6 @@
         "locale": "en",
         "title": "When Great Minds Don’t Think Alike",
         "type": "article",
-        "url": "https://actarian.github.io/artisan/"
+        "path": "https://actarian.github.io/artisan/"
     }
 }

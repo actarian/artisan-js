@@ -8,38 +8,38 @@
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('app');
+    var app = angular.module('app');
 
-	app.service('Api', ['Http', function (Http) {
+    app.service('Api', ['Http', function(Http) {
 
-		var api = {
-			navs: {
-				main: function () {
-					return Http.get('/navs/main.json');
-				},
-			},
-			docs: {
-				id: function (id) {
-					return Http.get('/docs/' + id + '.json');
-				},
-				url: function (url) {
-					url = url.split('/').join('-');
-					return Http.get('/docs/' + url + '.json');
-				},
-			},
-			maps: {
-				markers: function () {
-					return Http.get('/maps/markers.json');
-				},
-			},
-		};
+        var api = {
+            navs: {
+                main: function() {
+                    return Http.get('/navs/main.json');
+                },
+            },
+            docs: {
+                id: function(id) {
+                    return Http.get('/docs/' + id + '.json');
+                },
+                path: function(path) {
+                    path = path.split('/').join('-');
+                    return Http.get('/docs/' + path + '.json');
+                },
+            },
+            maps: {
+                markers: function() {
+                    return Http.get('/maps/markers.json');
+                },
+            },
+        };
 
-		angular.extend(this, api);
+        angular.extend(this, api);
 
-	}]);
+    }]);
 
 }());
 /* global angular */
@@ -186,93 +186,93 @@
 
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('app');
+    var app = angular.module('app');
 
-	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', function ($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService) {
+    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService) {
 
-		var nav = new Nav({
-			onLink: onLink,
-			onNav: onNav,
-		});
+        var nav = new Nav({
+            onPath: onPath,
+            onNav: onNav,
+        });
 
-		Api.navs.main().then(function (items) {
-			nav.setItems(items);
+        Api.navs.main().then(function(items) {
+            nav.setItems(items);
 
-		}, function (error) {
-			console.log('RootCtrl.error', error);
+        }, function(error) {
+            console.log('RootCtrl.error', error);
 
-		});
+        });
 
-		function onLink(item) {
-			var link = item.url;
-			// console.log('RootCtrl.onLink', item.$nav.level, link);
-			return link;
-		}
+        function onPath(item) {
+            var path = item.path;
+            // console.log('RootCtrl.onPath', item.$nav.level, path);
+            return path;
+        }
 
-		function onNav(item) {
-			// console.log('RootCtrl.onNav', item.$nav.level, item.$nav.link);
-			Nav.path(item.$nav.link);
-			return false; // returning false disable default link behaviour;
-		}
+        function onNav(item) {
+            // console.log('RootCtrl.onNav', item.$nav.level, item.$nav.path);
+            Nav.path(item.$nav.path);
+            return false; // returning false disable default link behaviour;
+        }
 
-		function onNavPromise(item) {
-			$scope.selected = item;
-			return $promise(function (promise) {
-				// console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.link);
-				$timeout(function () {
-					if (item.items) {
-						item.$nav.addItems({
-							name: "Item",
-						});
-					}
-					promise.resolve();
-				});
-			}); // a promise always disable default link behaviour;
-		}
+        function onNavPromise(item) {
+            $scope.selected = item;
+            return $promise(function(promise) {
+                // console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.path);
+                $timeout(function() {
+                    if (item.items) {
+                        item.$nav.addItems({
+                            name: "Item",
+                        });
+                    }
+                    promise.resolve();
+                });
+            }); // a promise always disable default link behaviour;
+        }
 
-		$scope.nav = nav;
+        $scope.nav = nav;
 
-		////////////
+        ////////////
 
-		var items = new Array(20).fill(null).map(function (value, index) {
-			return {
-				id: index + 1,
-				name: 'Item',
-				items: new Array(3).fill(null).map(function (value, index) {
-					return {
-						id: index + 1,
-						name: 'Item',
-						items: new Array(2).fill(null).map(function (value, index) {
-							return {
-								id: index + 1,
-								name: 'Item',
-							};
-						}),
-					};
-				}),
-			};
-		});
+        var items = new Array(20).fill(null).map(function(value, index) {
+            return {
+                id: index + 1,
+                name: 'Item',
+                items: new Array(3).fill(null).map(function(value, index) {
+                    return {
+                        id: index + 1,
+                        name: 'Item',
+                        items: new Array(2).fill(null).map(function(value, index) {
+                            return {
+                                id: index + 1,
+                                name: 'Item',
+                            };
+                        }),
+                    };
+                }),
+            };
+        });
 
-		$scope.items = items;
+        $scope.items = items;
 
-		var scrollable = new Scrollable();
+        var scrollable = new Scrollable();
 
-		$scope.scrollable = scrollable;
+        $scope.scrollable = scrollable;
 
-		//////////////
+        //////////////
 
-		function getMe() {
-			FacebookService.getMe().then(function (user) {
-				console.log('FacebookService.getMe', user);
-			}, function (error) {
-				console.log('FacebookService.getMe.error', error);
-			});
-		}
+        function getMe() {
+            FacebookService.getMe().then(function(user) {
+                console.log('FacebookService.getMe', user);
+            }, function(error) {
+                console.log('FacebookService.getMe.error', error);
+            });
+        }
 
-		$scope.getMe = getMe;
+        $scope.getMe = getMe;
 
     }]);
 

@@ -34,7 +34,7 @@
                 var route = Route.current();
                 var path = route.path;
                 console.log('ViewCurrent', path);
-                Api.docs.url(path).then(function(response) {
+                Api.docs.path(path).then(function(response) {
                     var doc = new Doc(response);
                     var view = new View(doc, route);
                     promise.resolve(view);
@@ -76,7 +76,7 @@
             function _getPool(items) {
                 if (items) {
                     angular.forEach(items, function(item) {
-                        pool[item.url] = item;
+                        pool[item.path] = item;
                         _getPool(item.items);
                     });
                 }

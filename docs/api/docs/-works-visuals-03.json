@@ -1,6 +1,6 @@
 {
     "id": 201030,
-    "url": "/works/visuals/03",
+    "path": "/works/visuals/03",
     "name": "Visual 03",
     "meta": {
         "app_id": "156171878319496",
@@ -10,6 +10,6 @@
         "locale": "en",
         "title": "When Great Minds Don’t Think Alike",
         "type": "article",
-        "url": "https://actarian.github.io/artisan/"
+        "path": "https://actarian.github.io/artisan/"
     }
 }

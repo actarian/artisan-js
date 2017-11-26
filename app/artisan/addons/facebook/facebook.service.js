@@ -5,7 +5,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('FacebookService', ['$promise', 'Once', 'environment', function($promise, Once, environment) {
+    app.service('FacebookService', ['$promise', '$once', 'environment', function($promise, $once, environment) {
 
         var service = this;
 
@@ -127,7 +127,7 @@
 
         function FacebookInit() {
             return $promise(function(promise) {
-                Once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
+                $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
                     // console.log('FacebookInit.fbAsyncInit', window.FB);
                     window.FB.init({
                         appId: config.app_id,

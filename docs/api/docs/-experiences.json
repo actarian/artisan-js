@@ -1,18 +1,18 @@
 {
     "id": 30,
-    "url": "/experiences",
+    "path": "/experiences",
     "name": "Experiences",
     "items": [{
         "id": 3010,
-        "url": "/experiences/01",
+        "path": "/experiences/01",
         "name": "Experience 01"
     }, {
         "id": 3020,
-        "url": "/experiences/02",
+        "path": "/experiences/02",
         "name": "Experience 02"
     }, {
         "id": 3030,
-        "url": "/experiences/03",
+        "path": "/experiences/03",
         "name": "Experience 03"
     }],
     "meta": {
@@ -23,6 +23,6 @@
         "locale": "en",
         "title": "When Great Minds Don’t Think Alike",
         "type": "article",
-        "url": "https://actarian.github.io/artisan/"
+        "path": "https://actarian.github.io/artisan/"
     }
 }
