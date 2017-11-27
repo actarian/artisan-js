@@ -14,7 +14,7 @@
 				image: '=videoImage',
 			},
 			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/video/video-player';
+				return attributes.template || 'artisan/components/video/partial/video-player';
 			},
 			link: VideoSourceLink
 		};

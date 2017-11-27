@@ -14,7 +14,7 @@
 			// replace: true,
 			/*
 			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/nav/nav';
+				return attributes.template || 'artisan/components/nav/partial/nav';
             },
             */
 			link: ExpandableLink,

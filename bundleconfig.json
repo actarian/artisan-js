@@ -1,5 +1,5 @@
 [{
-    "inputFiles": [
+	"inputFiles": [
         "bower_components/angular/angular.js",
         "bower_components/angular-messages/angular-messages.js",
         "bower_components/angular-route/angular-route.js",
@@ -8,75 +8,75 @@
         "bower_components/dynamics.js/lib/dynamics.js",
         "bower_components/gmaps-marker-clusterer/src/markerclusterer.js"
     ],
-    "outputFileName": "docs/js/vendors.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/vendors.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "bower_components/angular-i18n/angular-locale_en.js"
     ],
-    "outputFileName": "docs/js/locale/en.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/locale/en.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
-        "app/artisan/artisan.module.js",
+	"inputFiles": [
+        "artisan/artisan.module.js",
 
-        "app/artisan/addons/facebook/facebook.service.js",
-        "app/artisan/addons/googlemaps/googlemaps.directive.js",
-        "app/artisan/addons/googlemaps/googlemaps.service.js",
-        "app/artisan/addons/mapbox/mapbox.directive.js",
-        "app/artisan/addons/mapbox/mapbox.service.js",
+        "artisan/addons/facebook/facebook.service.js",
+        "artisan/addons/googlemaps/googlemaps.directive.js",
+        "artisan/addons/googlemaps/googlemaps.service.js",
+        "artisan/addons/mapbox/mapbox.directive.js",
+        "artisan/addons/mapbox/mapbox.service.js",
 
-        "app/artisan/environment/environment.provider.js",
+        "artisan/environment/environment.provider.js",
 
-        "app/artisan/core/animate/animate.factory.js",
-        "app/artisan/core/dom/dom.service.js",
-        "app/artisan/core/events/events.factory.js",
-        "app/artisan/core/filters/filters.js",
-        "app/artisan/core/geom/point.factory.js",
-        "app/artisan/core/geom/rect.factory.js",
-        "app/artisan/core/geom/vector.factory.js",
-        "app/artisan/core/hash/hash.factory.js",
-        "app/artisan/core/promise/promise.factory.js",
-        "app/artisan/core/state/state.factory.js",
-        "app/artisan/core/style/style.factory.js",
-        "app/artisan/core/utils/utils.service.js",
+        "artisan/core/animate/animate.factory.js",
+        "artisan/core/dom/dom.service.js",
+        "artisan/core/events/events.factory.js",
+        "artisan/core/filters/filters.js",
+        "artisan/core/geom/point.factory.js",
+        "artisan/core/geom/rect.factory.js",
+        "artisan/core/geom/vector.factory.js",
+        "artisan/core/hash/hash.factory.js",
+        "artisan/core/promise/promise.factory.js",
+        "artisan/core/state/state.factory.js",
+        "artisan/core/style/style.factory.js",
+        "artisan/core/utils/utils.service.js",
 
-        "app/artisan/models/doc.factory.js",
-        "app/artisan/models/route.factory.js",
-        "app/artisan/models/view.factory.js",
+        "artisan/models/doc.factory.js",
+        "artisan/models/route.factory.js",
+        "artisan/models/view.factory.js",
 
-        "app/artisan/net/http/http.service.js",
-        "app/artisan/net/preload/preload.factory.js",
-        "app/artisan/net/once/once.service.js",
-        "app/artisan/net/router/router.service.js",
-        "app/artisan/net/silent/silent.service.js",
-        "app/artisan/net/storage/storage.service.js",
-        "app/artisan/net/trust/trust.service.js",
+        "artisan/net/http/http.service.js",
+        "artisan/net/preload/preload.factory.js",
+        "artisan/net/once/once.service.js",
+        "artisan/net/router/router.service.js",
+        "artisan/net/silent/silent.service.js",
+        "artisan/net/storage/storage.service.js",
+        "artisan/net/trust/trust.service.js",
 
-        "app/artisan/ui/components/canvas/painter.service.js",
-        "app/artisan/ui/components/expandable/expandable.directive.js",
-        "app/artisan/ui/components/forms/control.directive.js",
-        "app/artisan/ui/components/forms/validate.directive.js",
-        "app/artisan/ui/components/modals/modal.directive.js",
-        "app/artisan/ui/components/modals/modal.provider.js",
-        "app/artisan/ui/components/nav/nav.directives.js",
-        "app/artisan/ui/components/nav/nav.factory.js",
-        "app/artisan/ui/components/scrollable/scrollable.directive.js",
-        "app/artisan/ui/components/scrollable/scrollable.factory.js",
-        "app/artisan/ui/components/video/video.directive.js",
+        "artisan/components/canvas/painter.service.js",
+        "artisan/components/expandable/expandable.directive.js",
+        "artisan/components/forms/control.directive.js",
+        "artisan/components/forms/validate.directive.js",
+        "artisan/components/interactions/tap.directive.js",
+        "artisan/components/modals/modal.directive.js",
+        "artisan/components/modals/modal.provider.js",
+        "artisan/components/nav/nav.directives.js",
+        "artisan/components/nav/nav.factory.js",
+        "artisan/components/scrollable/scrollable.directive.js",
+        "artisan/components/scrollable/scrollable.factory.js",
+        "artisan/components/video/video.directive.js"
 
-        "app/artisan/ui/interactions/tap.directive.js"
     ],
-    "outputFileName": "docs/js/artisan.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/artisan.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "app/app.module.js",
         "app/app.api.js",
         "app/app.routes.js",
@@ -92,42 +92,42 @@
         "app/environment/environment.production.js",
         "app/environment/environment.stage.js"
     ],
-    "outputFileName": "docs/js/app.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/app.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "bower_components/animate.css/animate.css",
         "bower_components/json-formatter/dist/json-formatter.css",
         "bower_components/dat.gui/build/dat.gui.css"
     ],
-    "outputFileName": "docs/css/vendors.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/vendors.css",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "docs/css/bootstrap.css"
     ],
-    "outputFileName": "docs/css/bootstrap.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/bootstrap.css",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "docs/css/artisan.css"
     ],
-    "outputFileName": "docs/css/artisan.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/artisan.css",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "docs/css/app.css"
     ],
-    "outputFileName": "docs/css/app.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/app.css",
+	"minify": {
+		"enabled": true
+	}
 }]

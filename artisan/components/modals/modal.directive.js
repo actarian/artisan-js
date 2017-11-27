@@ -33,7 +33,7 @@
 			link: function (scope, element, attributes, model) {
 				var modal = $parse(attributes.modalView);
 				modal = modal(scope);
-				modal.templateUrl = modal.templateUrl || 'artisan/modals/modal';
+				modal.templateUrl = modal.templateUrl || 'artisan/components/modals/partial/modal';
 				$templateRequest(modal.templateUrl).then(function (html) {
 					compileController(scope, element, html, modal);
 				});

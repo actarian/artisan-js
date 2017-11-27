@@ -3342,44 +3342,44 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function($promise, $location, $route, $routeParams, Router) {
+	app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function ($promise, $location, $route, $routeParams, Router) {
 
-        function Route(current) {
+		function Route(current) {
 
-            var route = {
-                controller: current.$$route.controller,
-                params: current.params,
-                path: $location.path(),
-                pathParams: current.pathParams,
-                originalPath: current.$$route.originalPath,
-                templateUrl: current.loadedTemplateUrl,
-            };
-            angular.extend(this, route);
-        }
+			var route = {
+				controller: current.$$route.controller,
+				params: current.params,
+				path: $location.path(),
+				pathParams: current.pathParams,
+				originalPath: current.$$route.originalPath,
+				templateUrl: current.loadedTemplateUrl,
+			};
+			angular.extend(this, route);
+		}
 
-        var statics = {
-            current: RouteCurrent,
-        };
+		var statics = {
+			current: RouteCurrent,
+		};
 
-        var publics = {};
+		var publics = {};
 
-        angular.extend(Route, statics);
-        angular.extend(Route.prototype, publics);
+		angular.extend(Route, statics);
+		angular.extend(Route.prototype, publics);
 
-        return Route;
+		return Route;
 
-        // static methods
+		// static methods
 
-        function RouteCurrent() {
-            return new Route($route.current);
-        }
+		function RouteCurrent() {
+			return new Route($route.current);
+		}
 
-        // prototype methods
+		// prototype methods
 
     }]);
 
@@ -4989,7 +4989,7 @@ $(window).on('resize', function () {
 			// replace: true,
 			/*
 			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/nav/nav';
+				return attributes.template || 'artisan/components/nav/partial/nav';
             },
             */
 			link: ExpandableLink,
@@ -5255,306 +5255,306 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('controlMessages', [function() {
-        return {
-            restrict: 'E',
-            templateUrl: 'artisan/forms/messages',
-            transclude: {
-                'message': '?messageItems',
-            },
-            link: function(scope, element, attributes, model) {}
-        };
+	app.directive('controlMessages', [function () {
+		return {
+			restrict: 'E',
+			templateUrl: 'artisan/components/forms/partial/messages',
+			transclude: {
+				'message': '?messageItems',
+			},
+			link: function (scope, element, attributes, model) {}
+		};
     }]);
 
-    app.directive('control', ['$parse', function($parse) {
-        function formatLabel(string, prepend, expression) {
-            string = string || '';
-            prepend = prepend || '';
-            var splitted = string.split(',');
-            if (splitted.length > 1) {
-                var formatted = splitted.shift();
-                angular.forEach(splitted, function(value, index) {
-                    if (expression) {
-                        formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
-                    } else {
-                        formatted = formatted.split('{' + index + '}').join(prepend + value);
-                    }
-                });
-                if (expression) {
-                    return '\'' + formatted + '\'';
-                } else {
-                    return formatted;
-                }
-            } else {
-                return prepend + string;
-            }
-        }
-        var uniqueId = 0;
-        return {
-            restrict: 'A',
-            templateUrl: function(element, attributes) {
-                var template = 'artisan/forms/text';
-                switch (attributes.control) {
-                    case 'select':
-                        template = 'artisan/forms/select';
-                        break;
-                }
-                return template;
-            },
-            scope: {
-                ngModel: '=',
-                required: '=',
-                form: '@',
-                title: '@',
-                placeholder: '@',
-                source: '=?',
-                key: '@?',
-                label: '@?',
-            },
-            require: 'ngModel',
-            transclude: true,
-            link: {
-                pre: function preLink(scope, element, attributes, controller, transclude) {
-                    var label = scope.label = (scope.label ? scope.label : 'name');
-                    var key = scope.key = (scope.key ? scope.key : 'id');
-                    if (attributes.control === 'select') {
-                        var filter = (attributes.filter ? '| ' + attributes.filter : '');
-                        var optionLabel = formatLabel(label, 'item.', true);
-                        scope.getOptions = function() {
-                            return attributes.number ?
-                                'item.' + key + ' as ' + optionLabel + ' disable when item.disabled for item in source ' + filter :
-                                optionLabel + ' disable when item.disabled for item in source ' + filter + ' track by item.' + key;
-                        };
-                    }
-                    var type = scope.type = attributes.control;
-                    var form = scope.form = scope.form || 'form';
-                    var title = scope.title = scope.title || 'untitled';
-                    var placeholder = scope.placeholder = scope.placeholder || title;
-                    var field = scope.field = title.replace(/[^0-9a-zA-Z]/g, "").split(' ').join('') + (++uniqueId);
-                    scope.format = attributes.format || null;
-                    scope.precision = attributes.precision || null;
-                    scope.validate = attributes.validate || attributes.control;
-                    scope.minLength = attributes.minLength || 0;
-                    scope.maxLength = attributes.maxLength || Number.POSITIVE_INFINITY;
-                    scope.min = attributes.min || null;
-                    scope.max = attributes.max || null;
-                    scope.options = $parse(attributes.options)(scope) || {};
-                    scope.focus = false;
-                    scope.visible = false;
-                    scope.onChange = function(model) {
-                        $parse(attributes.onChange)(scope.$parent);
-                    };
-                    scope.onFilter = function(model) {
-                        $parse(attributes.onFilter)(scope.$parent);
-                    };
-                    scope.getType = function() {
-                        var type = 'text';
-                        switch (attributes.control) {
-                            case 'password':
-                                type = scope.visible ? 'text' : 'password';
-                                break;
-                            default:
-                                type = attributes.control;
-                        }
-                        return type;
-                    };
-                    scope.getClasses = function() {
-                        var form = $parse(scope.form)(scope.$parent);
-                        var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
-                        return {
-                            'control-focus': scope.focus,
-                            'control-success': field.$valid,
-                            'control-error': field.$invalid && (form.$submitted || field.$touched),
-                            'control-empty': !field.$viewValue
-                        };
-                    };
-                    scope.getMessages = function() {
-                        var form = $parse(scope.form)(scope.$parent);
-                        var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
-                        return (form.$submitted || field.$touched) && field.$error;
-                    };
-                    scope.toggleVisibility = function() {
-                        scope.visible = !scope.visible;
-                    };
-                },
-            },
-        };
+	app.directive('control', ['$parse', function ($parse) {
+		function formatLabel(string, prepend, expression) {
+			string = string || '';
+			prepend = prepend || '';
+			var splitted = string.split(',');
+			if (splitted.length > 1) {
+				var formatted = splitted.shift();
+				angular.forEach(splitted, function (value, index) {
+					if (expression) {
+						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
+					} else {
+						formatted = formatted.split('{' + index + '}').join(prepend + value);
+					}
+				});
+				if (expression) {
+					return '\'' + formatted + '\'';
+				} else {
+					return formatted;
+				}
+			} else {
+				return prepend + string;
+			}
+		}
+		var uniqueId = 0;
+		return {
+			restrict: 'A',
+			templateUrl: function (element, attributes) {
+				var template = 'artisan/components/forms/partial/text';
+				switch (attributes.control) {
+					case 'select':
+						template = 'artisan/components/forms/partial/select';
+						break;
+				}
+				return template;
+			},
+			scope: {
+				ngModel: '=',
+				required: '=',
+				form: '@',
+				title: '@',
+				placeholder: '@',
+				source: '=?',
+				key: '@?',
+				label: '@?',
+			},
+			require: 'ngModel',
+			transclude: true,
+			link: {
+				pre: function preLink(scope, element, attributes, controller, transclude) {
+					var label = scope.label = (scope.label ? scope.label : 'name');
+					var key = scope.key = (scope.key ? scope.key : 'id');
+					if (attributes.control === 'select') {
+						var filter = (attributes.filter ? '| ' + attributes.filter : '');
+						var optionLabel = formatLabel(label, 'item.', true);
+						scope.getOptions = function () {
+							return attributes.number ?
+								'item.' + key + ' as ' + optionLabel + ' disable when item.disabled for item in source ' + filter :
+								optionLabel + ' disable when item.disabled for item in source ' + filter + ' track by item.' + key;
+						};
+					}
+					var type = scope.type = attributes.control;
+					var form = scope.form = scope.form || 'form';
+					var title = scope.title = scope.title || 'untitled';
+					var placeholder = scope.placeholder = scope.placeholder || title;
+					var field = scope.field = title.replace(/[^0-9a-zA-Z]/g, "").split(' ').join('') + (++uniqueId);
+					scope.format = attributes.format || null;
+					scope.precision = attributes.precision || null;
+					scope.validate = attributes.validate || attributes.control;
+					scope.minLength = attributes.minLength || 0;
+					scope.maxLength = attributes.maxLength || Number.POSITIVE_INFINITY;
+					scope.min = attributes.min || null;
+					scope.max = attributes.max || null;
+					scope.options = $parse(attributes.options)(scope) || {};
+					scope.focus = false;
+					scope.visible = false;
+					scope.onChange = function (model) {
+						$parse(attributes.onChange)(scope.$parent);
+					};
+					scope.onFilter = function (model) {
+						$parse(attributes.onFilter)(scope.$parent);
+					};
+					scope.getType = function () {
+						var type = 'text';
+						switch (attributes.control) {
+							case 'password':
+								type = scope.visible ? 'text' : 'password';
+								break;
+							default:
+								type = attributes.control;
+						}
+						return type;
+					};
+					scope.getClasses = function () {
+						var form = $parse(scope.form)(scope.$parent);
+						var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
+						return {
+							'control-focus': scope.focus,
+							'control-success': field.$valid,
+							'control-error': field.$invalid && (form.$submitted || field.$touched),
+							'control-empty': !field.$viewValue
+						};
+					};
+					scope.getMessages = function () {
+						var form = $parse(scope.form)(scope.$parent);
+						var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
+						return (form.$submitted || field.$touched) && field.$error;
+					};
+					scope.toggleVisibility = function () {
+						scope.visible = !scope.visible;
+					};
+				},
+			},
+		};
     }]);
 
-    app.directive('_control', ['$http', '$templateCache', '$compile', '$parse', function($http, $templateCache, $compile, $parse) {
-        function formatLabel(string, prepend, expression) {
-            string = string || '';
-            prepend = prepend || '';
-            var splitted = string.split(',');
-            if (splitted.length > 1) {
-                var formatted = splitted.shift();
-                angular.forEach(splitted, function(value, index) {
-                    if (expression) {
-                        formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
-                    } else {
-                        formatted = formatted.split('{' + index + '}').join(prepend + value);
-                    }
-                });
-                if (expression) {
-                    return '\'' + formatted + '\'';
-                } else {
-                    return formatted;
-                }
-            } else {
-                return prepend + string;
-            }
-        }
-        var uniqueId = 0;
-        return {
-            restrict: 'A',
-            templateUrl: function(element, attributes) {
-                var template = 'artisan/forms/text';
-                switch (attributes.control) {
-                    case 'select':
-                        template = 'artisan/forms/select';
-                        break;
-                }
-                return template;
-            },
-            scope: {
-                ngModel: '=',
-                required: '=',
-                form: '@',
-                title: '@',
-                placeholder: '@',
-            },
-            require: 'ngModel',
-            /*
-            link: function(scope, element, attributes, model) {
-            },
-            */
-            compile: function(element, attributes) {
-                    return {
-                        pre: function(scope, element, attributes) {
-                            if (attributes.control === 'select') {
-                                var label = (attributes.label ? attributes.label : 'name');
-                                var key = (attributes.key ? attributes.key : 'id');
-                                var filter = (attributes.min ? ' | filter:gte(\'' + key + '\', ' + attributes.min + ')' : '');
-                                var optionLabel = formatLabel(label, 'item.', true);
-                                scope.options = attributes.number ?
-                                    'item.' + key + ' as ' + optionLabel + ' disable when item.disabled for item in ' + attributes.source + filter :
-                                    optionLabel + ' disable when item.disabled for item in ' + attributes.source + filter + ' track by item.' + key;
-                                console.log('control.compile.pre', scope.options);
-                            }
-                            var type = scope.type = attributes.control;
-                            var form = scope.form = scope.form || 'form';
-                            var title = scope.title = scope.title || 'untitled';
-                            var placeholder = scope.placeholder = scope.placeholder || title;
-                            var field = scope.field = title.replace(/[^0-9a-zA-Z]/g, "").split(' ').join('') + (++uniqueId);
-                            scope.validate = attributes.validate || attributes.control;
-                            scope.format = attributes.format || null;
-                            scope.precision = attributes.precision || null;
-                            scope.validate = attributes.validate || attributes.control;
-                            scope.minLength = attributes.min || 0;
-                            scope.maxLength = attributes.max || Number.POSITIVE_INFINITY;
-                            scope.options = $parse(attributes.options)(scope) || {};
-                            scope.focus = false;
-                            scope.visible = false;
-                            scope.getType = function() {
-                                var type = 'text';
-                                switch (attributes.control) {
-                                    case 'password':
-                                        // var form = $parse(scope.form)(scope.$parent);
-                                        // var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
-                                        type = scope.visible ? 'text' : 'password';
-                                        break;
-                                    default:
-                                        type = attributes.control;
-                                }
-                                // console.log('control.getType', type);
-                                return type;
-                            };
-                            scope.getClasses = function() {
-                                var form = $parse(scope.form)(scope.$parent);
-                                var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
-                                return {
-                                    'control-focus': scope.focus,
-                                    'control-success': field.$valid,
-                                    'control-error': field.$invalid && (form.$submitted || field.$touched),
-                                    'control-empty': !field.$viewValue
-                                };
-                            };
-                            scope.getMessages = function() {
-                                var form = $parse(scope.form)(scope.$parent);
-                                var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
-                                return (form.$submitted || field.$touched) && field.$error;
-                            };
-                        },
-                        // post: function (scope, element, attributes) { }
-                    };
-                }
-                /*
-                compile: function(element, attributes) {
-                    element.removeAttr('my-dir'); 
-                    element.attr('ng-hide', 'true');
-                    return function(scope) {
-                        $compile(element)(scope);
-                    };
-                },
-                */
-        };
+	app.directive('_control', ['$http', '$templateCache', '$compile', '$parse', function ($http, $templateCache, $compile, $parse) {
+		function formatLabel(string, prepend, expression) {
+			string = string || '';
+			prepend = prepend || '';
+			var splitted = string.split(',');
+			if (splitted.length > 1) {
+				var formatted = splitted.shift();
+				angular.forEach(splitted, function (value, index) {
+					if (expression) {
+						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
+					} else {
+						formatted = formatted.split('{' + index + '}').join(prepend + value);
+					}
+				});
+				if (expression) {
+					return '\'' + formatted + '\'';
+				} else {
+					return formatted;
+				}
+			} else {
+				return prepend + string;
+			}
+		}
+		var uniqueId = 0;
+		return {
+			restrict: 'A',
+			templateUrl: function (element, attributes) {
+				var template = 'artisan/components/forms/partial/text';
+				switch (attributes.control) {
+					case 'select':
+						template = 'artisan/components/forms/partial/select';
+						break;
+				}
+				return template;
+			},
+			scope: {
+				ngModel: '=',
+				required: '=',
+				form: '@',
+				title: '@',
+				placeholder: '@',
+			},
+			require: 'ngModel',
+			/*
+			link: function(scope, element, attributes, model) {
+			},
+			*/
+			compile: function (element, attributes) {
+				return {
+					pre: function (scope, element, attributes) {
+						if (attributes.control === 'select') {
+							var label = (attributes.label ? attributes.label : 'name');
+							var key = (attributes.key ? attributes.key : 'id');
+							var filter = (attributes.min ? ' | filter:gte(\'' + key + '\', ' + attributes.min + ')' : '');
+							var optionLabel = formatLabel(label, 'item.', true);
+							scope.options = attributes.number ?
+								'item.' + key + ' as ' + optionLabel + ' disable when item.disabled for item in ' + attributes.source + filter :
+								optionLabel + ' disable when item.disabled for item in ' + attributes.source + filter + ' track by item.' + key;
+							console.log('control.compile.pre', scope.options);
+						}
+						var type = scope.type = attributes.control;
+						var form = scope.form = scope.form || 'form';
+						var title = scope.title = scope.title || 'untitled';
+						var placeholder = scope.placeholder = scope.placeholder || title;
+						var field = scope.field = title.replace(/[^0-9a-zA-Z]/g, "").split(' ').join('') + (++uniqueId);
+						scope.validate = attributes.validate || attributes.control;
+						scope.format = attributes.format || null;
+						scope.precision = attributes.precision || null;
+						scope.validate = attributes.validate || attributes.control;
+						scope.minLength = attributes.min || 0;
+						scope.maxLength = attributes.max || Number.POSITIVE_INFINITY;
+						scope.options = $parse(attributes.options)(scope) || {};
+						scope.focus = false;
+						scope.visible = false;
+						scope.getType = function () {
+							var type = 'text';
+							switch (attributes.control) {
+								case 'password':
+									// var form = $parse(scope.form)(scope.$parent);
+									// var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
+									type = scope.visible ? 'text' : 'password';
+									break;
+								default:
+									type = attributes.control;
+							}
+							// console.log('control.getType', type);
+							return type;
+						};
+						scope.getClasses = function () {
+							var form = $parse(scope.form)(scope.$parent);
+							var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
+							return {
+								'control-focus': scope.focus,
+								'control-success': field.$valid,
+								'control-error': field.$invalid && (form.$submitted || field.$touched),
+								'control-empty': !field.$viewValue
+							};
+						};
+						scope.getMessages = function () {
+							var form = $parse(scope.form)(scope.$parent);
+							var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
+							return (form.$submitted || field.$touched) && field.$error;
+						};
+					},
+					// post: function (scope, element, attributes) { }
+				};
+			}
+			/*
+			compile: function(element, attributes) {
+			    element.removeAttr('my-dir'); 
+			    element.attr('ng-hide', 'true');
+			    return function(scope) {
+			        $compile(element)(scope);
+			    };
+			},
+			*/
+		};
     }]);
 
-    app.directive('numberPicker', ['$parse', '$timeout', function($parse, $timeout) {
-        return {
-            restrict: 'A',
-            template: '<div class="input-group">' +
-                '   <span class="input-group-btn"><button class="btn btn-outline-primary" type="button">-</button></span>' +
-                '   <div ng-transclude></div>' +
-                '   <span class="input-group-btn"><button class="btn btn-outline-primary" type="button">+</button></span>' +
-                '</div>',
-            replace: true,
-            transclude: true,
-            link: function(scope, element, attributes, model) {
-                var node = element[0];
-                var nodeRemove = node.querySelectorAll('.input-group-btn > .btn')[0];
-                var nodeAdd = node.querySelectorAll('.input-group-btn > .btn')[1];
+	app.directive('numberPicker', ['$parse', '$timeout', function ($parse, $timeout) {
+		return {
+			restrict: 'A',
+			template: '<div class="input-group">' +
+				'   <span class="input-group-btn"><button class="btn btn-outline-primary" type="button">-</button></span>' +
+				'   <div ng-transclude></div>' +
+				'   <span class="input-group-btn"><button class="btn btn-outline-primary" type="button">+</button></span>' +
+				'</div>',
+			replace: true,
+			transclude: true,
+			link: function (scope, element, attributes, model) {
+				var node = element[0];
+				var nodeRemove = node.querySelectorAll('.input-group-btn > .btn')[0];
+				var nodeAdd = node.querySelectorAll('.input-group-btn > .btn')[1];
 
-                function onRemove(e) {
-                    var min = $parse(attributes.min)(scope);
-                    var getter = $parse(attributes.numberPicker);
-                    var setter = getter.assign;
-                    $timeout(function() {
-                        setter(scope, Math.max(min, getter(scope) - 1));
-                    });
-                    // console.log('numberPicker.onRemove', min);
-                }
+				function onRemove(e) {
+					var min = $parse(attributes.min)(scope);
+					var getter = $parse(attributes.numberPicker);
+					var setter = getter.assign;
+					$timeout(function () {
+						setter(scope, Math.max(min, getter(scope) - 1));
+					});
+					// console.log('numberPicker.onRemove', min);
+				}
 
-                function onAdd(e) {
-                    var max = $parse(attributes.max)(scope);
-                    var getter = $parse(attributes.numberPicker);
-                    var setter = getter.assign;
-                    $timeout(function() {
-                        setter(scope, Math.min(max, getter(scope) + 1));
-                    });
-                    // console.log('numberPicker.onAdd', max);
-                }
+				function onAdd(e) {
+					var max = $parse(attributes.max)(scope);
+					var getter = $parse(attributes.numberPicker);
+					var setter = getter.assign;
+					$timeout(function () {
+						setter(scope, Math.min(max, getter(scope) + 1));
+					});
+					// console.log('numberPicker.onAdd', max);
+				}
 
-                function addListeners() {
-                    angular.element(nodeRemove).on('touchstart mousedown', onRemove);
-                    angular.element(nodeAdd).on('touchstart mousedown', onAdd);
-                }
+				function addListeners() {
+					angular.element(nodeRemove).on('touchstart mousedown', onRemove);
+					angular.element(nodeAdd).on('touchstart mousedown', onAdd);
+				}
 
-                function removeListeners() {
-                    angular.element(nodeRemove).off('touchstart mousedown', onRemove);
-                    angular.element(nodeAdd).off('touchstart mousedown', onAdd);
-                }
-                scope.$on('$destroy', function() {
-                    removeListeners();
-                });
-                addListeners();
-            }
-        };
+				function removeListeners() {
+					angular.element(nodeRemove).off('touchstart mousedown', onRemove);
+					angular.element(nodeAdd).off('touchstart mousedown', onAdd);
+				}
+				scope.$on('$destroy', function () {
+					removeListeners();
+				});
+				addListeners();
+			}
+		};
     }]);
 
 }());
@@ -5711,6 +5711,60 @@ $(window).on('resize', function () {
 
 }());
 /* global angular */
+(function () {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	// micro interactions
+
+	function tap(Events) {
+		return {
+			restrict: 'A',
+			priority: 0,
+			link: link
+		};
+
+		function link(scope, element, attributes, model) {
+			if (attributes.ngBind) {
+				return;
+			}
+			/*
+			if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
+				return;
+            }
+            */
+
+			element.addClass('interaction-tap');
+			var node = document.createElement('interaction');
+			element[0].appendChild(node);
+
+			function onDown(e) {
+				element.removeClass('interaction-animate');
+				void element.offsetWidth;
+				// node.style.animationPlayState = "paused";
+				node.style.left = e.relative.x + 'px';
+				node.style.top = e.relative.y + 'px';
+				setTimeout(function () {
+					element.addClass('interaction-animate');
+					setTimeout(function () {
+						element.removeClass('interaction-animate');
+					}, 1000);
+				}, 10);
+
+				// console.log('tap.onDown', node, node.parentElement);
+			}
+			var listeners = { // down, move, up, click
+				down: onDown,
+			};
+			var events = new Events(element).add(listeners, scope); // passing scope to add remove listeners automatically on $destroy
+		}
+	}
+	app.directive('ngHref', ['Events', tap]);
+	app.directive('ngClick', ['Events', tap]);
+
+}());
+/* global angular */
 
 (function () {
 	"use strict";
@@ -5745,7 +5799,7 @@ $(window).on('resize', function () {
 			link: function (scope, element, attributes, model) {
 				var modal = $parse(attributes.modalView);
 				modal = modal(scope);
-				modal.templateUrl = modal.templateUrl || 'artisan/modals/modal';
+				modal.templateUrl = modal.templateUrl || 'artisan/components/modals/partial/modal';
 				$templateRequest(modal.templateUrl).then(function (html) {
 					compileController(scope, element, html, modal);
 				});
@@ -5778,110 +5832,110 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.provider('$modal', [function $modalProvider() {
+	app.provider('$modal', [function $modalProvider() {
 
-        var modals = [];
-        var routes = {};
+		var modals = [];
+		var routes = {};
 
-        this.modals = modals;
-        this.routes = routes;
-        this.when = when;
+		this.modals = modals;
+		this.routes = routes;
+		this.when = when;
 
-        function when(path, modal) {
-            routes[path] = modal;
-            return this;
-        }
+		function when(path, modal) {
+			routes[path] = modal;
+			return this;
+		}
 
-        this.$get = ['$q', '$timeout', function modalFactory($q, $timeout) {
+		this.$get = ['$q', '$timeout', function modalFactory($q, $timeout) {
 
-            function popModal(modal) {
-                // console.log('modalProvider.popModal', modal);                
-                var index = -1;
-                angular.forEach(modals, function(m, i) {
-                    if (m === modal) {
-                        index = i;
-                    }
-                });
-                if (index !== -1) {
-                    $timeout(function() {
-                        modal.active = false;
-                        modals.splice(index, 1);
-                        if (modals.length) {
-                            modals[modals.length - 1].active = true;
-                        }
-                    });
-                }
-            }
+			function popModal(modal) {
+				// console.log('modalProvider.popModal', modal);                
+				var index = -1;
+				angular.forEach(modals, function (m, i) {
+					if (m === modal) {
+						index = i;
+					}
+				});
+				if (index !== -1) {
+					$timeout(function () {
+						modal.active = false;
+						modals.splice(index, 1);
+						if (modals.length) {
+							modals[modals.length - 1].active = true;
+						}
+					});
+				}
+			}
 
-            function closeModal(modal) {
-                // console.log('modalProvider.closeModal', modal);                
-                var index = -1;
-                angular.forEach(modals, function(m, i) {
-                    if (m === modal) {
-                        index = i;
-                    }
-                });
-                if (index !== -1) {
-                    modal.active = false;
-                    $timeout(function() {
-                        while (modals.length) {
-                            modals.splice(modals.length - 1, 1);
-                        }
-                    }, 500);
-                }
-            }
+			function closeModal(modal) {
+				// console.log('modalProvider.closeModal', modal);                
+				var index = -1;
+				angular.forEach(modals, function (m, i) {
+					if (m === modal) {
+						index = i;
+					}
+				});
+				if (index !== -1) {
+					modal.active = false;
+					$timeout(function () {
+						while (modals.length) {
+							modals.splice(modals.length - 1, 1);
+						}
+					}, 500);
+				}
+			}
 
-            function addModal(path, params) {
-                // console.log('modalProvider.addModal', path, params);
-                var deferred = $q.defer();
-                params = params || null;
-                var modal = {
-                    title: 'Untitled',
-                    controller: null,
-                    templateUrl: null,
-                    params: params,
-                };
-                var current = routes[path];
-                if (current) {
-                    angular.extend(modal, current);
-                }
-                modal.deferred = deferred;
-                modal.back = function(data) {
-                    popModal(this);
-                    modal.deferred.resolve(data, modal);
-                }
-                modal.resolve = function(data) {
-                    closeModal(this);
-                    modal.deferred.resolve(data, modal);
-                }
-                modal.reject = function() {
-                    closeModal(this);
-                    modal.deferred.reject(modal);
-                }
-                modals.push(modal);
-                angular.forEach(modals, function(m, i) {
-                    m.active = false;
-                });
-                if (modals.length) {
-                    modal.active = true;
-                } else {
-                    $timeout(function() {
-                        modal.active = true;
-                        // window.scrollTo(0, 0);
-                    }, 500);
-                }
-                return deferred.promise;
-            }
+			function addModal(path, params) {
+				// console.log('modalProvider.addModal', path, params);
+				var deferred = $q.defer();
+				params = params || null;
+				var modal = {
+					title: 'Untitled',
+					controller: null,
+					templateUrl: null,
+					params: params,
+				};
+				var current = routes[path];
+				if (current) {
+					angular.extend(modal, current);
+				}
+				modal.deferred = deferred;
+				modal.back = function (data) {
+					popModal(this);
+					modal.deferred.resolve(data, modal);
+				}
+				modal.resolve = function (data) {
+					closeModal(this);
+					modal.deferred.resolve(data, modal);
+				}
+				modal.reject = function () {
+					closeModal(this);
+					modal.deferred.reject(modal);
+				}
+				modals.push(modal);
+				angular.forEach(modals, function (m, i) {
+					m.active = false;
+				});
+				if (modals.length) {
+					modal.active = true;
+				} else {
+					$timeout(function () {
+						modal.active = true;
+						// window.scrollTo(0, 0);
+					}, 500);
+				}
+				return deferred.promise;
+			}
 
-            return {
-                modals: modals,
-                addModal: addModal,
-            };
+			return {
+				modals: modals,
+				addModal: addModal,
+			};
         }];
 
     }]);
@@ -5889,197 +5943,197 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('nav', ['$parse', 'Nav', function($parse, Nav) {
+	app.directive('nav', ['$parse', 'Nav', function ($parse, Nav) {
 
-        var directive = {
-            restrict: 'A',
-            templateUrl: function(element, attributes) {
-                return attributes.template || 'artisan/nav/nav';
-            },
-            scope: {
-                items: '=nav',
-            },
-            link: NavLink,
-        };
+		var directive = {
+			restrict: 'A',
+			templateUrl: function (element, attributes) {
+				return attributes.template || 'artisan/components/nav/partial/nav';
+			},
+			scope: {
+				items: '=nav',
+			},
+			link: NavLink,
+		};
 
-        return directive;
+		return directive;
 
-        function NavLink(scope, element, attributes, model) {
-            scope.$watch('items', function(value) {
-                // console.log(value instanceof Nav, value);
-                if (value) {
-                    if (angular.isArray(value)) {
-                        var onPath = $parse(attributes.onPath)(scope.$parent);
-                        var onNav = $parse(attributes.onNav)(scope.$parent);
-                        var nav = new Nav({
-                            onPath: onPath,
-                            onNav: onNav
-                        });
-                        nav.setItems(value);
-                        scope.item = nav;
+		function NavLink(scope, element, attributes, model) {
+			scope.$watch('items', function (value) {
+				// console.log(value instanceof Nav, value);
+				if (value) {
+					if (angular.isArray(value)) {
+						var onPath = $parse(attributes.onPath)(scope.$parent);
+						var onNav = $parse(attributes.onNav)(scope.$parent);
+						var nav = new Nav({
+							onPath: onPath,
+							onNav: onNav
+						});
+						nav.setItems(value);
+						scope.item = nav;
 
-                    } else if (value instanceof Nav) {
-                        scope.item = value;
-                    }
-                }
-            });
-        }
-
-    }]);
-
-    app.directive('navItem', ['$timeout', 'Events', function($timeout, Events) {
-
-        var directive = {
-            restrict: 'A',
-            templateUrl: function(element, attributes) {
-                return attributes.template || 'artisan/nav/nav-item';
-            },
-            scope: {
-                item: '=navItem',
-            },
-            link: NavItemLink,
-        };
-
-        return directive;
-
-        function NavItemLink(scope, element, attributes, model) {
-            var navItem = angular.element(element[0].querySelector('.nav-link'));
-
-            var output;
-
-            function itemOpen(item, immediate) {
-                var state = item.$nav.state;
-                state.active = true;
-                $timeout(function() {
-                    state.immediate = immediate;
-                    state.closed = state.closing = false;
-                    state.opening = true;
-                    $timeout(function() {
-                        state.opening = false;
-                        state.opened = true;
-                    });
-                });
-            }
-
-            function itemClose(item, immediate) {
-                var state = item.$nav.state;
-                state.active = false;
-                $timeout(function() {
-                    state.immediate = immediate;
-                    state.opened = state.opening = false;
-                    state.closing = true;
-                    $timeout(function() {
-                        state.closing = false;
-                        state.closed = true;
-                    });
-                });
-                if (item.items) {
-                    angular.forEach(item.items, function(o) {
-                        itemClose(o, true);
-                    });
-                }
-            }
-
-            function itemToggle(item) {
-                // console.log('itemToggle', item);
-                var state = item.$nav.state;
-                state.active = item.items ? !state.active : true;
-                if (state.active) {
-                    if (item.$nav.parent) {
-                        angular.forEach(item.$nav.parent.items, function(o) {
-                            if (o !== item) {
-                                itemClose(o, true);
-                            }
-                        });
-                    }
-                    itemOpen(item);
-                } else {
-                    itemClose(item);
-                }
-                // console.log(state);
-            }
-
-            function onDown(e) {
-                var item = scope.item;
-                // console.log('Item.onDown', item);
-                var state = item.$nav.state;
-                if (state.active) {
-                    output = false;
-                    trigger();
-                } else if (item.$nav.onNav) {
-                    var promise = item.$nav.onNav(item, item.$nav);
-                    if (promise && typeof promise.then === 'function') {
-                        promise.then(function(resolved) {
-                            // go on
-                            trigger();
-                        }, function(rejected) {
-                            // do nothing
-                        });
-                        output = false;
-                    } else {
-                        output = promise;
-                        trigger();
-                    }
-                }
-
-                function trigger() {
-                    $timeout(function() {
-                        itemToggle(item);
-                    });
-                }
-                // preventDefault(e);
-            }
-
-            function onClick(e) {
-                // console.log('Item.onClick', e);
-                return preventDefault(e);
-            }
-
-            function preventDefault(e) {
-                if (output === false) {
-                    // console.log('Item.preventDefault', e);
-                    e.stop();
-                    // e.preventDefault();
-                    // e.stopPropagation();
-                    return false;
-                }
-            }
-            var events = new Events(navItem).add({
-                down: onDown,
-                click: onClick,
-            }, scope);
-        }
+					} else if (value instanceof Nav) {
+						scope.item = value;
+					}
+				}
+			});
+		}
 
     }]);
 
-    app.directive('navTo', ['$parse', '$timeout', 'Events', function($parse, $timeout, Events) {
+	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
 
-        var directive = {
-            restrict: 'A',
-            link: NavToLink
-        };
+		var directive = {
+			restrict: 'A',
+			templateUrl: function (element, attributes) {
+				return attributes.template || 'artisan/components/nav/partial/nav-item';
+			},
+			scope: {
+				item: '=navItem',
+			},
+			link: NavItemLink,
+		};
 
-        return directive;
+		return directive;
 
-        function NavToLink(scope, element, attributes) {
-            function onDown(e) {
-                console.log('navTo.onDown', attributes.navTo);
-                $timeout(function() {
-                    var callback = $parse(attributes.navTo);
-                    callback(scope);
-                });
-                e.preventDefault();
-                return false;
-            }
-            var events = new Events(element).add({
-                down: onDown,
-            }, scope);
-        }
+		function NavItemLink(scope, element, attributes, model) {
+			var navItem = angular.element(element[0].querySelector('.nav-link'));
+
+			var output;
+
+			function itemOpen(item, immediate) {
+				var state = item.$nav.state;
+				state.active = true;
+				$timeout(function () {
+					state.immediate = immediate;
+					state.closed = state.closing = false;
+					state.opening = true;
+					$timeout(function () {
+						state.opening = false;
+						state.opened = true;
+					});
+				});
+			}
+
+			function itemClose(item, immediate) {
+				var state = item.$nav.state;
+				state.active = false;
+				$timeout(function () {
+					state.immediate = immediate;
+					state.opened = state.opening = false;
+					state.closing = true;
+					$timeout(function () {
+						state.closing = false;
+						state.closed = true;
+					});
+				});
+				if (item.items) {
+					angular.forEach(item.items, function (o) {
+						itemClose(o, true);
+					});
+				}
+			}
+
+			function itemToggle(item) {
+				// console.log('itemToggle', item);
+				var state = item.$nav.state;
+				state.active = item.items ? !state.active : true;
+				if (state.active) {
+					if (item.$nav.parent) {
+						angular.forEach(item.$nav.parent.items, function (o) {
+							if (o !== item) {
+								itemClose(o, true);
+							}
+						});
+					}
+					itemOpen(item);
+				} else {
+					itemClose(item);
+				}
+				// console.log(state);
+			}
+
+			function onDown(e) {
+				var item = scope.item;
+				// console.log('Item.onDown', item);
+				var state = item.$nav.state;
+				if (state.active) {
+					output = false;
+					trigger();
+				} else if (item.$nav.onNav) {
+					var promise = item.$nav.onNav(item, item.$nav);
+					if (promise && typeof promise.then === 'function') {
+						promise.then(function (resolved) {
+							// go on
+							trigger();
+						}, function (rejected) {
+							// do nothing
+						});
+						output = false;
+					} else {
+						output = promise;
+						trigger();
+					}
+				}
+
+				function trigger() {
+					$timeout(function () {
+						itemToggle(item);
+					});
+				}
+				// preventDefault(e);
+			}
+
+			function onClick(e) {
+				// console.log('Item.onClick', e);
+				return preventDefault(e);
+			}
+
+			function preventDefault(e) {
+				if (output === false) {
+					// console.log('Item.preventDefault', e);
+					e.stop();
+					// e.preventDefault();
+					// e.stopPropagation();
+					return false;
+				}
+			}
+			var events = new Events(navItem).add({
+				down: onDown,
+				click: onClick,
+			}, scope);
+		}
+
+    }]);
+
+	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
+
+		var directive = {
+			restrict: 'A',
+			link: NavToLink
+		};
+
+		return directive;
+
+		function NavToLink(scope, element, attributes) {
+			function onDown(e) {
+				console.log('navTo.onDown', attributes.navTo);
+				$timeout(function () {
+					var callback = $parse(attributes.navTo);
+					callback(scope);
+				});
+				e.preventDefault();
+				return false;
+			}
+			var events = new Events(element).add({
+				down: onDown,
+			}, scope);
+		}
 
     }]);
 
@@ -7127,7 +7181,7 @@ $(window).on('resize', function () {
 				image: '=videoImage',
 			},
 			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/video/video-player';
+				return attributes.template || 'artisan/components/video/partial/video-player';
 			},
 			link: VideoSourceLink
 		};
@@ -7278,59 +7332,5 @@ $(window).on('resize', function () {
 	    }
 	});
 	*/
-
-}());
-/* global angular */
-(function () {
-	"use strict";
-
-	var app = angular.module('artisan');
-
-	// micro interactions
-
-	function tap(Events) {
-		return {
-			restrict: 'A',
-			priority: 0,
-			link: link
-		};
-
-		function link(scope, element, attributes, model) {
-			if (attributes.ngBind) {
-				return;
-			}
-			/*
-			if (attributes.href === '#' && !attributes.ngHref && !attributes.ngClick) {
-				return;
-            }
-            */
-
-			element.addClass('interaction-tap');
-			var node = document.createElement('interaction');
-			element[0].appendChild(node);
-
-			function onDown(e) {
-				element.removeClass('interaction-animate');
-				void element.offsetWidth;
-				// node.style.animationPlayState = "paused";
-				node.style.left = e.relative.x + 'px';
-				node.style.top = e.relative.y + 'px';
-				setTimeout(function () {
-					element.addClass('interaction-animate');
-					setTimeout(function () {
-						element.removeClass('interaction-animate');
-					}, 1000);
-				}, 10);
-
-				// console.log('tap.onDown', node, node.parentElement);
-			}
-			var listeners = { // down, move, up, click
-				down: onDown,
-			};
-			var events = new Events(element).add(listeners, scope); // passing scope to add remove listeners automatically on $destroy
-		}
-	}
-	app.directive('ngHref', ['Events', tap]);
-	app.directive('ngClick', ['Events', tap]);
 
 }());

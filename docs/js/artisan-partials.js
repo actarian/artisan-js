@@ -5,7 +5,27 @@ catch(err) { app = angular.module("artisan", []); }
 app.run(["$templateCache", function($templateCache) {
 "use strict";
 
-$templateCache.put("artisan/errors/errors","<ul class=\"nav padding-bottom-lg-20\" ng-if=\"state.isError\">\n" +
+$templateCache.put("artisan/components/modals/modal","<div class=\"modal-header\">\n" +
+    "    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Chiudi\" ng-click=\"modal.reject()\">\n" +
+    "                <span aria-hidden=\"true\">&times;</span>\n" +
+    "            </button>\n" +
+    "    <h4 class=\"modal-title\" ng-bind=\"modal.title\"></h4>\n" +
+    "</div>\n" +
+    "<div class=\"modal-body\">\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\" ng-click=\"modal.reject()\">Close</button>\n" +
+    "</div>")
+
+$templateCache.put("artisan/components/modals/modals","<div class=\"modals\" ng-class=\"{ visible: modals.length }\">\n" +
+    "</div>\n" +
+    "<div class=\"modal fade {{modal.customClass ? modal.customClass : ''}}\" ng-repeat=\"modal in modals\" ng-class=\"{ in: modal.active }\" ng-if=\"$last\">\n" +
+    "    <div class=\"modal-dialog\" role=\"document\">\n" +
+    "        <div class=\"modal-content\" modal-view=\"modal\"></div>\n" +
+    "    </div>\n" +
+    "</div>")
+
+$templateCache.put("artisan/components/errors/partial/errors","<ul class=\"nav padding-bottom-lg-20\" ng-if=\"state.isError\">\n" +
     "    <li class=\"nav-item\" ng-repeat=\"item in state.errors track by $index\">\n" +
     "        <div class=\"alert alert-danger\" role=\"alert\">\n" +
     "            <b ng-bind=\"'Error ' + item.status\"></b> <span ng-bind=\"item.message\"></span>\n" +
@@ -13,7 +33,7 @@ $templateCache.put("artisan/errors/errors","<ul class=\"nav padding-bottom-lg-20
     "    </li>\n" +
     "</ul>")
 
-$templateCache.put("artisan/forms/checkbox","<input type=\"hidden\" name=\"{{field}}\" ng-model=\"ngModel\" ng-required=\"required\" />\n" +
+$templateCache.put("artisan/components/forms/partial/checkbox","<input type=\"hidden\" name=\"{{field}}\" ng-model=\"ngModel\" ng-required=\"required\" />\n" +
     "<div class=\"form-check form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\">\n" +
     "        <span ng-bind-html=\"placeholder\"></span><sup ng-if=\"required\">✽</sup>\n" +
@@ -27,7 +47,7 @@ $templateCache.put("artisan/forms/checkbox","<input type=\"hidden\" name=\"{{fie
     "    </div>\n" +
     "</div>")
 
-$templateCache.put("artisan/forms/file","<div class=\"form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
+$templateCache.put("artisan/components/forms/partial/file","<div class=\"form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\">\n" +
     "        <span ng-bind=\"title\"></span><sup ng-if=\"required\">✽</sup>\n" +
     "        <span ng-bind=\"ngModel.name\"></span>\n" +
@@ -37,7 +57,7 @@ $templateCache.put("artisan/forms/file","<div class=\"form-group form-group-{{ty
     "    <control-messages></control-messages>\n" +
     "</div>")
 
-$templateCache.put("artisan/forms/messages","<span ng-messages=\"getMessages()\" role=\"alert\">\n" +
+$templateCache.put("artisan/components/forms/partial/messages","<span ng-messages=\"getMessages()\" role=\"alert\">\n" +
     "<span ng-message=\"required\" class=\"label-error animated flash\">obbligatorio</span>\n" +
     "<span ng-message=\"minlength\" class=\"label-error animated flash\" ng-if=\"type == 'password'\">almeno 6 caratteri</span>\n" +
     "<span ng-message=\"email\" class=\"label-error animated flash\" ng-if=\"type == 'email'\">valore non corretto</span>\n" +
@@ -51,7 +71,7 @@ $templateCache.put("artisan/forms/messages","<span ng-messages=\"getMessages()\"
     "<span ng-message=\"match\" class=\"label-error animated flash\" ng-if=\"match\">non corrispondente</span>\n" +
     "</span>")
 
-$templateCache.put("artisan/forms/radio","<input type=\"hidden\" name=\"{{field}}\" ng-model=\"ngModel\" ng-required=\"required\" />\n" +
+$templateCache.put("artisan/components/forms/partial/radio","<input type=\"hidden\" name=\"{{field}}\" ng-model=\"ngModel\" ng-required=\"required\" />\n" +
     "<div class=\"form-check form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\">\n" +
     "        <span ng-bind-html=\"placeholder\"></span><sup ng-if=\"required\">✽</sup>\n" +
@@ -65,7 +85,7 @@ $templateCache.put("artisan/forms/radio","<input type=\"hidden\" name=\"{{field}
     "    </div>\n" +
     "</div>")
 
-$templateCache.put("artisan/forms/select","<div class=\"form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
+$templateCache.put("artisan/components/forms/partial/select","<div class=\"form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\">\n" +
     "        <span ng-bind=\"title\"></span><sup ng-if=\"required\">✽</sup>\n" +
     "    </label>\n" +
@@ -75,7 +95,7 @@ $templateCache.put("artisan/forms/select","<div class=\"form-group form-group-{{
     "    <control-messages></control-messages>\n" +
     "</div>")
 
-$templateCache.put("artisan/forms/text","<div class=\"form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
+$templateCache.put("artisan/components/forms/partial/text","<div class=\"form-group form-group-{{type}}\" ng-class=\"getClasses()\">\n" +
     "    <label for=\"{{field}}\" class=\"form-label\" ng-if=\"title != 'untitled'\">\n" +
     "        <span ng-bind=\"title\"></span><sup ng-if=\"required\">✽</sup>\n" +
     "    </label>\n" +
@@ -89,7 +109,7 @@ $templateCache.put("artisan/forms/text","<div class=\"form-group form-group-{{ty
     "    <control-messages></control-messages>\n" +
     "</div>")
 
-$templateCache.put("artisan/header/header","<nav class=\"navbar\">\n" +
+$templateCache.put("artisan/components/header/partial/header","<nav class=\"navbar\">\n" +
     "    <a class=\"navbar-brand\" href=\"#\" ng-href=\"\">\n" +
     "        <img class=\"hidden-print\" width=\"34\" src=\"img/logo_websolute.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
     "        <img class=\"visible-print-inline-block\" width=\"34\" src=\"img/logo_websolute_positive.png\" title=\"Websolute\" alt=\"Digital Agency\">\n" +
@@ -97,36 +117,16 @@ $templateCache.put("artisan/header/header","<nav class=\"navbar\">\n" +
     "    <ul class=\"nav navbar-nav hidden-xs-down\" ng-transclude=\"header\"></ul>\n" +
     "</nav>")
 
-$templateCache.put("artisan/modals/modal","<div class=\"modal-header\">\n" +
-    "    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Chiudi\" ng-click=\"modal.reject()\">\n" +
-    "                <span aria-hidden=\"true\">&times;</span>\n" +
-    "            </button>\n" +
-    "    <h4 class=\"modal-title\" ng-bind=\"modal.title\"></h4>\n" +
-    "</div>\n" +
-    "<div class=\"modal-body\">\n" +
-    "</div>\n" +
-    "<div class=\"modal-footer\">\n" +
-    "    <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\" ng-click=\"modal.reject()\">Close</button>\n" +
-    "</div>")
-
-$templateCache.put("artisan/modals/modals","<div class=\"modals\" ng-class=\"{ visible: modals.length }\">\n" +
-    "</div>\n" +
-    "<div class=\"modal fade {{modal.customClass ? modal.customClass : ''}}\" ng-repeat=\"modal in modals\" ng-class=\"{ in: modal.active }\" ng-if=\"$last\">\n" +
-    "    <div class=\"modal-dialog\" role=\"document\">\n" +
-    "        <div class=\"modal-content\" modal-view=\"modal\"></div>\n" +
-    "    </div>\n" +
-    "</div>")
-
-$templateCache.put("artisan/nav/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.path}}\"><span ng-bind=\"item.name\"></span></a>\n" +
+$templateCache.put("artisan/components/nav/partial/nav-item","<a class=\"nav-link\" href=\"#\" ng-href=\"{{item.$nav.path}}\"><span ng-bind=\"item.name\"></span></a>\n" +
     "<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
     "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
     "</ul>")
 
-$templateCache.put("artisan/nav/nav","<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
+$templateCache.put("artisan/components/nav/partial/nav","<ul class=\"nav nav-{{item.$nav.level}}\" ng-if=\"item.items\">\n" +
     "    <li class=\"nav-item\" ng-class=\"item.$nav.state\" nav-item=\"item\" ng-repeat=\"item in item.items track by $index\"></li>\n" +
     "</ul>")
 
-$templateCache.put("artisan/video/video-player","<div class=\"video-player\" ng-class=\"{ playing: playing }\">\n" +
+$templateCache.put("artisan/components/video/partial/video-player","<div class=\"video-player\" ng-class=\"{ playing: playing }\">\n" +
     "    <div class=\"video-item\" ng-click=\"toggle()\">\n" +
     "        <img ng-src=\"{{image}}\" ng-if=\"image\" />\n" +
     "        <video></video>\n" +

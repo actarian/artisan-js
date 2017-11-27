@@ -1,62 +1,62 @@
 ﻿/* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.config(['$routeProvider', function($routeProvider) {
+	app.config(['$routeProvider', function ($routeProvider) {
 
-        $routeProvider.when('/', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'HomeCtrl',
+		$routeProvider.when('/', {
+			templateUrl: function () {
+				return 'views/slug.html';
+			},
+			controller: 'HomeCtrl',
 
-        }).when('/contact-us', {
-            templateUrl: function() {
-                return 'views/contact-us.html';
-            },
-            controller: 'ContactUsCtrl',
-            // resolve: {
-            //    user: ['Users', function(Users) {
-            //        return Users.isAuthorizedOrGoTo('/home');
-            //    }]
-            // },
+		}).when('/contact-us', {
+			templateUrl: function () {
+				return 'views/contact-us.html';
+			},
+			controller: 'ContactUsCtrl',
+			// resolve: {
+			//    user: ['Users', function(Users) {
+			//        return Users.isAuthorizedOrGoTo('/home');
+			//    }]
+			// },
 
-        }).when('/works/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
+		}).when('/works/:slug', {
+			templateUrl: function () {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
 
-        }).when('/works/visuals/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
+		}).when('/works/visuals/:slug', {
+			templateUrl: function () {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
 
-        }).when('/works/production/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
+		}).when('/works/production/:slug', {
+			templateUrl: function () {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
 
-        }).when('/experiences/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
+		}).when('/experiences/:slug', {
+			templateUrl: function () {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
 
-        }).when('/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
+		}).when('/:slug', {
+			templateUrl: function () {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
 
-        });
+		});
 
-        $routeProvider.otherwise('/');
+		$routeProvider.otherwise('/');
 
     }]);
 
