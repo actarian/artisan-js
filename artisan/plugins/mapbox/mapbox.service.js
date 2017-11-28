@@ -15,11 +15,11 @@
 
         angular.extend(service, statics);
 
-        if (!environment.addons.mapbox) {
-            trhow('MapBox.error missing config object in environment.addons.mapbox');
+        if (!environment.plugins.mapbox) {
+            trhow('MapBox.error missing config object in environment.plugins.mapbox');
         }
 
-        var config = environment.addons.mapbox;
+        var config = environment.plugins.mapbox;
 
         function MapBoxGet() {
             return $promise(function(promise) {

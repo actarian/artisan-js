@@ -17,13 +17,13 @@
 
         angular.extend(service, statics);
 
-        if (!environment.addons.googlemaps) {
-            trhow('GoogleMaps.error missing config object in environment.addons.googlemaps');
+        if (!environment.plugins.googlemaps) {
+            trhow('GoogleMaps.error missing config object in environment.plugins.googlemaps');
         }
 
         function GoogleMaps() {
             return $promise(function(promise) {
-                var apiKey = environment.addons.googlemaps.apiKey;
+                var apiKey = environment.plugins.googlemaps.apiKey;
                 $once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
                     promise.resolve(window.google.maps);
                 }, function(error) {

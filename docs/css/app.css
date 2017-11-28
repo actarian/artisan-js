@@ -467,11 +467,14 @@ body {
   height: 100%; }
 
 body {
-  padding: 40px;
+  padding: 0;
   font-size: 16px;
   font-family: 'Raleway', sans-serif;
   background: #ffffff;
   color: #0000fe; }
+
+page {
+  padding: 40px; }
 
 .background {
   position: absolute;

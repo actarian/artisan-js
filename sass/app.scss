@@ -9,11 +9,15 @@ body {
 }
 
 body {
-    padding: 40px;
+    padding: 0;
     font-size: 16px;
     font-family: 'Raleway', sans-serif;
     background: $background;
     color: $foreground;
+}
+
+page {
+    padding: 40px;
 }
 
 .background {

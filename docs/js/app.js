@@ -191,7 +191,7 @@
 
     var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService) {
+    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService, GoogleService) {
 
         var nav = new Nav({
             onPath: onPath,
@@ -264,7 +264,7 @@
 
         //////////////
 
-        function getMe() {
+        function getFacebookMe() {
             FacebookService.getMe().then(function(user) {
                 console.log('FacebookService.getMe', user);
             }, function(error) {
@@ -272,7 +272,16 @@
             });
         }
 
-        $scope.getMe = getMe;
+        function getGoogleMe() {
+            GoogleService.login().then(function(user) {
+                console.log('GoogleService.getMe', user);
+            }, function(error) {
+                console.log('GoogleService.getMe.error', error);
+            });
+        }
+
+        $scope.getFacebookMe = getFacebookMe;
+        $scope.getGoogleMe = getGoogleMe;
 
     }]);
 
@@ -303,108 +312,112 @@
 
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('app');
+    var app = angular.module('app');
 
-	app.config(['environmentProvider', function (environmentProvider) {
+    app.config(['environmentProvider', function(environmentProvider) {
 
-		environmentProvider.add('environment', {
-			addons: {
-				facebook: {
-					app_id: 340008479796111,
-					fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
-					scope: 'public_profile, email', // publish_stream
-					version: 'v2.10',
-				},
-				googlemaps: {
-					apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
-					styles: '/googlemaps/applemapesque.json',
-					options: {
-						center: {
-							lat: 43.9023386, // latitude
-							lng: 12.8505094, // longitude
-						},
-						zoom: 4.0,
-					}
-				},
-				mapbox: {
-					accessToken: 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ',
-					options: {
-						center: [
-							12.8505094, // longitude
-							43.9023386, // latitude
-						],
-						zoom: 4.0,
-					},
-					style: 'mapbox://styles/actarian/cja82nadj07sn2rmty6n1n5pk',
-					version: 'v0.42.0',
-				},
-			},
-			http: {
-				interceptors: [], // ['AuthInterceptorService'],
-				withCredentials: false,
-			},
-			language: {
-				code: 'en',
-				culture: 'en_US',
-				iso: 'ENU',
-				name: 'English',
-			},
-			location: {
-				hash: '!',
-				html5: false,
-			},
-		});
-
-    }]);
-
-}());
-/* global angular */
-
-(function () {
-	"use strict";
-
-	var app = angular.module('app');
-
-	app.config(['environmentProvider', function (environmentProvider) {
-
-		environmentProvider.add('local', {
-			addons: {
-				facebook: {
-					app_id: 340008479796111,
-				}
-			},
-			paths: {
-				api: 'http://localhost:6001/api',
-				app: 'http://localhost:6001',
-			},
-		});
+        environmentProvider.add('environment', {
+            http: {
+                interceptors: [], // ['AuthInterceptorService'],
+                withCredentials: false,
+            },
+            language: {
+                code: 'en',
+                culture: 'en_US',
+                iso: 'ENU',
+                name: 'English',
+            },
+            location: {
+                hash: '!',
+                html5: false,
+            },
+            plugins: {
+                facebook: {
+                    app_id: 340008479796111,
+                    fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
+                    scope: 'public_profile, email', // publish_stream
+                    version: 'v2.10',
+                },
+                google: {
+                    apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
+                    clientId: 'clientId',
+                },
+                googlemaps: {
+                    apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
+                    styles: '/googlemaps/applemapesque.json',
+                    options: {
+                        center: {
+                            lat: 43.9023386, // latitude
+                            lng: 12.8505094, // longitude
+                        },
+                        zoom: 4.0,
+                    }
+                },
+                mapbox: {
+                    accessToken: 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ',
+                    options: {
+                        center: [
+                            12.8505094, // longitude
+                            43.9023386, // latitude
+                        ],
+                        zoom: 4.0,
+                    },
+                    style: 'mapbox://styles/actarian/cja82nadj07sn2rmty6n1n5pk',
+                    version: 'v0.42.0',
+                },
+            },
+        });
 
     }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('app');
+    var app = angular.module('app');
 
-	app.config(['environmentProvider', function (environmentProvider) {
+    app.config(['environmentProvider', function(environmentProvider) {
 
-		environmentProvider.add('production', {
-			addons: {
-				facebook: {
-					app_id: 156171878319496,
-				}
-			},
-			paths: {
-				api: 'https://actarian.github.io/artisan/api',
-				app: 'https://actarian.github.io/artisan',
-			},
-		});
+        environmentProvider.add('local', {
+            paths: {
+                api: 'http://localhost:6001/api',
+                app: 'http://localhost:6001',
+            },
+            plugins: {
+                facebook: {
+                    app_id: 340008479796111,
+                }
+            },
+        });
+
+    }]);
+
+}());
+/* global angular */
+
+(function() {
+    "use strict";
+
+    var app = angular.module('app');
+
+    app.config(['environmentProvider', function(environmentProvider) {
+
+        environmentProvider.add('production', {
+            paths: {
+                api: 'https://actarian.github.io/artisan/api',
+                app: 'https://actarian.github.io/artisan',
+            },
+            plugins: {
+                facebook: {
+                    app_id: 156171878319496,
+                }
+            },
+        });
 
     }]);
 

@@ -1,23 +1,23 @@
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('app');
+    var app = angular.module('app');
 
-	app.config(['environmentProvider', function (environmentProvider) {
+    app.config(['environmentProvider', function(environmentProvider) {
 
-		environmentProvider.add('production', {
-			addons: {
-				facebook: {
-					app_id: 156171878319496,
-				}
-			},
-			paths: {
-				api: 'https://actarian.github.io/artisan/api',
-				app: 'https://actarian.github.io/artisan',
-			},
-		});
+        environmentProvider.add('production', {
+            paths: {
+                api: 'https://actarian.github.io/artisan/api',
+                app: 'https://actarian.github.io/artisan',
+            },
+            plugins: {
+                facebook: {
+                    app_id: 156171878319496,
+                }
+            },
+        });
 
     }]);
 

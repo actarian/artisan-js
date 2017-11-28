@@ -36,7 +36,7 @@
                     var id = (paths[path] = paths[path] || ++uid);
                     id = 'OnceScript' + id;
                     if (document.getElementById(id)) {
-                        promise.resolve();
+                        promise.reject();
                     } else {
                         var scripts = document.getElementsByTagName('script');
                         var script = scripts[scripts.length - 1];

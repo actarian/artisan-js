@@ -21,11 +21,11 @@
 
         // private vars
 
-        if (!environment.addons.facebook) {
-            trhow('FacebookService.error missing config object in environment.addons.facebook');
+        if (!environment.plugins.facebook) {
+            trhow('FacebookService.error missing config object in environment.plugins.facebook');
         }
 
-        var config = environment.addons.facebook;
+        var config = environment.plugins.facebook;
 
         // statics methods
 

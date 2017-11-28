@@ -5,7 +5,7 @@
 
     var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService) {
+    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService, GoogleService) {
 
         var nav = new Nav({
             onPath: onPath,
@@ -78,7 +78,7 @@
 
         //////////////
 
-        function getMe() {
+        function getFacebookMe() {
             FacebookService.getMe().then(function(user) {
                 console.log('FacebookService.getMe', user);
             }, function(error) {
@@ -86,7 +86,16 @@
             });
         }
 
-        $scope.getMe = getMe;
+        function getGoogleMe() {
+            GoogleService.login().then(function(user) {
+                console.log('GoogleService.getMe', user);
+            }, function(error) {
+                console.log('GoogleService.getMe.error', error);
+            });
+        }
+
+        $scope.getFacebookMe = getFacebookMe;
+        $scope.getGoogleMe = getGoogleMe;
 
     }]);
 

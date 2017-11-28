@@ -32,21 +32,27 @@
 
 <body ng-controller="RootCtrl">
 
-    <header>
-        <div nav="nav"></div>
-    </header>
+    <page>
+        <header>
+            <div nav="nav"></div>
+        </header>
 
-    <main>
-        <ng-view></ng-view>
-    </main>
+        <main>
+            <ng-view></ng-view>
+        </main>
 
-    <footer>
-        <section>
-            <div class="inner">
-                <a href="#" ng-click="null">@</a>
-            </div>
-        </section>
-    </footer>
+        <footer>
+            <section>
+                <div class="inner">
+                    <a href="#" ng-click="null">@</a>
+                </div>
+            </section>
+        </footer>
+
+        <page-transition ng-class="{ loading: router.loading }">
+            <spinner></spinner>
+        </page-transition>
+    </page>
 
     <!-- javascript -->
     <script src="js/vendors.min.js"></script>

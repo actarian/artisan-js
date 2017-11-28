@@ -17,11 +17,11 @@
             link: GooglemapsLink,
         };
 
-        if (!environment.addons.googlemaps) {
-            trhow('googlemaps.error missing config object in environment.addons.googlemaps');
+        if (!environment.plugins.googlemaps) {
+            trhow('googlemaps.error missing config object in environment.plugins.googlemaps');
         }
 
-        var config = environment.addons.googlemaps;
+        var config = environment.plugins.googlemaps;
 
         return directive;
 

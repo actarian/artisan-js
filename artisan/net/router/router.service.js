@@ -22,6 +22,7 @@
         $rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
         $rootScope.$on('$routeChangeError', RouterOnChangeError);
         $rootScope.$on('$routeUpdate', RouterOnUpdate);
+        $rootScope.$on('$stateReady', RouterOnStateReady);
 
         var $previous, $current, $next;
         var $previousController, $currentController, $nextController;
@@ -43,6 +44,7 @@
             $next = next ? next.$$route : null;
             RouterSetControllers();
             // console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
+            service.loading = true;
         }
 
         /*
@@ -79,6 +81,12 @@
             $next = null;
             RouterSetControllers();
             // console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
+        }
+
+        function RouterOnStateReady(scope, state) {
+            $timeout(function() {
+                service.loading = false;
+            }, 1000);
         }
 
         function RouterIsController(controller) {

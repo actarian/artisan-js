@@ -1,10 +1,11 @@
 @import "mixins";
-@import "artisan/addons/googlemaps";
-@import "artisan/addons/mapbox";
 @import "artisan/expandable";
 @import "artisan/forms";
 @import "artisan/interactions";
 @import "artisan/modals";
 @import "artisan/nav";
+@import "artisan/page";
+@import "artisan/plugins/googlemaps";
+@import "artisan/plugins/mapbox";
 @import "artisan/scrollable";
 @import "artisan/video";
