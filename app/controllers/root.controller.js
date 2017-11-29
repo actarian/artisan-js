@@ -87,7 +87,7 @@
         }
 
         function getGoogleMe() {
-            GoogleService.login().then(function(user) {
+            GoogleService.getMe().then(function(user) {
                 console.log('GoogleService.getMe', user);
             }, function(error) {
                 console.log('GoogleService.getMe.error', error);

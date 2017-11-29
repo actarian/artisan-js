@@ -40,12 +40,31 @@
                 if (window.FB !== undefined) {
                     promise.resolve(window.FB);
                 } else {
-                    FacebookInit().then(function(success) {
+                    FacebookOnce().then(function(success) {
                         promise.resolve(window.FB);
                     }, function(error) {
                         promise.reject(error);
                     });
                 }
+            });
+        }
+
+        function FacebookOnce() {
+            return $promise(function(promise) {
+                $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
+                    // console.log('FacebookOnce.fbAsyncInit', window.FB);
+                    window.FB.init({
+                        appId: config.app_id,
+                        status: true,
+                        cookie: true,
+                        xfbml: true,
+                        version: config.version,
+                    });
+                    promise.resolve(window.FB);
+                    // window.fbAsyncInit = null;
+                }, function(error) {
+                    promise.reject(error);
+                });
             });
         }
 
@@ -68,15 +87,19 @@
         function FacebookGetMe(fields) {
             fields = fields || config.fields;
             return $promise(function(promise) {
-                FacebookLogin().then(function(facebook) {
-                    console.log('FacebookGetMe', facebook);
-                    facebook.api('/me', {
+                FacebookLogin().then(function(response) {
+                    window.FB.api('/me', {
                         fields: fields
                     }, function(response) {
                         if (!response || response.error) {
-                            promise.reject('Error occured');
+                            var error = response ? response.error : 'error';
+                            console.log('FacebookGetMe.error', error);
+                            promise.reject(error);
+
                         } else {
+                            console.log('FacebookGetMe.success', response);
                             promise.resolve(response);
+
                         }
                     });
                 });
@@ -87,15 +110,20 @@
             size = size || 300;
             return $promise(function(promise) {
                 FacebookLogin().then(function(facebook) {
-                    facebook.api('/me/picture', {
+                    window.FB.api('/me/picture', {
                         width: size,
                         height: size,
                         type: 'square'
                     }, function(response) {
                         if (!response || response.error) {
-                            promise.reject('Error occured');
+                            var error = response ? response.error : 'error';
+                            console.log('FacebookGetMyPicture.error', error);
+                            promise.reject(error);
+
                         } else {
+                            console.log('FacebookGetMyPicture.success', response);
                             promise.resolve(response);
+
                         }
                     });
                 });
@@ -121,25 +149,6 @@
                     facebook.logout(function(response) {
                         promise.resolve(response);
                     });
-                });
-            });
-        }
-
-        function FacebookInit() {
-            return $promise(function(promise) {
-                $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
-                    // console.log('FacebookInit.fbAsyncInit', window.FB);
-                    window.FB.init({
-                        appId: config.app_id,
-                        status: true,
-                        cookie: true,
-                        xfbml: true,
-                        version: config.version,
-                    });
-                    promise.resolve(window.FB);
-                    // window.fbAsyncInit = null;
-                }, function(error) {
-                    promise.reject(error);
                 });
             });
         }
