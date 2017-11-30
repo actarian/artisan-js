@@ -9,7 +9,7 @@
 
         environmentProvider.add('environment', {
             http: {
-                interceptors: [], // ['AuthInterceptorService'],
+                interceptors: [], // ['AuthService'],
                 withCredentials: false,
             },
             language: {
@@ -24,7 +24,7 @@
             },
             plugins: {
                 facebook: {
-                    app_id: 340008479796111,
+                    appId: 340008479796111,
                     fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
                     scope: 'public_profile, email', // publish_stream
                     version: 'v2.10',

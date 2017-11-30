@@ -56,6 +56,7 @@
         "artisan/models/route.factory.js",
         "artisan/models/view.factory.js",
 
+        "artisan/net/auth/auth.service.js",
         "artisan/net/http/http.service.js",
         "artisan/net/preload/preload.factory.js",
         "artisan/net/once/once.service.js",

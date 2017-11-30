@@ -7,7 +7,7 @@
 
     // todo
 
-    app.service('AuthInterceptorService', ['$q', '$rootScope', '$location', 'LocalStorage', function($q, $rootScope, $location, LocalStorage) {
+    app.service('AuthService', ['$q', '$rootScope', '$location', 'LocalStorage', 'environment', function($q, $rootScope, $location, LocalStorage, environment) {
 
         var service = this;
 
@@ -21,6 +21,14 @@
         };
 
         angular.extend(service, statics);
+
+        /* * * * * * * * * * * * * * * * *
+         *  detect current auth storage  *
+         * * * * * * * * * * * * * * * * */
+
+        console.log(environment.plugins);
+
+        // statics methods
 
         function isAuthorizedOrGoTo(redirect) {
             var deferred = $q.defer();
@@ -55,7 +63,7 @@
         }
 
         function responseError(error) {
-            console.log('AuthInterceptorService.responseError', error);
+            console.log('AuthService.responseError', error);
             // your error handler
             switch (error.status) {
                 case 400:

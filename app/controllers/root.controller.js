@@ -5,7 +5,7 @@
 
     var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService, GoogleService) {
+    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, AuthService, FacebookService, GoogleService) {
 
         var nav = new Nav({
             onPath: onPath,
