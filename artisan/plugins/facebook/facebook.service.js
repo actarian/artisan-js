@@ -44,7 +44,7 @@
             userID: "10214671620773661",
         }
         */
-        console.log('authResponse', authResponse);
+        console.log('facebook.storage', authResponse);
 
         function Facebook() {
             return $promise(function(promise) {

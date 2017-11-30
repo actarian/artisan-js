@@ -38,6 +38,7 @@
         "artisan/components/video/video.directive.js",
 
         "artisan/core/animate/animate.factory.js",
+        "artisan/core/datetime/range.factory.js",
         "artisan/core/dom/dom.service.js",
         "artisan/core/events/events.factory.js",
         "artisan/core/filters/filters.js",

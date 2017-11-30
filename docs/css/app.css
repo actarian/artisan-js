@@ -518,6 +518,19 @@ footer {
   justify-content: center;
   padding: 30px 0; }
 
+.btn-group > .btn {
+  flex-grow: 1;
+  flex-basis: 200px;
+  max-width: 200px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600; }
+
+.btn-group > .btn:not(:first-child):not(:last-child) {
+  flex-grow: 1;
+  flex-basis: 80%;
+  max-width: 80%; }
+
 /*
 .container-form {
     max-width: 720px;
@@ -559,6 +572,6 @@ footer {
 [unselectable] {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none; }
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none; }

@@ -5,7 +5,7 @@
 
     var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, AuthService, FacebookService, GoogleService) {
+    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
 
         var nav = new Nav({
             onPath: onPath,
@@ -96,6 +96,30 @@
 
         $scope.getFacebookMe = getFacebookMe;
         $scope.getGoogleMe = getGoogleMe;
+
+        var year = new Range({ type: Range.types.YEAR });
+        var semester = new Range({ type: Range.types.SEMESTER });
+        var trimester = new Range({ type: Range.types.TRIMESTER });
+        var quarter = new Range({ type: Range.types.QUARTER });
+        var month = new Range({ type: Range.types.MONTH });
+        var week = new Range({ type: Range.types.WEEK });
+        var day = new Range({ type: Range.types.DAY });
+
+        var ranges = {
+            year: year,
+            semester: semester,
+            trimester: trimester,
+            quarter: quarter,
+            month: month,
+            week: week,
+            day: day,
+        };
+
+        angular.forEach(ranges, function(range) {
+            console.log(range.toString());
+        });
+
+        $scope.ranges = ranges;
 
     }]);
 

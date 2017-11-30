@@ -2,13 +2,21 @@
 
 <json-formatter json="view"></json-formatter>
 
+<div ng-repeat="range in ranges track by $index">
+    <div class="btn-group" style="width: 100%;">
+        <button type="button" class="btn btn-outline-primary" ng-click="range.prev()"><span ng-bind="range.getDiff(-1).shortName()">-</span></button>
+        <button type="button" class="btn btn-outline-primary"><span ng-bind="range.fullName()"></span></span>
+        <button type="button" class="btn btn-outline-primary" ng-click="range.next()"><span ng-bind="range.getDiff(1).shortName()">-</span></button>
+    </div>
+</div>
+
 <div class="flex-bar">
     <div class="btn-group">
         <button type="button" class="btn btn-outline-primary" ng-click="getFacebookMe()"><span>FB</span></button>
         <button type="button" class="btn btn-outline-primary" ng-click="getGoogleMe()"><span>G+</span></button>
         <button type="button" class="btn btn-outline-primary" ng-click="scrollable.prev()"><span>prev</span></button>
         <button type="button" class="btn btn-outline-primary" ng-click="scrollable.next()"><span>next</span></button>
-        <span class="btn btn-outline-primary" ng-bind="scrollable.getIndex() + '-' + items.length"></span>
+        <button type="button" class="btn btn-outline-primary"><span ng-bind="scrollable.getIndex() + '-' + items.length"></span></button>
     </div>
 </div>
 

@@ -1020,13 +1020,23 @@ page-transition {
   pointer-events: none;
   background: white; }
   page-transition.loading {
+    transition: none;
     opacity: 1; }
 
 spinner {
   display: block;
   width: 40px;
   height: 40px;
-  background: #0000fe; }
+  background: #0000fe;
+  animation: rotating 750ms ease-in-out infinite; }
+
+@keyframes rotating {
+  0% {
+    transform: rotate(0deg); }
+  60% {
+    transform: rotate(-90deg); }
+  100% {
+    transform: rotate(-90deg); } }
 
 /*
 @function pow($number, $exp) {

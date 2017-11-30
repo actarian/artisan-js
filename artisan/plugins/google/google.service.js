@@ -58,7 +58,7 @@
             token_type: "Bearer"
         }
         */
-        console.log('authResponse', authResponse);
+        console.log('google.storage', authResponse);
 
         function Google() {
             return $promise(function(promise) {
