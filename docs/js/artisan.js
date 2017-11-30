@@ -5154,7 +5154,7 @@ $(window).on('resize', function () {
                 }
             },
             http: {
-                interceptors: [], // ['AuthInterceptorService'],
+                interceptors: [], // ['AuthService'],
                 withCredentials: false,
             },
             language: {
@@ -5400,6 +5400,126 @@ $(window).on('resize', function () {
         }
 
         // prototype methods
+
+    }]);
+
+}());
+/* global angular */
+
+(function() {
+    "use strict";
+
+    var app = angular.module('artisan');
+
+    // todo
+
+    app.service('AuthService', ['$q', '$rootScope', '$location', 'LocalStorage', 'environment', function($q, $rootScope, $location, LocalStorage, environment) {
+
+        var service = this;
+
+        var statics = {
+            isAuthorizedOrGoTo: isAuthorizedOrGoTo,
+            isAuthorized: isAuthorized,
+            request: request,
+            response: response,
+            responseError: responseError,
+            signOut: signOut,
+        };
+
+        angular.extend(service, statics);
+
+        /* * * * * * * * * * * * * * * * *
+         *  detect current auth storage  *
+         * * * * * * * * * * * * * * * * */
+
+        console.log(environment.plugins);
+
+        // statics methods
+
+        function isAuthorizedOrGoTo(redirect) {
+            var deferred = $q.defer();
+            var auth = LocalStorage.get('authorization');
+            if (auth && auth.created_at + auth.expires_in < new Date().getTime()) {
+                deferred.resolve(auth);
+            } else {
+                deferred.reject({
+                    status: 'unauthorized'
+                });
+                $location.path(redirect);
+            }
+            return deferred.promise;
+        }
+
+        function isAuthorized() {
+            var auth = LocalStorage.get('authorization');
+            return (auth && auth.created_at + auth.expires_in < new Date().getTime());
+        }
+
+        function request(config) {
+            var auth = LocalStorage.get('authorization');
+            if (auth && auth.created_at + auth.expires_in < new Date().getTime()) {
+                config.headers = config.headers || {};
+                config.headers.Authorization = 'Bearer ' + auth.access_token; // add your token from your service or whatever
+            }
+            return config;
+        }
+
+        function response(response) {
+            return response || $q.when(response);
+        }
+
+        function responseError(error) {
+            console.log('AuthService.responseError', error);
+            // your error handler
+            switch (error.status) {
+                case 400:
+                    var errors = [];
+                    if (error.data) {
+                        errors.push(error.data.Message);
+                        for (var key in error.data.ModelState) {
+                            for (var i = 0; i < error.data.ModelState[key].length; i++) {
+                                errors.push(error.data.ModelState[key][i]);
+                            }
+                        }
+                    } else {
+                        errors.push('Server error');
+                    }
+                    error.Message = errors.join(' ');
+                    // warning !!
+                    $rootScope.httpError = error;
+                    $rootScope.$broadcast('onHttpInterceptorError', error);
+                    break;
+                case 404:
+                    error.Message = "Not found";
+                    $rootScope.httpError = error;
+                    $rootScope.$broadcast('onHttpInterceptorError', error);
+                    break;
+                case 500:
+                    // console.log('500',error);
+                    $rootScope.httpError = error;
+                    $rootScope.$broadcast('onHttpInterceptorError', error);
+                    break;
+                case 401:
+                    LocalStorage.delete('authorization');
+                    LocalStorage.delete('user');
+                    $location.path('/signin');
+                    break;
+                case -1:
+                    window.open(error.config.path, '_blank');
+                    // status == 0 you lost connection
+            }
+            return $q.reject(error);
+        }
+
+        function signOut() {
+            LocalStorage.delete('authorization');
+            LocalStorage.delete('user');
+            LocalStorage.delete('CampagnoloToken');
+            LocalStorage.delete('GoogleToken');
+            LocalStorage.delete('StravaToken');
+            LocalStorage.delete('FacebookToken');
+            LocalStorage.delete('GarminToken');
+        }
 
     }]);
 
@@ -6323,7 +6443,7 @@ $(window).on('resize', function () {
 
     var app = angular.module('artisan');
 
-    app.service('FacebookService', ['$promise', '$once', 'environment', function($promise, $once, environment) {
+    app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function($promise, $once, storage, environment) {
 
         var service = this;
 
@@ -6353,6 +6473,17 @@ $(window).on('resize', function () {
 
         Facebook();
 
+        var authResponse = storage.get('facebook');
+        /*
+        authResponse = {
+            accessToken: "accessTokenXXXXX",
+            expiresIn: 4962,
+            signedRequest: "signedRequestXXXXX",
+            userID: "10214671620773661",
+        }
+        */
+        console.log('authResponse', authResponse);
+
         function Facebook() {
             return $promise(function(promise) {
                 if (window.FB !== undefined) {
@@ -6372,7 +6503,7 @@ $(window).on('resize', function () {
                 $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
                     // console.log('FacebookOnce.fbAsyncInit', window.FB);
                     window.FB.init({
-                        appId: config.app_id,
+                        appId: config.appId,
                         status: true,
                         cookie: true,
                         xfbml: true,
@@ -6390,8 +6521,10 @@ $(window).on('resize', function () {
             service.authResponse = null;
             if (response.status === 'connected') {
                 service.authResponse = response.authResponse;
+                storage.set('facebook', response.authResponse);
                 promise.resolve(response);
             } else if (response.status === 'not_authorized') {
+                storage.delete('facebook');
                 if (init) {
                     promise.resolve(response);
                 } else {
@@ -6483,7 +6616,7 @@ $(window).on('resize', function () {
 
     // todo !!!
 
-    app.service('GoogleService', ['$timeout', '$promise', '$once', 'environment', function($timeout, $promise, $once, environment) {
+    app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function($timeout, $promise, $once, storage, environment) {
 
         var service = this;
 
@@ -6516,6 +6649,25 @@ $(window).on('resize', function () {
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
         Auth2Init();
+
+        var authResponse = storage.get('google');
+        /*
+        authResponse = {
+            access_token: "accessTokenXXXXX",
+            expires_at: 1511992065944,
+            expires_in: 3600,
+            first_issued_at: 1511988465944,
+            id_token: "idTokenXXXXX",
+            idpId: "google",
+            login_hint: "loginHintXXXXXX",
+            scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/plus.me openid email profile"
+            session_state: {
+                extraQueryParams: { … }
+            },
+            token_type: "Bearer"
+        }
+        */
+        console.log('authResponse', authResponse);
 
         function Google() {
             return $promise(function(promise) {
@@ -6643,6 +6795,7 @@ $(window).on('resize', function () {
 
                         }, function(error) {
                             console.log('GoogleLogin.error', error);
+                            storage.delete('google');
                             promise.reject(error);
 
                         });
@@ -6653,11 +6806,13 @@ $(window).on('resize', function () {
                         try {
                             var response = instance.currentUser.get().getAuthResponse(true);
                             console.log('GoogleLogin.readAccessToken.success', response);
+                            storage.set('google', response);
                             promise.resolve({
                                 code: response.access_token,
                             });
                         } catch (error) {
                             console.log('GoogleLogin.readAccessToken.error', error);
+                            storage.delete('google');
                             promise.reject(error);
                         }
                     }

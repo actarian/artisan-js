@@ -5,7 +5,7 @@
 
     var app = angular.module('artisan');
 
-    app.service('FacebookService', ['$promise', '$once', 'environment', function($promise, $once, environment) {
+    app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function($promise, $once, storage, environment) {
 
         var service = this;
 
@@ -35,6 +35,17 @@
 
         Facebook();
 
+        var authResponse = storage.get('facebook');
+        /*
+        authResponse = {
+            accessToken: "accessTokenXXXXX",
+            expiresIn: 4962,
+            signedRequest: "signedRequestXXXXX",
+            userID: "10214671620773661",
+        }
+        */
+        console.log('authResponse', authResponse);
+
         function Facebook() {
             return $promise(function(promise) {
                 if (window.FB !== undefined) {
@@ -54,7 +65,7 @@
                 $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
                     // console.log('FacebookOnce.fbAsyncInit', window.FB);
                     window.FB.init({
-                        appId: config.app_id,
+                        appId: config.appId,
                         status: true,
                         cookie: true,
                         xfbml: true,
@@ -72,8 +83,10 @@
             service.authResponse = null;
             if (response.status === 'connected') {
                 service.authResponse = response.authResponse;
+                storage.set('facebook', response.authResponse);
                 promise.resolve(response);
             } else if (response.status === 'not_authorized') {
+                storage.delete('facebook');
                 if (init) {
                     promise.resolve(response);
                 } else {

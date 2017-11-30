@@ -56,7 +56,7 @@
                 }
             },
             http: {
-                interceptors: [], // ['AuthInterceptorService'],
+                interceptors: [], // ['AuthService'],
                 withCredentials: false,
             },
             language: {

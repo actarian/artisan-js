@@ -191,7 +191,7 @@
 
     var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, FacebookService, GoogleService) {
+    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Scrollable, AuthService, FacebookService, GoogleService) {
 
         var nav = new Nav({
             onPath: onPath,
@@ -321,7 +321,7 @@
 
         environmentProvider.add('environment', {
             http: {
-                interceptors: [], // ['AuthInterceptorService'],
+                interceptors: [], // ['AuthService'],
                 withCredentials: false,
             },
             language: {
@@ -336,7 +336,7 @@
             },
             plugins: {
                 facebook: {
-                    app_id: 340008479796111,
+                    appId: 340008479796111,
                     fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
                     scope: 'public_profile, email', // publish_stream
                     version: 'v2.10',
@@ -390,7 +390,7 @@
             },
             plugins: {
                 facebook: {
-                    app_id: 340008479796111,
+                    appId: 340008479796111,
                 }
             },
         });
@@ -414,7 +414,7 @@
             },
             plugins: {
                 facebook: {
-                    app_id: 156171878319496,
+                    appId: 156171878319496,
                 }
             },
         });

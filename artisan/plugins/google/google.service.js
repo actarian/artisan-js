@@ -7,7 +7,7 @@
 
     // todo !!!
 
-    app.service('GoogleService', ['$timeout', '$promise', '$once', 'environment', function($timeout, $promise, $once, environment) {
+    app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function($timeout, $promise, $once, storage, environment) {
 
         var service = this;
 
@@ -40,6 +40,25 @@
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
         Auth2Init();
+
+        var authResponse = storage.get('google');
+        /*
+        authResponse = {
+            access_token: "accessTokenXXXXX",
+            expires_at: 1511992065944,
+            expires_in: 3600,
+            first_issued_at: 1511988465944,
+            id_token: "idTokenXXXXX",
+            idpId: "google",
+            login_hint: "loginHintXXXXXX",
+            scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/plus.me openid email profile"
+            session_state: {
+                extraQueryParams: { … }
+            },
+            token_type: "Bearer"
+        }
+        */
+        console.log('authResponse', authResponse);
 
         function Google() {
             return $promise(function(promise) {
@@ -167,6 +186,7 @@
 
                         }, function(error) {
                             console.log('GoogleLogin.error', error);
+                            storage.delete('google');
                             promise.reject(error);
 
                         });
@@ -177,11 +197,13 @@
                         try {
                             var response = instance.currentUser.get().getAuthResponse(true);
                             console.log('GoogleLogin.readAccessToken.success', response);
+                            storage.set('google', response);
                             promise.resolve({
                                 code: response.access_token,
                             });
                         } catch (error) {
                             console.log('GoogleLogin.readAccessToken.error', error);
+                            storage.delete('google');
                             promise.reject(error);
                         }
                     }
