@@ -1,0 +1,57 @@
+<section class="container-fluid shadow section-bordered">
+    <div class="calendar calendar-planner">
+        <div class="month">
+            <h6 class="flex-row">
+                <span class="w100">
+                        <button type="button" class="btn btn-xs btn-primary" ng-click="doNavMonth(-1)">
+                            <i class="icon-prev"></i> <span><i class="icon-prev"></i> <span ng-bind="sources.month.getDiff(-1).getShortName()"></span></span>
+                </button>
+                </span>
+                <span class="wmax text-center">
+                        <b ng-bind="sources.month.getName()"></b>
+                    </span>
+                <span class="w100 text-right">
+                        <button type="button" class="btn btn-xs btn-primary" ng-click="doNavMonth(1)">
+                            <i class="icon-next"></i> <span><span ng-bind="sources.month.getDiff(1).getShortName()"></span> <i class="icon-next"></i></span>
+                </button>
+                </span>
+            </h6>
+            <ul class="nav">
+                <li class="week">
+                    <span class="cell">week</span>
+                    <span class="cell">lun</span>
+                    <span class="cell">mar</span>
+                    <span class="cell">mer</span>
+                    <span class="cell">gio</span>
+                    <span class="cell">ven</span>
+                    <span class="cell">sab</span>
+                    <span class="cell">dom</span>
+                </li>
+                <li class="week" ng-repeat="week in sources.calendar.month.weeks track by $index">
+                    <div class="cell weekNum" ng-click="onWeekSelect(week.date)">
+                        <span class="num" ng-bind="week.date | isoWeek : 1"></span>
+                    </div>
+                    <div class="cell" ng-class="{ selected: day && sources.day.isCurrent(day.date), day: day, workable: day.workable, holiday: day.holiday, vacation: day.vacation, working: day.working, available: day.available, full: day.full, today: day.$today }" ng-repeat="day in week.days track by $index"
+                        ng-click="onDaySelect(day)" title="{{day.hours + day.working | customNumber : 2 : 'H'}}">
+                        <span class="num" ng-bind="day.d"></span>
+                        <span class="hours" ng-bind="day.hours" ng-if="day.hours"></span> @*
+                        <div class="tasks">
+                            <span class="task" ng-repeat="task in day.tasks track by $index" ng-style="{ width: (task.hours * 4) + 'px' }" title="{{task.hours | customNumber : 2 : 'H ' + task.taskId}}"></span>
+                        </div>
+                        *@
+                        <div class="activities" ng-if="day.workable">
+                            <span class="activity tag-pill" ng-class="getStatusColor(activity)" ng-repeat="activity in day.activities track by $index" ng-style="{ 'flex-basis': (activity.hours / 8 * 100) + '%', 'max-width': (activity.hours / 8 * 100) + '%' }" title="{{activity.hours | customNumber : 2 : 'H ' + activity.task.id}}">
+                                    <span ng-bind="activity.customer.name"></span>
+                            </span>
+                        </div>
+                        <div class="records" ng-if="day.wasWorkable">
+                            <span class="record tag-pill" ng-class="{ 'status-green': day.recordedHours >= 8, 'status-orange': day.recordedHours < 8 }" ng-style="{ 'flex-basis': (day.recordedHours / 8 * 100) + '%', 'max-width': (day.recordedHours / 8 * 100) + '%' }" title="{{day.recordedHours | customNumber : 2 : 'H'}}">
+                                    <span ng-bind="day.recordedHours"></span>
+                            </span>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</section>

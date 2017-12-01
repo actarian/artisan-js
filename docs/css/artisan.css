@@ -379,6 +379,432 @@ Scrollbar
         1
 --------------------
 */
+.calendar {
+  display: block;
+  padding: 0; }
+  .calendar section {
+    margin-bottom: 10px;
+    border: 1px solid #90939b;
+    padding: 0; }
+  .calendar h6 {
+    font-size: 20px;
+    font-weight: 100;
+    background: #75787b;
+    color: #ffffff;
+    padding: 8px 10px 8px 10px;
+    margin: 0; }
+  .calendar ul {
+    display: block;
+    background: #f4f4f4;
+    font-size: 11px;
+    width: 100%;
+    min-width: 260px; }
+    .calendar ul > .week {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: stretch; }
+      .calendar ul > .week > .cell {
+        display: block;
+        position: relative;
+        max-width: 14.28%;
+        min-height: 40px;
+        line-height: 40px;
+        padding: 20px 4px 4px 4px;
+        box-sizing: border-box;
+        text-align: right;
+        flex: 0 0 14.28%; }
+      .calendar ul > .week .cell + .cell {
+        border-left: 1px solid #d0d3db; }
+      .calendar ul > .week:first-child {
+        background: #75787b;
+        color: #ffffff; }
+        .calendar ul > .week:first-child > .cell {
+          min-height: 25px;
+          line-height: 12px;
+          border-color: #90939b;
+          padding-top: 4px; }
+    .calendar ul .week + .week {
+      border-top: 1px solid #d0d3db; }
+  .calendar .num {
+    display: block;
+    position: absolute;
+    min-width: 16px;
+    height: 16px;
+    right: 3px;
+    top: 3px;
+    text-align: center;
+    line-height: 16px; }
+  .calendar .day {
+    background: #ffffff;
+    color: #111111;
+    /*
+        & > .num {
+            display: block;
+            position: absolute;
+            min-width: 16px;
+            height: 16px;
+            right: 3px;
+            top: 3px;
+            text-align: center;
+            line-height: 16px;
+        }
+        */ }
+    .calendar .day.active {
+      background: #fff79a;
+      cursor: pointer; }
+      .calendar .day.active:hover {
+        background: #03a9f4;
+        color: white; }
+        .calendar .day.active:hover .task {
+          background: #ffffff; }
+    .calendar .day > .hours {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      text-align: center;
+      transform: translate3d(-50%, -50%, 0px); }
+    .calendar .day.today > .num {
+      background: red;
+      color: #fff;
+      border-radius: 9px; }
+  .calendar .tasks {
+    display: block;
+    position: relative;
+    padding: 3px 0;
+    line-height: 0;
+    text-align: right; }
+    .calendar .tasks > .task {
+      display: inline-block;
+      position: relative;
+      background: #444;
+      width: 4px;
+      height: 4px;
+      margin: 0 2px 3px 0;
+      border-radius: 2px;
+      /*
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            left: 3px; 
+            top: 3px;
+            */ }
+      .calendar .tasks > .task.working {
+        background: #4BAF4F; }
+
+.calendar-slider {
+  /*
+        overflow: hidden;
+        margin-left: -15px;
+        margin-right: -15px;
+        margin-top: -15px;
+        margin-bottom: 15px;
+
+        .inner {
+            display: flex;
+            justify-content: flex-start;
+            align-items: baseline;
+
+            & > section {
+                width: 400px;
+            }
+        }
+        */ }
+  .calendar-slider section {
+    border: none;
+    margin-bottom: 0;
+    border-bottom: 1px solid #d0d3db; }
+  .calendar-slider section + section {
+    border-left: 1px solid #d0d3db; }
+  .calendar-slider .cell {
+    background: transparent; }
+    .calendar-slider .cell.day {
+      background: #f8f8f8; }
+    .calendar-slider .cell.workable {
+      background: white; }
+    .calendar-slider .cell.working {
+      background: #81baec; }
+    .calendar-slider .cell.available:hover {
+      background: #0275d8; }
+    .calendar-slider .cell.full {
+      background: #fbb9b3; }
+
+.calendar-planner {
+  margin: -20px -15px !important; }
+  .calendar-planner h6 {
+    text-transform: uppercase;
+    font-size: 22px; }
+  .calendar-planner ul > .week {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch; }
+    .calendar-planner ul > .week > .cell {
+      max-width: 12.5%;
+      flex: 0 0 12.5%;
+      min-height: 80px;
+      line-height: 20px;
+      padding: 20px 4px 4px 4px;
+      text-align: right; }
+  .calendar-planner .cell {
+    background: transparent;
+    pointer-events: none;
+    /*
+        &.full {
+            background: mix(map-get($colors, danger), white, 30%);
+        }
+        */ }
+    .calendar-planner .cell.holiday {
+      background: #ffe0b3; }
+    .calendar-planner .cell.vacation {
+      background: #a5d7a7; }
+    .calendar-planner .cell.working {
+      background: white;
+      pointer-events: auto; }
+    .calendar-planner .cell.unworkable {
+      background: #c9e7ca; }
+    .calendar-planner .cell.weekNum {
+      pointer-events: auto; }
+    .calendar-planner .cell.selected {
+      box-shadow: 0 0 0 2px #75787b inset; }
+    .calendar-planner .cell:hover {
+      transition: background ease-in-out 250ms;
+      background: #d9f2fd; }
+  .calendar-planner .activities {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    position: relative;
+    padding: 3px 0;
+    line-height: 0;
+    text-align: right; }
+    .calendar-planner .activities > .activity {
+      display: inline-block;
+      position: relative;
+      flex-basis: 0;
+      flex-grow: 1;
+      margin: 0 2px 3px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+      text-align: right; }
+      .calendar-planner .activities > .activity.working {
+        background: #4BAF4F; }
+  .calendar-planner .records {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    position: relative;
+    padding: 3px 0;
+    line-height: 0;
+    text-align: right; }
+    .calendar-planner .records > .record {
+      display: inline-block;
+      position: relative;
+      flex-basis: 0;
+      flex-grow: 1;
+      min-width: 20px;
+      margin: 0 2px 3px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+      text-align: right; }
+
+/*
+@function pow($number, $exp) {
+    $value: 1;
+
+    @if $exp > 0 {
+        @for $i from 1 through $exp {
+            $value: $value * $number;
+        }
+    }
+    @else if $exp < 0 {
+        @for $i from 1 through -$exp {
+            $value: $value / $number;
+        }
+    }
+
+    @return $value;
+}
+*/
+/*
+.btn-link {
+  font-weight: normal;
+  color: $link-color;
+  border-radius: 0;
+
+  &,
+  &:active,
+  &.active,
+  &:disabled {
+    background-color: transparent;
+    @include box-shadow(none);
+  }
+  &,
+  &:focus,
+  &:active {
+    border-color: transparent;
+  }
+  @include hover {
+    border-color: transparent;
+  }
+  @include hover-focus {
+    color: $link-hover-color;
+    text-decoration: $link-hover-decoration;
+    background-color: transparent;
+  }
+  &:disabled {
+    @include hover-focus {
+      color: $btn-link-disabled-color;
+      text-decoration: none;
+    }
+  }
+}
+*/
+/*
+@mixin btn-color($color, $background, $border) {
+  $active-background: darken($background, 10%);
+  $active-border: darken($border, 12%);
+
+  color: $color;
+  background-color: $background;
+  border-color: $border;
+  @include box-shadow($btn-box-shadow);
+
+  @include hover {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+  }
+
+  &:focus,
+  &.focus {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+  }
+
+  &:active,
+  &.active,
+  .open > &.dropdown-toggle {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+    // Remove the gradient for the pressed/active state
+    background-image: none;
+    @include box-shadow($btn-active-box-shadow);
+
+    &:hover,
+    &:focus,
+    &.focus {
+      color: $color;
+      background-color: darken($background, 17%);
+          border-color: darken($border, 25%);
+    }
+  }
+
+  &.disabled,
+  &:disabled {
+    &:focus,
+    &.focus {
+      background-color: $background;
+          border-color: $border;
+    }
+    @include hover {
+      background-color: $background;
+          border-color: $border;
+    }
+  }
+}
+*/
+/*
+@mixin btn-outline-color($color) {
+    color: $color;
+    background-image: none;
+    background-color: transparent;
+    border-color: $color;
+
+    @include hover {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+    }
+
+    &:focus,
+    &.focus {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+    }
+
+    &:active,
+    &.active,
+    .open > &.dropdown-toggle {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+
+        &:hover,
+        &:focus,
+        &.focus {
+            color: #fff;
+            background-color: darken($color, 17%);
+            border-color: darken($color, 25%);
+        }
+    }
+
+    &.disabled,
+    &:disabled {
+        &:focus,
+        &.focus {
+            border-color: lighten($color, 20%);
+        }
+
+        @include hover {
+            border-color: lighten($color, 20%);
+        }
+    }
+}
+*/
+/*
+@function pow($number, $exp) {
+    $value: 1;
+
+    @if $exp > 0 {
+        @for $i from 1 through $exp {
+            $value: $value * $number;
+        }
+    }
+    @else if $exp < 0 {
+        @for $i from 1 through -$exp {
+            $value: $value / $number;
+        }
+    }
+
+    @return $value;
+}
+*/
+/*
+Scrollbar
+--------------------
+        1
+────────┐
+        ┴   2
+        ┬   2
+        ║   3-4
+        ║   3-4
+        │   5-4
+        │   5-4
+────────┘   6-7
+        1
+--------------------
+*/
 [expandable] {
   position: relative; }
 

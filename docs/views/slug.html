@@ -4,9 +4,9 @@
 
 <div ng-repeat="range in ranges track by $index">
     <div class="btn-group" style="width: 100%;">
-        <button type="button" class="btn btn-outline-primary" ng-click="range.prev()"><span ng-bind="range.getDiff(-1).shortName()">-</span></button>
-        <button type="button" class="btn btn-outline-primary"><span ng-bind="range.fullName()"></span></span>
-        <button type="button" class="btn btn-outline-primary" ng-click="range.next()"><span ng-bind="range.getDiff(1).shortName()">-</span></button>
+        <button type="button" class="btn btn-outline-primary" ng-click="range.prev()"><span ng-bind="range.getDiff(-1).getShortName()">-</span></button>
+        <button type="button" class="btn btn-outline-primary"><span ng-bind="range.getName()"></span></span>
+        <button type="button" class="btn btn-outline-primary" ng-click="range.next()"><span ng-bind="range.getDiff(1).getShortName()">-</span></button>
     </div>
 </div>
 
