@@ -1,0 +1,114 @@
+<json-formatter json="sources">
+</json-formatter>
+
+<div ng-repeat="item in sources.todos track by $index">
+    <div todo-item="item" target=".player-item" template="partials/todo/item">-</div>
+</div>
+
+<style>
+    .flex-row {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        font-family: monospace;
+        font-size: .8em;
+    }
+    
+    .flex-row>div {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 160px;
+        margin-bottom: 10px;
+        border: 1px solid grey;
+        height: 40px;
+        border-radius: 5px;
+        margin: 5px;
+    }
+    
+    .player-item {
+        background: #f0f0f0;
+        cursor: pointer;
+    }
+    
+    .player-item svg {
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        left: 10px;
+    }
+    
+    .player-item svg .track {
+        stroke: #bbbbbb;
+    }
+    
+    .player-item svg .progress {
+        stroke: blue;
+    }
+    
+    .player-item .elapsed {
+        text-align: center;
+    }
+</style>
+
+<!-- WEEK TODO ITEM -->
+<script type="text/ng-template" id="partials/todo/item">
+    <div class="flex-row">
+        <div>
+            <span ng-bind="item.key"></span>
+        </div>
+        <div class="player-item" ng-class="{ 'playing': item.player.playing }">
+            <svg id="svg" width="100%" height="100%" viewport="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                <circle class="track" r="40%" cx="50%" cy="50%" fill="transparent" stroke-linecap="round"></circle>
+                <circle class="progress" r="40%" cx="50%" cy="50%" fill="transparent" stroke-linecap="round"></circle>
+            </svg>
+            <span class="elapsed"></span>
+        </div>
+        <div>
+            <span ng-bind="item.player.accumulatedTime | customDigitalTime"></span>
+        </div>
+        <div>
+            <span ng-bind="item.player.elapsedTime | customDigitalTime"></span>
+        </div>
+        <div>
+            <span ng-bind="item.player.startTime | date : 'HH:mm:ss dd/MM'"></span>
+        </div>
+        <div>
+            <span ng-bind="item.player.totalTime | customHours"></span>
+        </div>
+        <div>
+            <span ng-bind="item.recordedHours | customNumber : 2 : ' H'"></span>
+        </div>
+        <div>
+            <span ng-bind="item.hours | customNumber : 2 : ' H'"></span>
+        </div>
+    </div>
+    <!-- 
+    <div class="infos">
+        <div class="task" link-to="links.task(item.task.id)" ng-if="item.task"><span class="id" ng-bind="item.task.id"></span> <b class="name" ng-bind="item.task.name"></b></div>
+        <div class="activity" link-to="links.activity(item.activity.id)"><span class="id" ng-bind="item.activity.id"></span> <b class="name" ng-bind="item.activity.name"></b></div>
+        <p>
+            <span class="tag tag-link" link-to="links.customer(item.customer.id)" ng-bind="item.customer.name + ' ' + item.customer.id"></span>
+            <span class="tag tag-link" link-to="links.project(item.project.id)" ng-bind="item.project.name + ' ' + item.project.id"></span>
+        </p>
+        <ul class="list-group">
+            <li class="list-group-item justify-content-between">
+                Ore lavorate in week <span ng-bind="item.days[0].date | isoWeek : 1">-</span>
+                <span class="tag tag-pill pull-xs-right"> 
+                    <span ng-bind="item.recordedHours | customNumber : 2 : ' H'">-</span> / <span ng-bind="item.hours | customNumber : 2 : ' H'">-</span>
+                </span>
+            </li>
+        </ul>
+    </div>
+    <div class="hours" ng-class="{ exceed: item.recordedHours > item.hours }">
+        <div class="progress" ng-style="{ 'transform': 'scaleX(' + item.percentualHours + ')' }"></div>
+        <div class="slot">
+            <span class="name exceeding" ng-bind="item.recordedHours | customHours"></span> <span class="name" ng-bind="item.hours | customHours"></span> <i class="icon-lock" ng-if="item.locked"></i>
+        </div>
+    </div>
+    <div class="ctas">
+        <button type="button" class="btn btn-xs btn-primary" ng-click="doAddRecord(item)" ng-disabled="sources.currentWeek.isBefore(sources.day.from)">Contabilizza</button>
+    </div>
+    -->
+</script>

@@ -3053,718 +3053,823 @@
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('Calendar', ['Hash', function (Hash) {
-		const oneday = (24 * 60 * 60 * 1000);
-		var today = new Date();
-		today.setHours(0);
-		today.setMinutes(0);
-		today.setSeconds(0);
-		var todayKey = Math.ceil(today.getTime() / oneday);
-		ArrayFrom = function (len, callback) {
-			var a = [];
-			while (a.length < len) {
-				a.push(callback(a.length));
-			}
-			return a;
-		};
-		var days = new Hash('key');
-		var months = new Hash('mKey');
+    app.service('Calendar', ['DateTime', 'Hash', function(DateTime, Hash) {
 
-		function Calendar() {}
-		Calendar.getDate = function (day) {
-			if (typeof day.date.getMonth === 'function') {
-				return day.date;
-			} else {
-				return new Date(day.date);
-			}
-		};
-		Calendar.clearMonth = function (month) {
-			month.days.each(function (day) {
-				if (day) {
-					day.hours = 0;
-					day.tasks = new Hash('id');
-				}
-			});
-		};
-		Calendar.getMonthByDate = function (date) {
-			today = new Date();
-			today.setHours(0);
-			today.setMinutes(0);
-			today.setSeconds(0);
-			todayKey = Math.ceil(today.getTime() / oneday);
-			var yyyy = date.getFullYear();
-			var MM = date.getMonth();
-			var key = Math.ceil(date.getTime() / oneday);
-			var mKey = yyyy * 12 + MM;
-			var month = months.getId(mKey);
-			if (!month) {
-				var fromDay = new Date(yyyy, MM, 1).getDay() - 1;
-				fromDay = fromDay < 0 ? 6 : fromDay;
-				var monthDays = new Date(yyyy, MM + 1, 0).getDate();
-				var weeks = 6; // Math.ceil((fromDay + monthDays) / 7);
-				// console.log('month', MM, 'weeks', weeks);
-				var month = {
-					date: date,
-					mKey: mKey,
-					month: MM,
-					monthDays: monthDays,
-					fromDay: fromDay,
-					days: new Hash('key'),
-				};
-				month.weeks = ArrayFrom(weeks, function (r) {
-					var days = ArrayFrom(7, function (c) {
-						var item = null;
-						var d = r * 7 + c - fromDay;
-						if (d >= 0 && d < monthDays) {
-							var date = new Date(yyyy, MM, d + 1);
-							var key = Math.ceil(date.getTime() / oneday);
-							item = {
-								$today: key === todayKey,
-								c: c,
-								r: r,
-								d: d + 1,
-								date: date,
-								key: key,
-								hours: 0,
-								tasks: new Hash('id'),
-							};
-							Calendar.days.add(item);
-							item = month.days.add(item);
-						}
-						return item;
-					});
-					return {
-						r: r,
-						date: new Date(yyyy, MM, r * 7 - fromDay + 1),
-						days: days,
-					}
-				});
-				month.getMonth = function (diff) {
-					diff = diff || 0;
-					return new Date(yyyy, MM + diff, 1);
-				}
-				month = months.add(month);
-			}
-			return month;
-		};
-		Calendar.getMonths = function (num) {
-			days.removeAll();
-			months.removeAll();
-			today = new Date();
-			today.setHours(0);
-			today.setMinutes(0);
-			today.setSeconds(0);
-			var i = 0;
-			while (i < num) {
-				var date = new Date();
-				date.setFullYear(today.getFullYear());
-				date.setMonth(today.getMonth() + i);
-				date.setDate(1);
-				date.setHours(0);
-				date.setMinutes(0);
-				date.setSeconds(0);
-				var month = Calendar.getMonthByDate(date);
-				// console.log('Calendar.getMonths', month);
-				i++;
-			}
-			// console.log('Calendar.getMonths', months);
-			return months;
-		};
-		Calendar.getMonth = function (day) {
-			var date = Calendar.getDate(day);
-			var month = Calendar.getMonthByDate(date);
-			return month;
-		};
-		Calendar.getDay = function (days) {
-			var date = new Date(today);
-			date.setDate(date.getDate() + days);
-			return date;
-		};
-		Calendar.getKey = function (date) {
-			return Math.ceil(date.getTime() / oneday);
-		};
-		Calendar.days = days;
-		Calendar.months = months;
-		return Calendar;
-	}]);
+        var service = this;
+
+        var days = new Hash('key');
+        var months = new Hash('mKey');
+
+        var statics = {
+            getDate: getDate,
+            clearMonth: clearMonth,
+            getMonthByDate: getMonthByDate,
+            getMonths: getMonths,
+            getMonth: getMonth,
+            getDay: getDay,
+            getKey: getKey,
+            days: days,
+            months: months,
+        };
+
+        angular.extend(service, statics);
+
+        function getDate(day) {
+            if (typeof day.date.getMonth === 'function') {
+                return day.date;
+            } else {
+                return new Date(day.date);
+            }
+        }
+
+        function clearMonth(month) {
+            month.days.each(function(day) {
+                if (day) {
+                    day.hours = 0;
+                    day.tasks = new Hash('id');
+                }
+            });
+        }
+
+        function getMonthByDate(date) {
+            var yyyy = date.getFullYear();
+            var MM = date.getMonth();
+            var key = Math.ceil(date.getTime() / DateTime.DAY);
+            var mKey = yyyy * 12 + MM;
+            var month = months.getId(mKey);
+            if (!month) {
+                var fromDay = new Date(yyyy, MM, 1).getDay() - 1;
+                fromDay = fromDay < 0 ? 6 : fromDay;
+                var monthDays = new Date(yyyy, MM + 1, 0).getDate();
+                var weeks = 6; // Math.ceil((fromDay + monthDays) / 7);
+                // console.log('month', MM, 'weeks', weeks);
+                month = {
+                    date: date,
+                    mKey: mKey,
+                    month: MM,
+                    monthDays: monthDays,
+                    fromDay: fromDay,
+                    days: new Hash('key'),
+                };
+                month.weeks = new Array(weeks).fill().map(function(o, r) {
+                    var days = new Array(7).fill().map(function(o, c) {
+                        var item = null;
+                        var d = r * 7 + c - fromDay;
+                        if (d >= 0 && d < monthDays) {
+                            var date = new Date(yyyy, MM, d + 1);
+                            var key = Math.ceil(date.getTime() / DateTime.DAY);
+                            item = {
+                                $today: key === DateTime.today.key,
+                                c: c,
+                                r: r,
+                                d: d + 1,
+                                date: date,
+                                key: key,
+                                hours: 0,
+                                tasks: new Hash('id'),
+                            };
+                            days.add(item);
+                            item = month.days.add(item);
+                        }
+                        return item;
+                    });
+                    return {
+                        r: r,
+                        date: new Date(yyyy, MM, r * 7 - fromDay + 1),
+                        days: days,
+                    };
+                });
+                month.getMonth = function(diff) {
+                    diff = diff || 0;
+                    return new Date(yyyy, MM + diff, 1);
+                };
+                month = months.add(month);
+            }
+            return month;
+        }
+
+        function getMonths(num) {
+            days.removeAll();
+            months.removeAll();
+            var i = 0;
+            while (i < num) {
+                var date = new Date();
+                date.setFullYear(DateTime.today.date.getFullYear());
+                date.setMonth(DateTime.today.date.getMonth() + i);
+                date.setDate(1);
+                date.setHours(0);
+                date.setMinutes(0);
+                date.setSeconds(0);
+                var month = getMonthByDate(date);
+                // console.log('getMonths', month);
+                i++;
+            }
+            // console.log('getMonths', months);
+            return months;
+        }
+
+        function getMonth(day) {
+            var date = getDate(day);
+            var month = getMonthByDate(date);
+            return month;
+        }
+
+        function getDay(days) {
+            var date = new Date(DateTime.today.date);
+            date.setDate(date.getDate() + days);
+            return date;
+        }
+
+        function getKey(date) {
+            return Math.ceil(date.getTime() / DateTime.DAY);
+        }
+
+    }]);
 
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('Range', ['$filter', function ($filter) {
+    app.service('DateTime', [function() {
 
-		var ONEDAY = 24 * 60 * 60 * 1000;
+        var service = this;
 
-		var formats_it = {
-			long: {
-				YEAR: 'Anno {from|date:yyyy}',
-				SEMESTER: 'Semestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: 'Quadrimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: 'Trimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM yyyy}',
-				WEEK: 'Settimana {to|isoWeek:1}',
-				DAY: '{from|date:EEEE dd MMM yyyy}',
-			},
-			short: {
-				YEAR: '{from|date:yyyy}',
-				SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM}',
-				WEEK: 'W{to|isoWeek:1}',
-				DAY: '{from|date:EEEE}',
-			}
+        var SECOND = 1000;
+        var MINUTE = 60 * SECOND;
+        var QUARTER = 15 * MINUTE;
+        var HOUR = 60 * MINUTE;
+        var DAY = 24 * HOUR;
+
+        var today = getDate();
+
+        var statics = {
+            dateToKey: dateToKey,
+            dayLeft: dayLeft,
+            dayRight: dayRight,
+            getDate: getDate,
+            keyToDate: keyToDate,
+            monthLeft: monthLeft,
+            monthRight: monthRight,
+            today: today,
+            // conversion
+            hourToTime: hourToTime,
+            timeToHour: timeToHour,
+            timeToQuarterHour: timeToQuarterHour,
+            // units
+            MINUTE: MINUTE,
+            QUARTER: QUARTER,
+            HOUR: HOUR,
+            DAY: DAY,
+        };
+
+        angular.extend(service, statics);
+
+        function components(date) {
+            date = datetime(date);
+            return {
+                date: date,
+                yyyy: date.getFullYear(),
+                MM: date.getMonth(),
+                dd: date.getDate(),
+                HH: date.getHours(),
+                mm: date.getMinutes(),
+                ss: date.getSeconds(),
+                sss: date.getMilliseconds(),
+            };
+        }
+
+        function datetime(date) {
+            date = date ? new Date(date) : new Date();
+            return date;
+        }
+
+        function dateToKey(date) {
+            return Math.ceil(date.getTime() / DAY);
+        }
+
+        function dayLeft(date) {
+            var c = components(date);
+            return new Date(c.yyyy, c.MM, c.dd, 0, 0, 0, 0);
+        }
+
+        function dayRight(date) {
+            var c = components(date);
+            return new Date(c.yyyy, c.MM, c.dd, 23, 59, 59, 999);
+        }
+
+        function getDate(date) {
+            date = dayLeft(date);
+            return {
+                date: date,
+                key: dateToKey(date),
+            };
+        }
+
+        function keyToDate(key) {
+            return new Date(new Date().setTime(key * DAY));
+        }
+
+        function monthLeft(date) {
+            var c = components(date);
+            return new Date(c.yyyy, c.MM, 1, 0, 0, 0, 0);
+        }
+
+        function monthRight(date) {
+            var c = components(date);
+            return new Date(c.yyyy, c.MM + 1, 0, 23, 59, 59, 999);
+        }
+
+        function hourToTime(hour) {
+            return hour * HOUR;
+        }
+
+        function timeToHour(time) {
+            return time / HOUR;
+        }
+
+        function timeToQuarterHour(time) {
+            return Math.floor(time / QUARTER) * QUARTER / HOUR;
+        }
+
+        /*
+        ArrayFrom = function(len, callback) {
+            var a = [];
+            while (a.length < len) {
+                a.push(callback(a.length));
+            }
+            return a;
 		};
-		var formats_en = {
-			long: {
-				YEAR: 'Year {from|date:yyyy}',
-				SEMESTER: 'Semester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: 'Trimester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: 'Quarter {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM yyyy}',
-				WEEK: 'Week {from|isoWeek:0}',
-				DAY: '{from|date:EEEE MM/dd/yyyy}',
-			},
-			short: {
-				YEAR: '{from|date:yyyy}',
-				SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM}',
-				WEEK: 'W{from|isoWeek:0}',
-				DAY: '{from|date:EEEE}',
-			}
-		};
+		*/
 
-		var formats = formats_en;
+    }]);
 
-		var RangeTypes = {
-			YEAR: 10,
-			SEMESTER: 11,
-			TRIMESTER: 12,
-			QUARTER: 13,
-			MONTH: 14,
-			WEEK: 15,
-			DAY: 16,
-			NEXT_YEAR: 20,
-		};
+}());
+/* global angular */
 
-		var today = getToday();
+(function() {
+    "use strict";
 
-		var statics = {
-			today: today,
-			getToday: getToday,
-			getMonth: getMonth,
-			addYear: addYear,
-			dateToKey: dateToKey,
-			keyToDate: keyToDate,
-			types: RangeTypes,
-		};
+    var app = angular.module('artisan');
 
-		var publics = {
-			setYear: setYear,
-			setSemester: setSemester,
-			setTrimester: setTrimester,
-			setQuarter: setQuarter,
-			setMonth: setMonth,
-			setWeek: setWeek,
-			setDay: setDay,
+    app.factory('Range', ['$filter', 'DateTime', function($filter, DateTime) {
 
-			prev: prev,
-			next: next,
+        var formats_it = {
+            long: {
+                YEAR: 'Anno {from|date:yyyy}',
+                SEMESTER: 'Semestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                TRIMESTER: 'Quadrimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                QUARTER: 'Trimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                MONTH: '{from|date:MMMM yyyy}',
+                WEEK: 'Settimana {to|isoWeek:1}',
+                DAY: '{from|date:EEEE dd MMM yyyy}',
+            },
+            short: {
+                YEAR: '{from|date:yyyy}',
+                SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                MONTH: '{from|date:MMMM}',
+                WEEK: 'W{to|isoWeek:1}',
+                DAY: '{from|date:EEEE}',
+            }
+        };
 
-			setYearPeriod: setYearPeriod,
-			setLastSemester: setLastSemester,
-			nextYear: nextYear,
-			currentYear: currentYear,
-			currentSemester: currentSemester,
-			currentTrimester: currentTrimester,
-			currentQuarter: currentQuarter,
-			currentMonth: currentMonth,
-			currentWeek: currentWeek,
-			currentYearPeriod: currentYearPeriod,
-			lastSemester: lastSemester,
-			getDiff: getDiff,
-			getParams: getParams,
-			getDate: getDate,
-			setDate: setDate,
-			setDiff: setDiff,
+        var formats_en = {
+            long: {
+                YEAR: 'Year {from|date:yyyy}',
+                SEMESTER: 'Semester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                TRIMESTER: 'Trimester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                QUARTER: 'Quarter {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                MONTH: '{from|date:MMMM yyyy}',
+                WEEK: 'Week {from|isoWeek:0}',
+                DAY: '{from|date:EEEE MM/dd/yyyy}',
+            },
+            short: {
+                YEAR: '{from|date:yyyy}',
+                SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+                MONTH: '{from|date:MMMM}',
+                WEEK: 'W{from|isoWeek:0}',
+                DAY: '{from|date:EEEE}',
+            }
+        };
 
-			set: set,
-			is: is,
-			isOutside: isOutside,
-			isCurrent: isCurrent,
-			isBefore: isBefore,
-			isAfter: isAfter,
+        var formats = formats_en;
 
-			getName: getName,
-			getShortName: getShortName,
-			toString: toString,
-		};
+        var RangeTypes = {
+            YEAR: 10,
+            SEMESTER: 11,
+            TRIMESTER: 12,
+            QUARTER: 13,
+            MONTH: 14,
+            WEEK: 15,
+            DAY: 16,
+            NEXT_YEAR: 20,
+        };
 
-		function Range(options) {
-			var range = this;
-			range.from = new Date();
-			range.type = RangeTypes.QUARTER;
-			if (options) {
-				angular.extend(range, options);
-			}
-			range.setDiff();
-		}
+        var statics = {
+            today: DateTime.today,
+            getDate: DateTime.getDate,
+            dateToKey: DateTime.dateToKey,
+            keyToDate: DateTime.keyToDate,
+            getMonth: getMonth,
+            addYear: addYear,
+            types: RangeTypes,
+        };
 
-		angular.extend(Range, statics);
-		angular.extend(Range.prototype, publics);
+        var publics = {
+            setYear: setYear,
+            setSemester: setSemester,
+            setTrimester: setTrimester,
+            setQuarter: setQuarter,
+            setMonth: setMonth,
+            setWeek: setWeek,
+            setDay: setDay,
 
-		return Range;
+            prev: prev,
+            next: next,
 
-		// static methods
+            setYearPeriod: setYearPeriod,
+            setLastSemester: setLastSemester,
+            nextYear: nextYear,
+            currentYear: currentYear,
+            currentSemester: currentSemester,
+            currentTrimester: currentTrimester,
+            currentQuarter: currentQuarter,
+            currentMonth: currentMonth,
+            currentWeek: currentWeek,
+            currentYearPeriod: currentYearPeriod,
+            lastSemester: lastSemester,
+            getDiff: getDiff,
+            getParams: getParams,
+            getDate: getDate,
+            setDate: setDate,
+            setDiff: setDiff,
 
-		function getToday() {
-			var date = new Date();
-			date.setHours(0);
-			date.setMinutes(0);
-			date.setSeconds(0);
-			var key = Math.ceil(date.getTime() / ONEDAY);
-			return {
-				date: date,
-				key: key
-			};
-		}
+            set: set,
+            is: is,
+            isInside: isInside,
+            isOutside: isOutside,
+            isCurrent: isCurrent,
+            isBefore: isBefore,
+            isAfter: isAfter,
 
-		function getMonth(date) {
-			if (!date) {
-				return null;
-			}
-			date = new Date(date);
-			date.setDate(1);
-			date.setHours(0, 0, 0, 0);
-			return date.getTime();
-		}
+            getName: getName,
+            getShortName: getShortName,
+            toString: toString,
+        };
 
-		function addYear(date, years) {
-			if (!date) {
-				return null;
-			}
-			date = new Date(date);
-			return new Date(date.setFullYear(date.getFullYear() + years));
-		}
+        function Range(options) {
+            var range = this;
+            range.from = DateTime.dayLeft();
+            range.type = RangeTypes.QUARTER;
+            if (options) {
+                angular.extend(range, options);
+            }
+            range.setDiff();
+        }
 
-		function dateToKey(date) {
-			return Math.ceil(date.getTime() / ONEDAY);
-		}
+        angular.extend(Range, statics);
+        angular.extend(Range.prototype, publics);
 
-		function keyToDate(key) {
-			return new Date(new Date().setTime(key * ONEDAY));
-		}
+        return Range;
 
-		// public methods
+        // static methods
 
-		function isOutside(date) {
-			date = date || new Date();
-			var range = this;
-			var outside = date < range.from || date > range.to;
-			// console.log('isOutside', date, range.from, range.to);
-			return outside;
-		}
+        function getMonth(date) {
+            if (!date) {
+                return null;
+            }
+            date = new Date(date);
+            date.setDate(1);
+            date.setHours(0, 0, 0, 0);
+            return date.getTime();
+        }
 
-		function isCurrent(date) {
-			date = date || new Date();
-			var range = this;
-			return !range.isOutside(date);
-		}
+        function addYear(date, years) {
+            if (!date) {
+                return null;
+            }
+            date = new Date(date);
+            return new Date(date.setFullYear(date.getFullYear() + years));
+        }
 
-		function isBefore(date) {
-			date = date || new Date();
-			var range = this;
-			var before = range.to < date;
-			// console.log('isBefore', before, range.to, date);
-			return before;
-		}
+        // public methods
 
-		function isAfter(date) {
-			date = date || new Date();
-			var range = this;
-			var after = range.from > date;
-			// console.log('isAfter', after);
-			return after;
-		}
+        function isInside(date) {
+            var range = this;
+            return !range.isOutside(date);
+        }
 
-		function setDate(date, diff) {
-			var range = this;
-			switch (range.type) {
-				case RangeTypes.YEAR:
-					range.setYear(date, diff);
-					break;
-				case RangeTypes.SEMESTER:
-					range.setSemester(date, diff);
-					break;
-				case RangeTypes.TRIMESTER:
-					range.setTrimester(date, diff);
-					break;
-				case RangeTypes.QUARTER:
-					range.setQuarter(date, diff);
-					break;
-				case RangeTypes.MONTH:
-					range.setMonth(date, diff);
-					break;
-				case RangeTypes.WEEK:
-					range.setWeek(date, diff);
-					break;
-				case RangeTypes.DAY:
-					range.setDay(date, diff);
-					break;
-				case RangeTypes.NEXT_YEAR:
-					range.nextYear(date, diff);
-					break;
-			}
-			return range;
-		}
+        function isOutside(date) {
+            date = date || new Date();
+            var range = this;
+            var outside = date < range.from || date > range.to;
+            // console.log('isOutside', date, range.from, range.to);
+            return outside;
+        }
 
-		function getDate(diff) {
-			diff = diff || 0;
-			var range = this;
-			var date = new Date(range.from);
-			switch (range.type) {
-				case RangeTypes.YEAR:
-				case RangeTypes.NEXT_YEAR:
-					date = new Date(date.setFullYear(date.getFullYear() + diff));
-					break;
-				case RangeTypes.SEMESTER:
-					date = new Date(date.setMonth(date.getMonth() + diff * 6));
-					break;
-				case RangeTypes.TRIMESTER:
-					date = new Date(date.setMonth(date.getMonth() + diff * 4));
-					break;
-				case RangeTypes.QUARTER:
-					date = new Date(date.setMonth(date.getMonth() + diff * 3));
-					break;
-				case RangeTypes.MONTH:
-					date = new Date(date.setMonth(date.getMonth() + diff));
-					break;
-				case RangeTypes.WEEK:
-					date = new Date(date.setDate(date.getDate() + diff * 7));
-					break;
-				case RangeTypes.DAY:
-					date = new Date(date.setDate(date.getDate() + diff));
-					break;
-			}
-			return date;
-		}
+        function isCurrent(date) {
+            date = date || new Date();
+            var range = this;
+            return !range.isOutside(date);
+        }
 
-		function getParams() {
-			return {
-				dateFrom: new Date(this.from),
-				dateTo: new Date(this.to),
-			};
-		}
+        function isBefore(date) {
+            date = date || new Date();
+            var range = this;
+            var before = range.to < date;
+            // console.log('isBefore', before, range.to, date);
+            return before;
+        }
 
-		function setYear(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 12 * diff));
-			var yyyy = date.getFullYear();
-			var range = this;
-			range.type = RangeTypes.YEAR;
-			range.from = new Date(yyyy, 0, 1);
-			range.to = new Date(yyyy, 12, 0, 23, 59, 59, 999);
-			return range;
-		}
+        function isAfter(date) {
+            date = date || new Date();
+            var range = this;
+            var after = range.from > date;
+            // console.log('isAfter', after);
+            return after;
+        }
 
-		function setSemester(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 6 * diff));
-			var yyyy = date.getFullYear();
-			var semester = Math.floor(date.getMonth() / 6);
-			var range = this;
-			range.type = RangeTypes.SEMESTER;
-			range.from = new Date(yyyy, semester * 6, 1);
-			range.to = new Date(yyyy, semester * 6 + 6, 0, 23, 59, 59, 999);
-			return range;
-		}
+        function setDate(date, diff) {
+            var range = this;
+            switch (range.type) {
+                case RangeTypes.YEAR:
+                    range.setYear(date, diff);
+                    break;
+                case RangeTypes.SEMESTER:
+                    range.setSemester(date, diff);
+                    break;
+                case RangeTypes.TRIMESTER:
+                    range.setTrimester(date, diff);
+                    break;
+                case RangeTypes.QUARTER:
+                    range.setQuarter(date, diff);
+                    break;
+                case RangeTypes.MONTH:
+                    range.setMonth(date, diff);
+                    break;
+                case RangeTypes.WEEK:
+                    range.setWeek(date, diff);
+                    break;
+                case RangeTypes.DAY:
+                    range.setDay(date, diff);
+                    break;
+                case RangeTypes.NEXT_YEAR:
+                    range.nextYear(date, diff);
+                    break;
+            }
+            return range;
+        }
 
-		function setTrimester(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 4 * diff));
-			var yyyy = date.getFullYear();
-			var trimester = Math.floor(date.getMonth() / 4);
-			var range = this;
-			range.type = RangeTypes.TRIMESTER;
-			range.from = new Date(yyyy, trimester * 4, 1);
-			range.to = new Date(yyyy, trimester * 4 + 4, 0, 23, 59, 59, 999);
-			return range;
-		}
+        function getDate(diff) {
+            diff = diff || 0;
+            var range = this;
+            var date = new Date(range.from);
+            switch (range.type) {
+                case RangeTypes.YEAR:
+                case RangeTypes.NEXT_YEAR:
+                    date = new Date(date.setFullYear(date.getFullYear() + diff));
+                    break;
+                case RangeTypes.SEMESTER:
+                    date = new Date(date.setMonth(date.getMonth() + diff * 6));
+                    break;
+                case RangeTypes.TRIMESTER:
+                    date = new Date(date.setMonth(date.getMonth() + diff * 4));
+                    break;
+                case RangeTypes.QUARTER:
+                    date = new Date(date.setMonth(date.getMonth() + diff * 3));
+                    break;
+                case RangeTypes.MONTH:
+                    date = new Date(date.setMonth(date.getMonth() + diff));
+                    break;
+                case RangeTypes.WEEK:
+                    date = new Date(date.setDate(date.getDate() + diff * 7));
+                    break;
+                case RangeTypes.DAY:
+                    date = new Date(date.setDate(date.getDate() + diff));
+                    break;
+            }
+            return date;
+        }
 
-		function setQuarter(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 3 * diff));
-			var yyyy = date.getFullYear();
-			var quarter = Math.floor(date.getMonth() / 3);
-			var range = this;
-			range.type = RangeTypes.QUARTER;
-			range.from = new Date(yyyy, quarter * 3, 1);
-			range.to = new Date(yyyy, quarter * 3 + 3, 0, 23, 59, 59, 999);
-			return range;
-		}
+        function getParams() {
+            return {
+                dateFrom: new Date(this.from),
+                dateTo: new Date(this.to),
+            };
+        }
 
-		function setMonth(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + diff));
-			var yyyy = date.getFullYear();
-			var MM = date.getMonth();
-			var dd = date.getDate();
-			var range = this;
-			range.type = RangeTypes.MONTH;
-			range.from = new Date(yyyy, MM, 1);
-			range.to = new Date(yyyy, MM + 1, 0, 23, 59, 59, 999);
-			// console.log('setMonth', yyyy, MM, dd, range);
-			return range;
-		}
+        function setYear(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setMonth(date.getMonth() + 12 * diff));
+            var yyyy = date.getFullYear();
+            var range = this;
+            range.type = RangeTypes.YEAR;
+            range.from = new Date(yyyy, 0, 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, 12, 0, 23, 59, 59, 999);
+            return range;
+        }
 
-		function setWeek(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setDate(date.getDate() + diff * 7));
-			var yyyy = date.getFullYear();
-			var MM = date.getMonth();
-			var dd = date.getDate();
-			var n = date.getDay();
-			var range = this;
-			range.type = RangeTypes.WEEK;
-			range.from = new Date(yyyy, MM, dd - n);
-			range.to = new Date(yyyy, MM, dd - n + 6, 23, 59, 59, 999);
-			return range;
-		}
+        function setSemester(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setMonth(date.getMonth() + 6 * diff));
+            var yyyy = date.getFullYear();
+            var semester = Math.floor(date.getMonth() / 6);
+            var range = this;
+            range.type = RangeTypes.SEMESTER;
+            range.from = new Date(yyyy, semester * 6, 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, semester * 6 + 6, 0, 23, 59, 59, 999);
+            return range;
+        }
 
-		function setDay(date, diff) {
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setDate(date.getDate() + diff));
-			var yyyy = date.getFullYear();
-			var MM = date.getMonth();
-			var dd = date.getDate();
-			var range = this;
-			range.type = RangeTypes.DAY;
-			range.from = new Date(yyyy, MM, dd);
-			range.to = new Date(yyyy, MM, dd, 23, 59, 59, 999);
-			return range;
-		}
+        function setTrimester(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setMonth(date.getMonth() + 4 * diff));
+            var yyyy = date.getFullYear();
+            var trimester = Math.floor(date.getMonth() / 4);
+            var range = this;
+            range.type = RangeTypes.TRIMESTER;
+            range.from = new Date(yyyy, trimester * 4, 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, trimester * 4 + 4, 0, 23, 59, 59, 999);
+            return range;
+        }
 
-		function setYearPeriod(date, diff) {
-			diff = diff || 0;
-			this.type = Range.types.YEAR;
-			var now = new Date();
-			var m = now.getMonth() + 1;
-			now.setMonth(m * diff);
-			var year = now.getFullYear();
-			this.from = new Date(year, 0, 1);
-			this.to = new Date(year, m, 0);
-			return this;
-		}
+        function setQuarter(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setMonth(date.getMonth() + 3 * diff));
+            var yyyy = date.getFullYear();
+            var quarter = Math.floor(date.getMonth() / 3);
+            var range = this;
+            range.type = RangeTypes.QUARTER;
+            range.from = new Date(yyyy, quarter * 3, 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, quarter * 3 + 3, 0, 23, 59, 59, 999);
+            return range;
+        }
 
-		function setLastSemester(date, diff) {
-			// should be setLastSixMonths;
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 6 * diff + 1));
-			var range = this;
-			range.type = RangeTypes.SEMESTER;
-			var yyyy = date.getFullYear();
-			range.from = new Date(yyyy, date.getMonth(), 1);
-			range.to = new Date(yyyy, date.getMonth() + 6, 0, 23, 59, 59, 999);
-			return range;
-		}
+        function setMonth(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setMonth(date.getMonth() + diff));
+            var yyyy = date.getFullYear();
+            var MM = date.getMonth();
+            var dd = date.getDate();
+            var range = this;
+            range.type = RangeTypes.MONTH;
+            range.from = new Date(yyyy, MM, 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, MM + 1, 0, 23, 59, 59, 999);
+            // console.log('setMonth', yyyy, MM, dd, range);
+            return range;
+        }
 
-		function prev() {
-			return this.setDiff(-1);
-		}
+        function setWeek(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setDate(date.getDate() + diff * 7));
+            var yyyy = date.getFullYear();
+            var MM = date.getMonth();
+            var dd = date.getDate();
+            var n = date.getDay();
+            var range = this;
+            range.type = RangeTypes.WEEK;
+            range.from = new Date(yyyy, MM, dd - n, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, MM, dd - n + 6, 23, 59, 59, 999);
+            return range;
+        }
 
-		function next() {
-			return this.setDiff(1);
-		}
+        function setDay(date, diff) {
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setDate(date.getDate() + diff));
+            var yyyy = date.getFullYear();
+            var MM = date.getMonth();
+            var dd = date.getDate();
+            var range = this;
+            range.type = RangeTypes.DAY;
+            range.from = new Date(yyyy, MM, dd, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, MM, dd, 23, 59, 59, 999);
+            return range;
+        }
 
-		function nextYear() {
-			var date = new Date();
-			var yyyy = date.getFullYear();
-			var range = this;
-			range.type = RangeTypes.NEXT_YEAR;
-			range.from = new Date(yyyy, date.getMonth(), 1);
-			range.to = new Date(yyyy, date.getMonth() + 12, 0, 23, 59, 59, 999);
-			return range;
-		}
+        function setYearPeriod(date, diff) {
+            diff = diff || 0;
+            this.type = RangeTypes.YEAR;
+            var now = new Date();
+            var m = now.getMonth() + 1;
+            now.setMonth(m * diff);
+            var year = now.getFullYear();
+            this.from = new Date(year, 0, 1, 0, 0, 0, 0, 0);
+            this.to = new Date(year, m, 0, 23, 59, 59, 999);
+            return this;
+        }
 
-		function currentYear() {
-			var range = this;
-			range.setYear();
-			return range;
-		}
+        function setLastSemester(date, diff) {
+            // should be setLastSixMonths;
+            diff = diff || 0;
+            date = date || new Date();
+            date = new Date(date.setMonth(date.getMonth() + 6 * diff + 1));
+            var range = this;
+            range.type = RangeTypes.SEMESTER;
+            var yyyy = date.getFullYear();
+            range.from = new Date(yyyy, date.getMonth(), 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, date.getMonth() + 6, 0, 23, 59, 59, 999);
+            return range;
+        }
 
-		function currentYearPeriod() {
-			var range = this;
-			range.setYearPeriod();
-			return range;
-		}
+        function prev() {
+            return this.setDiff(-1);
+        }
 
-		function currentSemester() {
-			var range = this;
-			range.setSemester();
-			return range;
-		}
+        function next() {
+            return this.setDiff(1);
+        }
 
-		function currentTrimester() {
-			var range = this;
-			range.setTrimester();
-			return range;
-		}
+        function nextYear() {
+            var date = new Date();
+            var yyyy = date.getFullYear();
+            var range = this;
+            range.type = RangeTypes.NEXT_YEAR;
+            range.from = new Date(yyyy, date.getMonth(), 1, 0, 0, 0, 0, 0);
+            range.to = new Date(yyyy, date.getMonth() + 12, 0, 23, 59, 59, 999);
+            return range;
+        }
 
-		function currentQuarter() {
-			var range = this;
-			range.setQuarter();
-			return range;
-		}
+        function currentYear() {
+            var range = this;
+            range.setYear();
+            return range;
+        }
 
-		function currentMonth() {
-			var range = this;
-			range.setMonth();
-			return range;
-		}
+        function currentYearPeriod() {
+            var range = this;
+            range.setYearPeriod();
+            return range;
+        }
 
-		function currentWeek() {
-			var range = this;
-			range.setWeek();
-			return range;
-		}
+        function currentSemester() {
+            var range = this;
+            range.setSemester();
+            return range;
+        }
 
-		function lastSemester() {
-			var range = this;
-			range.setLastSemester(null, -1);
-			return range;
-		}
+        function currentTrimester() {
+            var range = this;
+            range.setTrimester();
+            return range;
+        }
 
-		function setDiff(diff) {
-			var range = this;
-			switch (range.type) {
-				case RangeTypes.YEAR:
-					range.setYear(range.from, diff);
-					break;
-				case RangeTypes.SEMESTER:
-					range.setSemester(range.from, diff);
-					break;
-				case RangeTypes.TRIMESTER:
-					range.setTrimester(range.from, diff);
-					break;
-				case RangeTypes.QUARTER:
-					range.setQuarter(range.from, diff);
-					break;
-				case RangeTypes.MONTH:
-					range.setMonth(range.from, diff);
-					break;
-				case RangeTypes.WEEK:
-					range.setWeek(range.from, diff);
-					break;
-				case RangeTypes.DAY:
-					range.setDay(range.from, diff);
-					break;
-				case RangeTypes.NEXT_YEAR:
-					range.nextYear(range.from, diff);
-					break;
-			}
-			return range;
-		}
+        function currentQuarter() {
+            var range = this;
+            range.setQuarter();
+            return range;
+        }
 
-		function set(filters, source) {
-			var range = this;
-			filters.dateFrom = range.from;
-			filters.dateTo = range.to;
-			if (source) {
-				source.setDates(filters.dateFrom, filters.dateTo);
-			}
-			return range;
-		}
+        function currentMonth() {
+            var range = this;
+            range.setMonth();
+            return range;
+        }
 
-		function is(filters) {
-			var range = this,
-				flag = false;
-			if (filters.dateFrom && filters.dateTo) {
-				flag = filters.dateFrom.getTime() == range.from.getTime() && filters.dateTo.getTime() == range.to.getTime();
-			}
-			return flag;
-		}
+        function currentWeek() {
+            var range = this;
+            range.setWeek();
+            return range;
+        }
 
-		function values(obj) {
-			var vals = [];
-			for (var key in obj) {
-				if (has(obj, key) && isEnumerable(obj, key)) {
-					vals.push(obj[key]);
-				}
-			}
-			return vals;
-		}
+        function lastSemester() {
+            var range = this;
+            range.setLastSemester(null, -1);
+            return range;
+        }
 
-		if (typeof Object.values !== 'function') {
-			Object.values = values;
-		}
+        function setDiff(diff) {
+            var range = this;
+            switch (range.type) {
+                case RangeTypes.YEAR:
+                    range.setYear(range.from, diff);
+                    break;
+                case RangeTypes.SEMESTER:
+                    range.setSemester(range.from, diff);
+                    break;
+                case RangeTypes.TRIMESTER:
+                    range.setTrimester(range.from, diff);
+                    break;
+                case RangeTypes.QUARTER:
+                    range.setQuarter(range.from, diff);
+                    break;
+                case RangeTypes.MONTH:
+                    range.setMonth(range.from, diff);
+                    break;
+                case RangeTypes.WEEK:
+                    range.setWeek(range.from, diff);
+                    break;
+                case RangeTypes.DAY:
+                    range.setDay(range.from, diff);
+                    break;
+                case RangeTypes.NEXT_YEAR:
+                    range.nextYear(range.from, diff);
+                    break;
+            }
+            return range;
+        }
 
-		function extract(obj, value) {
-			return Object.keys(obj)[Object.values(obj).indexOf(value)];
-		}
+        function set(filters, source) {
+            var range = this;
+            filters.dateFrom = range.from;
+            filters.dateTo = range.to;
+            if (source) {
+                source.setDates(filters.dateFrom, filters.dateTo);
+            }
+            return range;
+        }
 
-		function getDiff(diff) {
-			var range = this;
-			return new Range({
-				type: range.type,
-			}).setDate(range.from).setDiff(diff);
-		}
+        function is(filters) {
+            var range = this,
+                flag = false;
+            if (filters.dateFrom && filters.dateTo) {
+                flag = filters.dateFrom.getTime() == range.from.getTime() && filters.dateTo.getTime() == range.to.getTime();
+            }
+            return flag;
+        }
 
-		function getName() {
-			var range = this;
-			var key = extract(RangeTypes, range.type);
-			return RangeFormat(range, formats.long[key]);
-		}
+        function values(obj) {
+            var vals = [];
+            for (var key in obj) {
+                if (has(obj, key) && isEnumerable(obj, key)) {
+                    vals.push(obj[key]);
+                }
+            }
+            return vals;
+        }
 
-		function getShortName() {
-			var range = this;
-			var key = extract(RangeTypes, range.type);
-			return RangeFormat(range, formats.short[key]);
-		}
+        if (typeof Object.values !== 'function') {
+            Object.values = values;
+        }
 
-		function RangeFormat(range, format) {
-			var name = format;
-			name = name.replace(/{(.*?)}/g, function (replaced, token) {
-				var a = token.split('|');
-				var p = a.shift();
-				var f = a.join(''),
-					j;
-				if (f.indexOf(':') !== -1) {
-					f = f.split(':');
-					j = f.length ? f.pop() : null;
-					f = f.join('');
-				}
-				// console.log(token, f, p, j);
-				return f.length ? $filter(f)(range[p], j) : range[p];
-			});
-			// console.log(name);
-			return name;
-		}
+        function extract(obj, value) {
+            return Object.keys(obj)[Object.values(obj).indexOf(value)];
+        }
 
-		function toString() {
-			return '[' + $filter('date')(this.from, 'MM-dd-yyyy') + ', ' + $filter('date')(this.to, 'MM-dd-yyyy') + '] \'' + this.getName() + '\'';
-		}
+        function getDiff(diff) {
+            var range = this;
+            return new Range({
+                type: range.type,
+            }).setDate(range.from).setDiff(diff);
+        }
 
-	}]);
+        function getName() {
+            var range = this;
+            var key = extract(RangeTypes, range.type);
+            return RangeFormat(range, formats.long[key]);
+        }
+
+        function getShortName() {
+            var range = this;
+            var key = extract(RangeTypes, range.type);
+            return RangeFormat(range, formats.short[key]);
+        }
+
+        function RangeFormat(range, format) {
+            var name = format;
+            name = name.replace(/{(.*?)}/g, function(replaced, token) {
+                var a = token.split('|');
+                var p = a.shift();
+                var f = a.join(''),
+                    j;
+                if (f.indexOf(':') !== -1) {
+                    f = f.split(':');
+                    j = f.length ? f.pop() : null;
+                    f = f.join('');
+                }
+                // console.log(token, f, p, j);
+                return f.length ? $filter(f)(range[p], j) : range[p];
+            });
+            // console.log(name);
+            return name;
+        }
+
+        function toString() {
+            return '[' +
+                $filter('date')(this.from, 'MMM dd yyyy HH:mm:ss.sss') + ', ' +
+                $filter('date')(this.to, 'MMM dd yyyy HH:mm:ss.sss') +
+                '] \'' + this.getName() + '\'';
+        }
+
+    }]);
 
 }());
 /*
@@ -4546,7 +4651,6 @@ $(window).on('resize', function () {
     var app = angular.module('artisan');
 
     app.filter('notIn', ['$filter', function($filter) {
-
         return function(array, filters, element) {
             if (filters) {
                 return $filter("filter")(array, function(item) {
@@ -4558,6 +4662,179 @@ $(window).on('resize', function () {
             }
         };
 
+    }]);
+
+    app.filter('autolink', [function() {
+        return function(value) {
+            return Autolinker.link(value, { className: "a-link" });
+        }
+    }]);
+
+    app.filter('shortName', ['$filter', function($filter) {
+        function toTitleCase(str) {
+            return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+        }
+        return function(value) {
+            if (!value) {
+                return '';
+            }
+            if (value.indexOf(' .') === value.length - 2) {
+                value = value.split(' .').join('');
+            }
+            /*
+            var splitted;
+            if (value.indexOf('.') !== -1) {
+                splitted = value.split('.');
+            } else {
+                splitted = value.split(' ');
+            }
+            */
+            var splitted = value.split(' ');
+            var firstName = splitted.shift();
+            if (splitted.length) {
+                var lastName = splitted.join(' ');
+                return firstName.substr(0, 1).toUpperCase() + '.' + toTitleCase(lastName);
+            } else {
+                return firstName;
+            }
+        }
+    }]);
+
+    app.filter('customCurrency', ['$filter', function($filter) {
+        var legacyFilter = $filter('currency');
+        return function(cost, currency) {
+            return legacyFilter(cost * currency.ratio, currency.formatting);
+        }
+    }]);
+
+    app.filter('customSize', ['APP', function(APP) {
+        return function(inches) {
+            if (APP.unit === APP.units.IMPERIAL) {
+                var feet = Math.floor(inches / 12);
+                inches = inches % 12;
+                inches = Math.round(inches * 10) / 10;
+                return (feet ? feet + '\' ' : '') + (inches + '\'\'');
+            } else {
+                var meters = Math.floor(inches * APP.size.ratio);
+                var cm = (inches * APP.size.ratio * 100) % 100;
+                cm = Math.round(cm * 10) / 10;
+                return (meters ? meters + 'm ' : '') + (cm + 'cm');
+            }
+        };
+    }]);
+
+    app.filter('customWeight', ['APP', function(APP) {
+        return function(pounds) {
+            if (APP.unit === APP.units.IMPERIAL) {
+                if (pounds < 1) {
+                    var oz = pounds * 16;
+                    oz = Math.round(oz * 10) / 10;
+                    return (oz ? oz + 'oz ' : '');
+                } else {
+                    pounds = Math.round(pounds * 100) / 100;
+                    return (pounds ? pounds + 'lb ' : '');
+                }
+            } else {
+                var kg = Math.floor(pounds * APP.weight.ratio / 1000);
+                var grams = (pounds * APP.weight.ratio) % 1000;
+                grams = Math.round(grams * 10) / 10;
+                return (kg ? kg + 'kg ' : '') + (grams + 'g');
+            }
+        };
+    }]);
+
+    app.filter('customNumber', ['$filter', function($filter) {
+        return function(value, precision, unit) {
+            unit = unit || '';
+            // return ((value || value === 0) ? $filter('number')(value, precision) + unit : '-');
+            if (value !== undefined) {
+                if (Math.floor(value) === value) {
+                    precision = 0;
+                }
+                value = $filter('number')(value, precision) + unit;
+            } else {
+                value = '-';
+            }
+            return value;
+        }
+    }]);
+
+    app.filter('reportNumber', ['$filter', function($filter) {
+        return function(value, precision, unit) {
+            unit = unit || '';
+            if (value !== undefined) {
+                value = $filter('number')(value, precision) + unit;
+            } else {
+                value = '-';
+            }
+            return value;
+        }
+    }]);
+
+    app.filter('customHours', [function() {
+        return function(value) {
+            if (value !== undefined) {
+                var hours = Math.floor(value);
+                var minutes = Math.floor((value - hours) * 60);
+                var label = hours ? hours + ' H' : '';
+                label += minutes ? ' ' + minutes + ' m' : '';
+                return label;
+            } else {
+                return '-';
+            }
+        }
+    }]);
+
+    app.filter('customTimer', [function() {
+        var second = 1000;
+        var minute = second * 60;
+        var hour = minute * 60;
+        return function(value) {
+            if (value !== undefined) {
+                var hours = Math.floor(value / hour);
+                var minutes = Math.floor((value - hours * hour) / minute);
+                var seconds = Math.floor((value - hours * hour - minutes * minute) / second);
+                var label = hours ? hours + ' H' : '';
+                label += minutes ? ' ' + minutes + ' m' : '';
+                label += seconds ? ' ' + seconds + ' s' : '';
+                return label;
+            } else {
+                return '-';
+            }
+        }
+    }]);
+
+    app.filter('customDigitalTimer', [function() {
+        var second = 1000;
+        var minute = second * 60;
+        var hour = minute * 60;
+        return function(value) {
+            if (value !== undefined) {
+                var hours = Math.floor(value / hour);
+                var minutes = Math.floor((value - hours * hour) / minute);
+                var seconds = Math.floor((value - hours * hour - minutes * minute) / second);
+                hours = hours % 24;
+                return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            } else {
+                return '-';
+            }
+        }
+    }]);
+
+    app.filter('customDigitalTime', [function() {
+        var second = 1000;
+        var minute = second * 60;
+        var hour = minute * 60;
+        return function(value) {
+            if (value !== undefined) {
+                var hours = Math.floor(value / hour);
+                var minutes = Math.floor((value - hours * hour) / minute);
+                hours = hours % 24;
+                return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+            } else {
+                return '-';
+            }
+        }
     }]);
 
     app.filter('isoWeek', [function() {
@@ -4591,6 +4868,99 @@ $(window).on('resize', function () {
             }
         }
     }]);
+
+    app.filter('customDate', ['$filter', function($filter) {
+        var filter = $filter('date');
+        return function(value, format, timezone) {
+            return value ? filter(value, format, timezone) : '-';
+        }
+    }]);
+
+    app.filter('customTime', ['$filter', function($filter) {
+        return function(value, placeholder) {
+            if (value) {
+                return Utils.parseTime(value);
+            } else {
+                return (placeholder ? placeholder : '-');
+            }
+        }
+    }]);
+
+    app.filter('customDigital', ['$filter', function($filter) {
+        return function(value, placeholder) {
+            if (value) {
+                return Utils.parseHour(value);
+            } else {
+                return (placeholder ? placeholder : '-');
+            }
+        }
+    }]);
+
+    app.filter('customString', ['$filter', function($filter) {
+        return function(value, placeholder) {
+            return value ? value : (placeholder ? placeholder : '-');
+        }
+    }]);
+
+    app.filter('customEnum', function() {
+        return function(val) {
+            val = val + 1;
+            return val < 10 ? '0' + val : val;
+        };
+    });
+
+    app.filter('groupBy', ['$parse', 'filterWatcher', function($parse, filterWatcher) {
+        function _groupBy(collection, getter) {
+            var dict = {};
+            var key;
+            angular.forEach(collection, function(item) {
+                key = getter(item);
+                if (!dict[key]) {
+                    dict[key] = [];
+                }
+                dict[key].push(item);
+            });
+            return dict;
+        }
+        return function(collection, property) {
+            if (!angular.isObject(collection) || angular.isUndefined(property)) {
+                return collection;
+            }
+            return filterWatcher.isMemoized('groupBy', arguments) || filterWatcher.memoize('groupBy', arguments, this, _groupBy(collection, $parse(property)));
+        }
+    }]);
+
+    app.filter('htmlToPlaintext', function() {
+        function getStyle(n, p) {
+            return n.currentStyle ? n.currentStyle[p] : window.getComputedStyle(n, null).getPropertyValue(p);
+        }
+
+        function toText(node) {
+            var result = '';
+            if (node.nodeType == document.TEXT_NODE) {
+                var nodeValue = node.nodeValue;
+                result = nodeValue;
+                result = result ? String(result).replace(/</gm, '&lt;') : '';
+                result = result ? String(result).replace(/>/gm, '&gt;') : '';
+            } else if (node.nodeType == document.ELEMENT_NODE) {
+                for (var i = 0, j = node.childNodes.length; i < j; i++) {
+                    result += toText(node.childNodes[i]);
+                }
+                var display = getStyle(node, 'display');
+                if (display.match(/^block/) || display.match(/list/) || display.match(/row/) || node.tagName == 'BR' || node.tagName == 'HR') {
+                    result += '\n<br>';
+                }
+            }
+            return result;
+        }
+        return function(html) {
+            console.log(html);
+            var div = document.createElement('div');
+            div.innerHTML = html;
+            return toText(div);
+            // return html ? String(html).replace(/<[^>]+>/gm, '') : '';
+        };
+    });
 
 }());
 /* global angular, firebase */
@@ -5094,217 +5464,227 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function () {
-	"use strict";
+(function() {
+    "use strict";
 
-	var app = angular.module('artisan');
+    var app = angular.module('artisan');
 
-	app.factory('Hash', [function () {
+    app.factory('Hash', [function() {
 
-		function Hash(key, pool) {
-			key = key || 'id';
-			pool = pool ? HashGet(pool) : {};
-			Object.defineProperties(this, {
-				key: {
-					value: key,
-					enumerable: false,
-					writable: false
-				},
-				pool: {
-					value: pool,
-					enumerable: false,
-					writable: false
-				},
-				length: {
-					value: 0,
-					enumerable: false,
-					writable: true
-				}
-			});
-		}
+        function Hash(key, pool) {
+            key = key || 'id';
+            pool = pool ? HashGet(pool) : {};
+            Object.defineProperties(this, {
+                key: {
+                    value: key,
+                    enumerable: false,
+                    writable: false
+                },
+                pool: {
+                    value: pool,
+                    enumerable: false,
+                    writable: false
+                },
+                length: {
+                    value: 0,
+                    enumerable: false,
+                    writable: true
+                }
+            });
+        }
 
-		var pools = {};
+        var pools = {};
 
-		var statics = {
-			get: HashGet,
-		};
+        var statics = {
+            get: HashGet,
+        };
 
-		var publics = {
-			has: has,
-			getId: getId,
-			get: get,
-			set: set,
-			add: add,
-			remove: remove,
-			each: each,
-			addMany: addMany,
-			removeMany: removeMany,
-			removeAll: removeAll,
-			forward: forward,
-			backward: backward,
-			differs: differs,
-			updatePool: updatePool,
-		};
+        var publics = {
+            has: has,
+            getId: getId,
+            get: get,
+            set: set,
+            once: once,
+            add: add,
+            remove: remove,
+            each: each,
+            addMany: addMany,
+            removeMany: removeMany,
+            removeAll: removeAll,
+            forward: forward,
+            backward: backward,
+            differs: differs,
+            updatePool: updatePool,
+        };
 
-		Hash.prototype = new Array;
+        Hash.prototype = new Array;
 
-		angular.extend(Hash, statics);
-		angular.extend(Hash.prototype, publics);
+        angular.extend(Hash, statics);
+        angular.extend(Hash.prototype, publics);
 
-		return Hash;
+        return Hash;
 
-		// static methods
+        // static methods
 
-		function HashGet(pool) {
-			return (pools[pool] = pools[pool] || {});
-		}
+        function HashGet(pool) {
+            return (pools[pool] = pools[pool] || {});
+        }
 
-		function has(id) {
-			return this.pool[id] !== undefined;
-		}
+        function has(id) {
+            return this.pool[id] !== undefined;
+        }
 
-		function getId(id) {
-			return this.pool[id];
-		}
+        function getId(id) {
+            return this.pool[id];
+        }
 
-		function get(item) {
-			var hash = this,
-				key = this.key;
-			return item ? hash.getId(item[key]) : null;
-		}
+        function get(item) {
+            var hash = this,
+                key = this.key;
+            return item ? hash.getId(item[key]) : null;
+        }
 
-		function set(item) {
-			var hash = this,
-				pool = this.pool,
-				key = this.key;
-			pool[item[key]] = item;
-			hash.push(item);
-			return item;
-		}
+        function set(item) {
+            var hash = this,
+                pool = this.pool,
+                key = this.key;
+            pool[item[key]] = item;
+            hash.push(item);
+            return item;
+        }
 
-		function add(newItem) {
-			var hash = this;
-			var item = hash.get(newItem);
-			if (item) {
-				for (var i = 0, keys = Object.keys(newItem), p; i < keys.length; i++) {
-					p = keys[i];
-					item[p] = newItem[p];
-				}
-			} else {
-				item = hash.set(newItem);
-			}
-			return item;
-		}
+        function once(newItem) {
+            var hash = this;
+            var item = hash.get(newItem);
+            if (!item) {
+                item = hash.set(newItem);
+            }
+            return item;
+        }
 
-		function remove(oldItem) {
-			var hash = this,
-				pool = this.pool,
-				key = this.key;
-			var item = hash.get(oldItem);
-			if (item) {
-				var index = hash.indexOf(item);
-				if (index !== -1) {
-					hash.splice(index, 1);
-				}
-				delete pool[item[key]];
-			}
-			return hash;
-		}
+        function add(newItem) {
+            var hash = this;
+            var item = hash.get(newItem);
+            if (item) {
+                for (var i = 0, keys = Object.keys(newItem), p; i < keys.length; i++) {
+                    p = keys[i];
+                    item[p] = newItem[p];
+                }
+            } else {
+                item = hash.set(newItem);
+            }
+            return item;
+        }
 
-		function addMany(items) {
-			var hash = this;
-			if (!items) {
-				return hash;
-			}
-			var i = 0;
-			while (i < items.length) {
-				hash.add(items[i]);
-				i++;
-			}
-			return hash;
-		}
+        function remove(oldItem) {
+            var hash = this,
+                pool = this.pool,
+                key = this.key;
+            var item = hash.get(oldItem);
+            if (item) {
+                var index = hash.indexOf(item);
+                if (index !== -1) {
+                    hash.splice(index, 1);
+                }
+                delete pool[item[key]];
+            }
+            return hash;
+        }
 
-		function removeMany(items) {
-			var hash = this;
-			if (!items) {
-				return hash;
-			}
-			var i = 0;
-			while (i < items.length) {
-				hash.remove(items[i]);
-				i++;
-			}
-			return hash;
-		}
+        function addMany(items) {
+            var hash = this;
+            if (!items) {
+                return hash;
+            }
+            var i = 0;
+            while (i < items.length) {
+                hash.add(items[i]);
+                i++;
+            }
+            return hash;
+        }
 
-		function removeAll() {
-			var hash = this,
-				key = hash.key,
-				pool = hash.pool;
-			var i = 0,
-				t = hash.length,
-				item;
-			while (hash.length) {
-				item = hash.shift();
-				delete pool[item[key]];
-				i++;
-			}
-			return hash;
-		}
+        function removeMany(items) {
+            var hash = this;
+            if (!items) {
+                return hash;
+            }
+            var i = 0;
+            while (i < items.length) {
+                hash.remove(items[i]);
+                i++;
+            }
+            return hash;
+        }
 
-		function each(callback) {
-			var hash = this;
-			if (callback) {
-				var i = 0;
-				while (i < hash.length) {
-					callback(hash[i], i);
-					i++;
-				}
-			}
-			return hash;
-		}
+        function removeAll() {
+            var hash = this,
+                key = hash.key,
+                pool = hash.pool;
+            var i = 0,
+                t = hash.length,
+                item;
+            while (hash.length) {
+                item = hash.shift();
+                delete pool[item[key]];
+                i++;
+            }
+            return hash;
+        }
 
-		function forward(key, reverse) {
-			var hash = this;
-			key = (key || this.key);
-			hash.sort(function (c, d) {
-				var a = reverse ? d : c;
-				var b = reverse ? c : d;
-				return a[key] - b[key];
-			});
-			return hash;
-		}
+        function each(callback) {
+            var hash = this;
+            if (callback) {
+                var i = 0;
+                while (i < hash.length) {
+                    callback(hash[i], i);
+                    i++;
+                }
+            }
+            return hash;
+        }
 
-		function backward(key) {
-			return this.forward(key, true);
-		}
+        function forward(key, reverse) {
+            var hash = this;
+            key = (key || this.key);
+            hash.sort(function(c, d) {
+                var a = reverse ? d : c;
+                var b = reverse ? c : d;
+                return a[key] - b[key];
+            });
+            return hash;
+        }
 
-		function differs(hash) {
-			if (hash.key !== this.key || hash.length !== this.length) {
-				return true;
-			} else {
-				var differs = false,
-					i = 0,
-					t = this.length,
-					key = this.key;
-				while (differs && i < t) {
-					differs = this[i][key] !== hash[i][key];
-					i++;
-				}
-			}
-		}
+        function backward(key) {
+            return this.forward(key, true);
+        }
 
-		function updatePool() {
-			var hash = this,
-				pool = this.pool,
-				key = this.key;
-			Object.keys(pool).forEach(function (key) {
-				delete pool[key];
-			});
-			angular.forEach(hash, function (item) {
-				pool[item[key]] = item;
-			});
-		}
+        function differs(hash) {
+            if (hash.key !== this.key || hash.length !== this.length) {
+                return true;
+            } else {
+                var differs = false,
+                    i = 0,
+                    t = this.length,
+                    key = this.key;
+                while (differs && i < t) {
+                    differs = this[i][key] !== hash[i][key];
+                    i++;
+                }
+            }
+        }
+
+        function updatePool() {
+            var hash = this,
+                pool = this.pool,
+                key = this.key;
+            Object.keys(pool).forEach(function(key) {
+                delete pool[key];
+            });
+            angular.forEach(hash, function(item) {
+                pool[item[key]] = item;
+            });
+        }
 
     }]);
 
