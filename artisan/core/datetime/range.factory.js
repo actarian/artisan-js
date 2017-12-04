@@ -7,7 +7,7 @@
 
 	app.factory('Range', ['$filter', 'DateTime', function ($filter, DateTime) {
 
-		var formats_it = {
+		var it_IT = {
 			long: {
 				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
 				YEAR: 'Anno {from|date:yyyy}',
@@ -27,10 +27,11 @@
 				MONTH: '{from|date:MMMM}',
 				WEEK: 'W{to|isoWeek:1}',
 				DAY: '{from|date:EEEE}',
-			}
+			},
+			week: 1,
 		};
 
-		var formats_en = {
+		var en_US = {
 			long: {
 				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
 				YEAR: 'Year {from|date:yyyy}',
@@ -50,10 +51,11 @@
 				MONTH: '{from|date:MMMM}',
 				WEEK: 'W{from|isoWeek:0}',
 				DAY: '{from|date:EEEE}',
-			}
+			},
+			week: 0,
 		};
 
-		var formats = formats_en;
+		var formats = en_US;
 
 		var RangeTypes = {
 			RANGE: 10,
@@ -310,20 +312,20 @@
 			};
 		}
 
-		function setYear(date, diff) {
+		function setYear(date, diff, size) {
 			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 12 * diff));
-			var yyyy = date.getFullYear();
+			size = size || 1;
+			var left = DateTime.yearDiff(diff, date);
+			var right = DateTime.yearDiff(diff + size - 1, date);
 			var range = this;
-			// range.type = RangeTypes.YEAR;
-			range.from = new Date(yyyy, 0, 1, 0, 0, 0, 0, 0);
-			range.to = new Date(yyyy, 12, 0, 23, 59, 59, 999);
+			range.from = DateTime.yearLeft(left);
+			range.to = DateTime.yearRight(right);
 			return range;
 		}
 
-		function setSemester(date, diff) {
+		function setSemester(date, diff, size) {
 			diff = diff || 0;
+			size = size || 1;
 			date = date || new Date();
 			date = new Date(date.setMonth(date.getMonth() + 6 * diff));
 			var yyyy = date.getFullYear();
@@ -335,8 +337,9 @@
 			return range;
 		}
 
-		function setTrimester(date, diff) {
+		function setTrimester(date, diff, size) {
 			diff = diff || 0;
+			size = size || 1;
 			date = date || new Date();
 			date = new Date(date.setMonth(date.getMonth() + 4 * diff));
 			var yyyy = date.getFullYear();
@@ -348,8 +351,9 @@
 			return range;
 		}
 
-		function setQuarter(date, diff) {
+		function setQuarter(date, diff, size) {
 			diff = diff || 0;
+			size = size || 1;
 			date = date || new Date();
 			date = new Date(date.setMonth(date.getMonth() + 3 * diff));
 			var yyyy = date.getFullYear();
@@ -372,25 +376,25 @@
 			return range;
 		}
 
-		function setWeek(date, diff) {
+		function setWeek(date, diff, size) {
 			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setDate(date.getDate() + diff * 7));
+			size = size || 1;
+			var left = DateTime.weekDiff(diff, date);
+			var right = DateTime.weekDiff(diff + size - 1, date);
 			var range = this;
-			// range.type = RangeTypes.WEEK;
-			range.from = DateTime.weekLeft(date);
-			range.to = DateTime.weekRight(date);
+			range.from = DateTime.weekLeft(left);
+			range.to = DateTime.weekRight(right);
 			return range;
 		}
 
-		function setDay(date, diff) {
+		function setDay(date, diff, size) {
 			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setDate(date.getDate() + diff));
+			size = size || 1;
+			var left = DateTime.dayDiff(diff, date);
+			var right = DateTime.dayDiff(diff + size - 1, date);
 			var range = this;
-			// range.type = RangeTypes.DAY;
-			range.from = DateTime.dayLeft(date);
-			range.to = DateTime.dayRight(date);
+			range.from = DateTime.dayLeft(left);
+			range.to = DateTime.dayRight(right);
 			return range;
 		}
 
@@ -535,20 +539,6 @@
 			return flag;
 		}
 
-		function values(obj) {
-			var vals = [];
-			for (var key in obj) {
-				if (has(obj, key) && isEnumerable(obj, key)) {
-					vals.push(obj[key]);
-				}
-			}
-			return vals;
-		}
-
-		if (typeof Object.values !== 'function') {
-			Object.values = values;
-		}
-
 		function extract(obj, value) {
 			return Object.keys(obj)[Object.values(obj).indexOf(value)];
 		}
@@ -599,5 +589,22 @@
 		}
 
     }]);
+
+	(function () {
+		// POLYFILL Object.values
+		if (typeof Object.values !== 'function') {
+			Object.defineProperty(Object, 'values', {
+				value: function (obj) {
+					var vals = [];
+					for (var key in obj) {
+						if (has(obj, key) && isEnumerable(obj, key)) {
+							vals.push(obj[key]);
+						}
+					}
+					return vals;
+				}
+			});
+		}
+	}());
 
 }());

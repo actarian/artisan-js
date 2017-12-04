@@ -1,5 +1,5 @@
 [{
-    "inputFiles": [
+	"inputFiles": [
         "bower_components/angular/angular.js",
         "bower_components/angular-messages/angular-messages.js",
         "bower_components/angular-route/angular-route.js",
@@ -8,20 +8,20 @@
         "bower_components/dynamics.js/lib/dynamics.js",
         "bower_components/gmaps-marker-clusterer/src/markerclusterer.js"
     ],
-    "outputFileName": "docs/js/vendors.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/vendors.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "bower_components/angular-i18n/angular-locale_en.js"
     ],
-    "outputFileName": "docs/js/locale/en.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/locale/en.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "artisan/artisan.module.js",
 
         "artisan/components/canvas/painter.service.js",
@@ -41,6 +41,7 @@
         "artisan/core/datetime/calendar.service.js",
         "artisan/core/datetime/datetime.service.js",
         "artisan/core/datetime/range.factory.js",
+        "artisan/core/datetime/relative.filter.js",
         "artisan/core/dom/dom.service.js",
         "artisan/core/events/events.factory.js",
         "artisan/core/filters/filters.js",
@@ -76,12 +77,12 @@
         "artisan/plugins/mapbox/mapbox.service.js"
 
     ],
-    "outputFileName": "docs/js/artisan.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/artisan.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "app/app.module.js",
         "app/app.api.js",
         "app/app.routes.js",
@@ -100,42 +101,42 @@
         "app/environment/environment.production.js",
         "app/environment/environment.stage.js"
     ],
-    "outputFileName": "docs/js/app.js",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/js/app.js",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "bower_components/animate.css/animate.css",
         "bower_components/json-formatter/dist/json-formatter.css",
         "bower_components/dat.gui/build/dat.gui.css"
     ],
-    "outputFileName": "docs/css/vendors.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/vendors.css",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "docs/css/bootstrap.css"
     ],
-    "outputFileName": "docs/css/bootstrap.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/bootstrap.css",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "docs/css/artisan.css"
     ],
-    "outputFileName": "docs/css/artisan.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/artisan.css",
+	"minify": {
+		"enabled": true
+	}
 }, {
-    "inputFiles": [
+	"inputFiles": [
         "docs/css/app.css"
     ],
-    "outputFileName": "docs/css/app.css",
-    "minify": {
-        "enabled": true
-    }
+	"outputFileName": "docs/css/app.css",
+	"minify": {
+		"enabled": true
+	}
 }]

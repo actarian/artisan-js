@@ -11,6 +11,7 @@
 
 		var statics = {
 			compileController: compileController,
+			extract: extract,
 			format: format,
 			indexOf: indexOf,
 			reducer: reducer,
@@ -47,6 +48,10 @@
 				scope = $scope;
 			}
 			link(scope);
+		}
+
+		function extract(obj, value) {
+			return Object.keys(obj)[Object.values(obj).indexOf(value)];
 		}
 
 		function format(string, prepend, expression) {
@@ -215,7 +220,7 @@
 		// Production steps of ECMA-262, Edition 5, 15.4.4.21
 		// Reference: http://es5.github.io/#x15.4.4.21
 		// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
-		if (!Array.prototype.reduce) {
+		if (typeof Array.prototype.reduce !== 'function') {
 			Object.defineProperty(Array.prototype, 'reduce', {
 				value: function (callback) { // , initialvalue
 					if (this === null) {
@@ -246,6 +251,23 @@
 						k++;
 					}
 					return value;
+				}
+			});
+		}
+	}());
+
+	(function () {
+		// POLYFILL Object.values
+		if (typeof Object.values !== 'function') {
+			Object.defineProperty(Object, 'values', {
+				value: function (obj) {
+					var vals = [];
+					for (var key in obj) {
+						if (has(obj, key) && isEnumerable(obj, key)) {
+							vals.push(obj[key]);
+						}
+					}
+					return vals;
 				}
 			});
 		}

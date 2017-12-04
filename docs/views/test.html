@@ -1,5 +1,8 @@
-<json-formatter json="sources">
-</json-formatter>
+<json-formatter json="sources"></json-formatter>
+
+<p>
+    <span ng-bind="sources.day.from | dateRelative"></span>
+</p>
 
 <div ng-repeat="item in sources.todos track by $index">
     <div todo-item="item" target=".player-item" template="partials/todo/item">-</div>
@@ -13,7 +16,7 @@
         font-family: monospace;
         font-size: .8em;
     }
-    
+
     .flex-row>div {
         position: relative;
         display: flex;
@@ -26,27 +29,27 @@
         border-radius: 5px;
         margin: 5px;
     }
-    
+
     .player-item {
         background: #f0f0f0;
         cursor: pointer;
     }
-    
+
     .player-item svg {
         width: 30px;
         height: 30px;
         position: absolute;
         left: 10px;
     }
-    
+
     .player-item svg .track {
         stroke: #bbbbbb;
     }
-    
+
     .player-item svg .progress {
         stroke: blue;
     }
-    
+
     .player-item .elapsed {
         text-align: center;
     }
