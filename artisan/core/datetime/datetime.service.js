@@ -5,7 +5,7 @@
 
 	var app = angular.module('artisan');
 
-	app.service('DateTime', ['$locale', function ($locale) {
+	app.service('DateTime', [function () {
 
 		var service = this;
 
@@ -170,14 +170,14 @@
 
 		/*
 		ArrayFrom = function(len, callback) {
-		    var a = [];
-		    while (a.length < len) {
-		        a.push(callback(a.length));
-		    }
-		    return a;
+			var a = [];
+			while (a.length < len) {
+				a.push(callback(a.length));
+			}
+			return a;
 		};
 		*/
 
-    }]);
+	}]);
 
 }());

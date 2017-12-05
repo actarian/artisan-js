@@ -143,33 +143,33 @@
 
 		/*
 		function getRange(type, size, diff, date) {
-		    var unit = DateTime.DAY;
-		    type = type || RangeTypes.DAY;
-		    size = size || 1;
-		    diff = diff || 0;
-		    date = date || new Date();
-		    var range = new Range();
-		    setDate
-		    switch (type) {
-		        case RangeTypes.YEAR:
-		            range.setSemester(date, diff);
-		        case RangeTypes.SEMESTER:
-		            range.setSemester(date, diff);
-		        case RangeTypes.TRIMESTER:
-		            range.setSemester(date, diff);
-		        case RangeTypes.QUARTER:
-		            range.setSemester(date, diff);
-		        case RangeTypes.MONTH:
-		            range.setSemester(date, diff);
-		            break;
-		        case RangeTypes.WEEK:
-		            range.setSemester(date, diff);
-		            break;
-		        case RangeTypes.DAY:
-		            range.setSemester(date, diff);
-		            break;
-		    }
-		    var from = DateTime.dayLeft(date);
+			var unit = DateTime.DAY;
+			type = type || RangeTypes.DAY;
+			size = size || 1;
+			diff = diff || 0;
+			date = date || new Date();
+			var range = new Range();
+			setDate
+			switch (type) {
+				case RangeTypes.YEAR:
+					range.setSemester(date, diff);
+				case RangeTypes.SEMESTER:
+					range.setSemester(date, diff);
+				case RangeTypes.TRIMESTER:
+					range.setSemester(date, diff);
+				case RangeTypes.QUARTER:
+					range.setSemester(date, diff);
+				case RangeTypes.MONTH:
+					range.setSemester(date, diff);
+					break;
+				case RangeTypes.WEEK:
+					range.setSemester(date, diff);
+					break;
+				case RangeTypes.DAY:
+					range.setSemester(date, diff);
+					break;
+			}
+			var from = DateTime.dayLeft(date);
 		}
 		*/
 
@@ -588,7 +588,7 @@
 				'] \'' + this.getName() + '\'';
 		}
 
-    }]);
+	}]);
 
 	(function () {
 		// POLYFILL Object.values

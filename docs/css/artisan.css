@@ -414,6 +414,36 @@ Scrollbar
         box-sizing: border-box;
         text-align: right;
         flex: 0 0 14.28%; }
+        .calendar ul > .week > .cell.status-blue {
+          background: #1684FB;
+          color: white; }
+        .calendar ul > .week > .cell.status-red {
+          background: #F21500;
+          color: white; }
+        .calendar ul > .week > .cell.status-yellow {
+          background: #ffe200;
+          color: white; }
+        .calendar ul > .week > .cell.status-orange {
+          background: #FF6435;
+          color: white; }
+        .calendar ul > .week > .cell.status-light-orange {
+          background: #FF9700;
+          color: white; }
+        .calendar ul > .week > .cell.status-green {
+          background: #4BAF4F;
+          color: white; }
+        .calendar ul > .week > .cell.status-light-green {
+          background: #8BC24A;
+          color: white; }
+        .calendar ul > .week > .cell.status-purple {
+          background: #7A70E4;
+          color: white; }
+        .calendar ul > .week > .cell.status-azur {
+          background: #53E2DD;
+          color: white; }
+        .calendar ul > .week > .cell.status-light-blue {
+          background: #03A9F4;
+          color: white; }
       .calendar ul > .week .cell + .cell {
         border-left: 1px solid #d0d3db; }
       .calendar ul > .week:first-child {
@@ -439,17 +469,17 @@ Scrollbar
     background: #ffffff;
     color: #111111;
     /*
-        & > .num {
-            display: block;
-            position: absolute;
-            min-width: 16px;
-            height: 16px;
-            right: 3px;
-            top: 3px;
-            text-align: center;
-            line-height: 16px;
-        }
-        */ }
+			& > .num {
+				display: block;
+				position: absolute;
+				min-width: 16px;
+				height: 16px;
+				right: 3px;
+				top: 3px;
+				text-align: center;
+				line-height: 16px;
+			}
+			*/ }
     .calendar .day.active {
       background: #fff79a;
       cursor: pointer; }
@@ -484,33 +514,33 @@ Scrollbar
       margin: 0 2px 3px 0;
       border-radius: 2px;
       /*
-            width: 6px;
-            height: 6px;
-            border-radius: 3px;
-            left: 3px; 
-            top: 3px;
-            */ }
+				width: 6px;
+				height: 6px;
+				border-radius: 3px;
+				left: 3px; 
+				top: 3px;
+				*/ }
       .calendar .tasks > .task.working {
         background: #4BAF4F; }
 
 .calendar-slider {
   /*
-        overflow: hidden;
-        margin-left: -15px;
-        margin-right: -15px;
-        margin-top: -15px;
-        margin-bottom: 15px;
-
-        .inner {
-            display: flex;
-            justify-content: flex-start;
-            align-items: baseline;
-
-            & > section {
-                width: 400px;
-            }
-        }
-        */ }
+			overflow: hidden;
+			margin-left: -15px;
+			margin-right: -15px;
+			margin-top: -15px;
+			margin-bottom: 15px;
+	
+			.inner {
+				display: flex;
+				justify-content: flex-start;
+				align-items: baseline;
+	
+				& > section {
+					width: 400px;
+				}
+			}
+			*/ }
   .calendar-slider section {
     border: none;
     margin-bottom: 0;
@@ -551,10 +581,10 @@ Scrollbar
     background: transparent;
     pointer-events: none;
     /*
-        &.full {
-            background: mix(map-get($colors, danger), white, 30%);
-        }
-        */ }
+			&.full {
+				background: mix(map-get($colors, danger), white, 30%);
+			}
+			*/ }
     .calendar-planner .cell.holiday {
       background: #ffe0b3; }
     .calendar-planner .cell.vacation {
@@ -564,13 +594,24 @@ Scrollbar
       pointer-events: auto; }
     .calendar-planner .cell.unworkable {
       background: #c9e7ca; }
-    .calendar-planner .cell.weekNum {
-      pointer-events: auto; }
     .calendar-planner .cell.selected {
       box-shadow: 0 0 0 2px #75787b inset; }
     .calendar-planner .cell:hover {
       transition: background ease-in-out 250ms;
       background: #d9f2fd; }
+    .calendar-planner .cell.weekNum {
+      background: #676a6d;
+      color: white;
+      font-size: 18px;
+      pointer-events: auto; }
+      .calendar-planner .cell.weekNum .num {
+        position: absolute;
+        top: 20px;
+        right: 10px;
+        line-height: 1;
+        height: auto; }
+      .calendar-planner .cell.weekNum:hover {
+        background: #7e8083; }
   .calendar-planner .activities {
     display: flex;
     justify-content: flex-end;
@@ -614,6 +655,67 @@ Scrollbar
       text-overflow: ellipsis;
       text-align: left;
       text-align: right; }
+
+.calendar-popup-container {
+  position: relative;
+  width: 100%; }
+
+.calendar-popup {
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.35);
+  /*
+		.records {
+			display: block;
+			position: absolute;
+			min-width: 16px;
+			height: 16px;
+			right: 3px;
+			bottom: 3px;
+			text-align: center;
+			line-height: 16px;
+		}
+		*/ }
+  .calendar-popup ul > .week {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch; }
+    .calendar-popup ul > .week > .cell {
+      max-width: 12.5%;
+      flex: 0 0 12.5%;
+      min-height: 40px;
+      line-height: 20px;
+      padding: 4px;
+      text-align: right; }
+  .calendar-popup .cell {
+    background: transparent;
+    pointer-events: none; }
+    .calendar-popup .cell.holiday {
+      background: #ffe0b3; }
+    .calendar-popup .cell.vacation {
+      background: #a5d7a7; }
+    .calendar-popup .cell.working {
+      background: white;
+      pointer-events: auto; }
+    .calendar-popup .cell.unworkable {
+      background: #c9e7ca; }
+    .calendar-popup .cell.selected {
+      box-shadow: 0 0 0 2px #75787b inset; }
+    .calendar-popup .cell:hover {
+      box-shadow: 0 0 0 1px #75787b inset; }
+  .calendar-popup .records {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    justify-content: flex-start;
+    align-items: flex-end;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0; }
 
 /*
 @function pow($number, $exp) {

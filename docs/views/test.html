@@ -115,3 +115,128 @@
     </div>
     -->
 </script>
+
+
+<!-- MODAL EDIT ROW -->
+<script type="text/ng-template" id="partials/modals/todo-record">
+    <div class="modal-header">
+        <button type="button" class="btn close" data-dismiss="modal" aria-label="Chiudi" ng-click="modal.reject()">
+            <i class="icon-close" aria-hidden="true"></i>
+        </button>
+        <h4 class="modal-title" ng-bind="modal.title"></h4>
+    </div>
+    <form name="form" role="form" class="clearfix" novalidate ng-submit="form.$valid && submit()">
+        <div class="modal-body">
+            <h6 class="headline foreground light-60 status-light-blue">
+                <span class="tag tag-link" ng-bind="row.record.id">-</span> <span ng-bind="row.record.name"></span>
+            </h6>
+            <div class="todo-list">
+                <div class="todo-row" ng-class="getStatusColor(row)">
+                    <div class="todo-item">
+                        <div class="infos">
+                            <b class="name">
+                                <span class="task" ng-if="row.task">
+                                    <span class="id tag tag-pill status-red" ng-bind="row.task.id"></span> <span ng-bind="row.task.name"></span>
+                                </span>
+                                <span class="activity">
+                                    <span ng-bind="row.activity.name"></span>
+                                </span>
+                            </b>
+                            <p>
+                                <span class="tag tag-pill text-overflow">
+                                    <span ng-bind="row.customer.name"></span> – <span ng-bind="row.project.name"></span>
+                                </span>
+                            </p>
+                            <ul class="list-group">
+                                <li class="list-group-item justify-content-between">
+                                    Ore lavorate / budget
+                                    <span class="tag tag-pill pull-xs-right">
+                                        <span ng-bind="row.activity.recordedHours | customNumber : 2 : ' H'">-</span> / <span ng-bind="row.activity.budgetHours | customNumber : 2 : ' H'">-</span>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row" ng-class="{
+             'control-focus': form.RecordData.hasFocus,
+             'control-success': form.RecordData.$valid,
+             'control-error': form.RecordData.$invalid && (form.$submitted || form.RecordData.$touched),
+             'control-empty': !form.RecordData.$viewValue }">
+                    <label for="Data" class="col-lg-3 col-form-label">Data<sup>✽</sup></label>
+                    <div class="col-lg-9 col-text" ng-click="popup = true" on-click-out="popup = false">
+                        <input name="Data" ng-model="model.record.date" placeholder="seleziona una data" type="hidden" required>
+                        <span class="form-control" ng-focus="form.RecordData.hasFocus = true" ng-blur="form.RecordData.hasFocus = false" ng-click="sources.dateOpen = true">
+                            <span ng-bind="model.record.date || 'seleziona' | date : 'dd-MM-yyyy'"></span> <i class="icon-calendar pull-right"></i>
+                        </span>
+                        <div calendar-popup calendar-user="user" ng-model="model.record.date" ng-show="popup"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" form="form" control-row="select" title="Ore" placeholder="seleziona un'ora" model="model.record.hours" source="sources.hours" number="true" required="true"></div>
+            <div class="form-group" form="form" control-row="select" title="Attività" placeholder="seleziona un'attività" model="model.activity" source="sources.activities" required="true"></div>
+            <div expandable=".form-control" expandable-relative="{ top: -5, bottom: 5 }" expandable-absolute="{ left: 50, right: 50 }">
+                <div class="form-group" form="form" control-row="text" title="Descrizione" placeholder="inserisci la descrizione" model="model.record.name" required="true"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="pull-lg-left">
+                <button type="button" class="btn btn-sm btn-warning" data-dismiss="modal" ng-click="modal.reject()">Annulla</button>
+            </span>
+            <span class="pull-lg-right">
+                <button type="submit" class="btn btn-sm btn-danger" ng-disabled="form.$invalid">Modifica</button>
+            </span>
+        </div>
+    </form>
+</script>
+
+<!-- CALENDAR POPUP -->
+<script type="text/ng-template" id="partials/calendar/popup">
+    <div class="calendar-popup-container">
+        <div class="calendar calendar-popup">
+            <div class="month">
+                <h6 class="flex-row">
+                    <span class="w100">
+                        <button type="button" class="btn btn-xs btn-primary" ng-click="doNavMonth(-1)">
+                            <i class="icon-prev"></i> <span><i class="icon-prev"></i></span>
+                    </button>
+                    </span>
+                    <span class="wmax text-center">
+                        <b ng-bind="sources.month.getName()"></b>
+                    </span>
+                    <span class="w100 text-right">
+                        <button type="button" class="btn btn-xs btn-primary" ng-click="doNavMonth(1)">
+                            <i class="icon-next"></i> <span><i class="icon-next"></i></span>
+                    </button>
+                    </span>
+                </h6>
+                <ul class="nav">
+                    <li class="week">
+                        <span class="cell">week</span>
+                        <span class="cell">lun</span>
+                        <span class="cell">mar</span>
+                        <span class="cell">mer</span>
+                        <span class="cell">gio</span>
+                        <span class="cell">ven</span>
+                        <span class="cell">sab</span>
+                        <span class="cell">dom</span>
+                    </li>
+                    <li class="week" ng-repeat="week in sources.calendarMonth.weeks track by $index">
+                        <div class="cell weekNum" ng-click="onWeekSelect(week.date)">
+                            <span class="num" ng-bind="week.date | isoWeek : 1"></span>
+                        </div>
+                        <div class="cell" ng-class="getDayClasses(day)" ng-click="onDaySelect(day)" ng-repeat="day in week.days track by $index">
+                            <span class="num" ng-bind="day.d"></span>
+                            <span class="hours" ng-bind="day.hours" ng-if="day.hours"></span>
+                            <div class="records" ng-if="day.wasWorkable" title="{{day.recordedHours | customNumber : 2 : 'H'}}">
+                                <span ng-bind="day.recordedHours | customNumber : 2 : 'H'"></span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</script>
