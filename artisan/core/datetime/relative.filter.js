@@ -5,7 +5,9 @@
 
 	var app = angular.module('artisan');
 
+	/*
 	app.value('now', null);
+	*/
 
 	app.value('$formats', {
 		just_now: 'just now',
@@ -39,7 +41,7 @@
 		over_a_year_from_now: 'over a year from now'
 	});
 
-	app.filter('dateRelative', ['$rootScope', '$interval', '$injector', 'now', '$formats', function ($rootScope, $interval, $injector, now, $formats) {
+	app.filter('dateRelative', ['$rootScope', '$interval', '$injector', '$formats', function ($rootScope, $interval, $injector, $formats) {
 
 		var minute = 60;
 		var hour = minute * 60;
@@ -76,7 +78,8 @@
 				date = new Date(date);
 			}
 
-			now = now || new Date();
+			// now = now || new Date();
+			var now = new Date();
 
 			var delta = getDelta(now, date);
 
@@ -93,6 +96,8 @@
 				});
 			}
 
+			console.log('delta', delta, now, date);
+
 			if (delta < 30) {
 				return format('just_now');
 
@@ -105,7 +110,7 @@
 			} else if (delta < hour) {
 				return format('minutes', Math.floor(delta / minute));
 
-			} else if (Math.floor(delta / hour) !== 1) {
+			} else if (delta < hour * 2) {
 				return format('an_hour');
 
 			} else if (delta < day) {
@@ -136,8 +141,34 @@
 				return format('over_a_year');
 
 			}
+
 		};
     }]);
+
+	app.directive('dateRelative', ['$parse', '$filter', '$interval', function ($parse, $filter, $interval) {
+		return {
+			priority: 1001,
+			restrict: 'A',
+			link: function (scope, element, attributes, model) {
+
+				function setDate() {
+					var date = $parse(attributes.dateRelative)(scope);
+					var relative = $filter('dateRelative')(date);
+					element[0].innerHTML = relative;
+					// console.log('dateRelative.setDate', relative);
+				}
+
+				setDate();
+
+				var i = setInterval(setDate, 60 * 1000);
+
+				scope.$on('$destroy', function () {
+					cancelInterval(i);
+				});
+
+			}
+		};
+	}]);
 
 	// directive dateRelative -> apply filter every timeout
 

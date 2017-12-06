@@ -595,7 +595,15 @@
 
 		var state = new State();
 
-		var sources = {};
+		var calendarOptions = {
+			month: function () {
+				console.log('TestCtrl.month', arguments);
+			},
+		};
+
+		var sources = {
+			calendarOptions: calendarOptions,
+		};
 
 		var publics = {
 			state: state,
