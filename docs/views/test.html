@@ -5,7 +5,7 @@
     <span ng-bind="sources.day.from | dateRelative"></span>
 </p>
 
-<div calendar-popup="sources.calendarOptions" calendar-user="user" ng-model="sources.date" ng-show="popup"></div>
+<div calendar-popup-records calendar-user="user" ng-model="sources.date" ng-show="popup"></div>
 
 <div ng-repeat="item in sources.todos track by $index">
     <div todo-item="item" target=".player-item" template="partials/todo/item">-</div>
