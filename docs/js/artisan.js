@@ -3657,7 +3657,7 @@
 				options: '=calendarPopup',
 			},
 			link: Link,
-		}
+		};
 
 		function TemplateUrl(element, attributes) {
 			var url = attributes.template;
@@ -3712,7 +3712,9 @@
 
 			function setMonth(date) {
 				if (!date || month.isOutside(date)) {
-					date ? month.setDate(date) : null;
+					if (date) {
+						month.setDate(date);
+					}
 					onMonthChange(date);
 				}
 			}
@@ -3780,7 +3782,7 @@
 			function getDayClasses(day) {
 				var classes = {
 					'day': day,
-				}
+				};
 				if (day) {
 					angular.extend(classes, {
 						'today': day.$today,
@@ -4351,8 +4353,9 @@
 			getMonth: getMonth,
 			addYear: addYear,
 			// getRange: getRange,
-			today: DateTime.today,
 			types: RangeTypes,
+			today: DateTime.today,
+			DateTime: DateTime,
 		};
 
 		var publics = {
@@ -4391,6 +4394,8 @@
 			isCurrent: isCurrent,
 			isBefore: isBefore,
 			isAfter: isAfter,
+
+			eachDay: eachDay,
 
 			getName: getName,
 			getShortName: getShortName,
@@ -4454,7 +4459,7 @@
 		}
 
 		function RangeExpand(range, time) {
-			var range = RangeCopy(range);
+			range = RangeCopy(range);
 			range.from = new Date(range.from.getTime() - time);
 			range.to = new Date(range.to.getTime() + time);
 			console.log('RangeExpand', range.toString());
@@ -4821,6 +4826,23 @@
 			return new Range({
 				type: range.type,
 			}).setDate(range.from).setDiff(diff);
+		}
+
+		function eachDay(callback) {
+			var range = this;
+			if (typeof callback !== 'function') {
+				return range;
+			}
+			var fromKey = Range.dateToKey(range.from);
+			var toKey = Range.dateToKey(range.to);
+			while (fromKey <= toKey) {
+				callback({
+					key: fromKey,
+					date: Range.keyToDate(fromKey),
+				});
+				fromKey++;
+			}
+			return range;
 		}
 
 		function getName() {
@@ -5861,7 +5883,6 @@ $(window).on('resize', function () {
 				});
 			}
 		};
-
     }]);
 
 	app.filter('autolink', [function () {
@@ -5869,7 +5890,7 @@ $(window).on('resize', function () {
 			return Autolinker.link(value, {
 				className: "a-link"
 			});
-		}
+		};
     }]);
 
 	app.filter('shortName', ['$filter', function ($filter) {
@@ -5901,14 +5922,14 @@ $(window).on('resize', function () {
 			} else {
 				return firstName;
 			}
-		}
+		};
     }]);
 
 	app.filter('customCurrency', ['$filter', function ($filter) {
 		var legacyFilter = $filter('currency');
 		return function (cost, currency) {
 			return legacyFilter(cost * currency.ratio, currency.formatting);
-		}
+		};
     }]);
 
 	app.filter('customSize', ['APP', function (APP) {
@@ -5960,7 +5981,7 @@ $(window).on('resize', function () {
 				value = '-';
 			}
 			return value;
-		}
+		};
     }]);
 
 	app.filter('reportNumber', ['$filter', function ($filter) {
@@ -5972,7 +5993,7 @@ $(window).on('resize', function () {
 				value = '-';
 			}
 			return value;
-		}
+		};
     }]);
 
 	app.filter('customHours', [function () {
@@ -5986,7 +6007,7 @@ $(window).on('resize', function () {
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customTimer', [function () {
@@ -6005,7 +6026,7 @@ $(window).on('resize', function () {
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customDigitalTimer', [function () {
@@ -6017,12 +6038,12 @@ $(window).on('resize', function () {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
 				var seconds = Math.floor((value - hours * hour - minutes * minute) / second);
-				hours = hours % 24;
+				// hours = hours % 24;
 				return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customDigitalTime', [function () {
@@ -6033,12 +6054,12 @@ $(window).on('resize', function () {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
-				hours = hours % 24;
+				// hours = hours % 24;
 				return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('isoWeek', [function () {
@@ -6070,14 +6091,14 @@ $(window).on('resize', function () {
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customDate', ['$filter', function ($filter) {
 		var filter = $filter('date');
 		return function (value, format, timezone) {
 			return value ? filter(value, format, timezone) : '-';
-		}
+		};
     }]);
 
 	app.filter('customTime', ['$filter', function ($filter) {
@@ -6087,7 +6108,7 @@ $(window).on('resize', function () {
 			} else {
 				return (placeholder ? placeholder : '-');
 			}
-		}
+		};
     }]);
 
 	app.filter('customDigital', ['$filter', function ($filter) {
@@ -6097,13 +6118,13 @@ $(window).on('resize', function () {
 			} else {
 				return (placeholder ? placeholder : '-');
 			}
-		}
+		};
     }]);
 
 	app.filter('customString', ['$filter', function ($filter) {
 		return function (value, placeholder) {
 			return value ? value : (placeholder ? placeholder : '-');
-		}
+		};
     }]);
 
 	app.filter('customEnum', function () {
@@ -6131,7 +6152,7 @@ $(window).on('resize', function () {
 				return collection;
 			}
 			return filterWatcher.isMemoized('groupBy', arguments) || filterWatcher.memoize('groupBy', arguments, this, _groupBy(collection, $parse(property)));
-		}
+		};
     }]);
 
 	app.filter('htmlToPlaintext', function () {

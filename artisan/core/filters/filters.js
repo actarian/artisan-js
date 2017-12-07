@@ -16,7 +16,6 @@
 				});
 			}
 		};
-
     }]);
 
 	app.filter('autolink', [function () {
@@ -24,7 +23,7 @@
 			return Autolinker.link(value, {
 				className: "a-link"
 			});
-		}
+		};
     }]);
 
 	app.filter('shortName', ['$filter', function ($filter) {
@@ -56,14 +55,14 @@
 			} else {
 				return firstName;
 			}
-		}
+		};
     }]);
 
 	app.filter('customCurrency', ['$filter', function ($filter) {
 		var legacyFilter = $filter('currency');
 		return function (cost, currency) {
 			return legacyFilter(cost * currency.ratio, currency.formatting);
-		}
+		};
     }]);
 
 	app.filter('customSize', ['APP', function (APP) {
@@ -115,7 +114,7 @@
 				value = '-';
 			}
 			return value;
-		}
+		};
     }]);
 
 	app.filter('reportNumber', ['$filter', function ($filter) {
@@ -127,7 +126,7 @@
 				value = '-';
 			}
 			return value;
-		}
+		};
     }]);
 
 	app.filter('customHours', [function () {
@@ -141,7 +140,7 @@
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customTimer', [function () {
@@ -160,7 +159,7 @@
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customDigitalTimer', [function () {
@@ -172,12 +171,12 @@
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
 				var seconds = Math.floor((value - hours * hour - minutes * minute) / second);
-				hours = hours % 24;
+				// hours = hours % 24;
 				return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customDigitalTime', [function () {
@@ -188,12 +187,12 @@
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
-				hours = hours % 24;
+				// hours = hours % 24;
 				return (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('isoWeek', [function () {
@@ -225,14 +224,14 @@
 			} else {
 				return '-';
 			}
-		}
+		};
     }]);
 
 	app.filter('customDate', ['$filter', function ($filter) {
 		var filter = $filter('date');
 		return function (value, format, timezone) {
 			return value ? filter(value, format, timezone) : '-';
-		}
+		};
     }]);
 
 	app.filter('customTime', ['$filter', function ($filter) {
@@ -242,7 +241,7 @@
 			} else {
 				return (placeholder ? placeholder : '-');
 			}
-		}
+		};
     }]);
 
 	app.filter('customDigital', ['$filter', function ($filter) {
@@ -252,13 +251,13 @@
 			} else {
 				return (placeholder ? placeholder : '-');
 			}
-		}
+		};
     }]);
 
 	app.filter('customString', ['$filter', function ($filter) {
 		return function (value, placeholder) {
 			return value ? value : (placeholder ? placeholder : '-');
-		}
+		};
     }]);
 
 	app.filter('customEnum', function () {
@@ -286,7 +285,7 @@
 				return collection;
 			}
 			return filterWatcher.isMemoized('groupBy', arguments) || filterWatcher.memoize('groupBy', arguments, this, _groupBy(collection, $parse(property)));
-		}
+		};
     }]);
 
 	app.filter('htmlToPlaintext', function () {

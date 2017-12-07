@@ -240,7 +240,7 @@
 				options: '=calendarPopup',
 			},
 			link: Link,
-		}
+		};
 
 		function TemplateUrl(element, attributes) {
 			var url = attributes.template;
@@ -295,7 +295,9 @@
 
 			function setMonth(date) {
 				if (!date || month.isOutside(date)) {
-					date ? month.setDate(date) : null;
+					if (date) {
+						month.setDate(date);
+					}
 					onMonthChange(date);
 				}
 			}
@@ -363,7 +365,7 @@
 			function getDayClasses(day) {
 				var classes = {
 					'day': day,
-				}
+				};
 				if (day) {
 					angular.extend(classes, {
 						'today': day.$today,
