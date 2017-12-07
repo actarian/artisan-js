@@ -1,0 +1,50 @@
+.flex-row {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	font-family: monospace;
+	font-size: .8em;
+
+	&>div {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 160px;
+		margin-bottom: 10px;
+		border: 1px solid grey;
+		height: 40px;
+		border-radius: 5px;
+		margin: 5px;
+	}
+
+	&>.w50 {
+		min-width: 50px;
+		flex: 0 0 100px;
+	}
+
+	&>.w100 {
+		min-width: 100px;
+		flex: 0 0 100px;
+	}
+
+	&>.w150 {
+		min-width: 150px;
+		flex: 0 0 100px;
+	}
+
+	&>.w200 {
+		min-width: 200px;
+		flex: 0 0 100px;
+	}
+
+	&>.w250 {
+		min-width: 250px;
+		flex: 0 0 100px;
+	}
+
+	&>.wmax {
+		min-width: 100px;
+		flex: 0 1 100%;
+	}
+}

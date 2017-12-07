@@ -1,17 +1,45 @@
 <json-formatter json="sources"></json-formatter>
 
+<div popuppable="[calendar-popup]">
+    <button class="btn popuppable-trigger" type="button">popup</button>
+    <div calendar-popup></div>
+    <!--
+    <div class="popup">
+        popup
+    </div>
+    -->
+</div>
+
+<!--
 <p ng-click="popup = true">
     <span date-relative="sources.day.from"></span>
     <span ng-bind="sources.day.from | dateRelative"></span>
 </p>
+-->
 
+<!--
+<div calendar-popup ng-show="popup"></div>
+-->
+
+<!--
 <div calendar-popup-records calendar-user="user" ng-model="sources.date" ng-show="popup"></div>
+-->
 
 <div ng-repeat="item in sources.todos track by $index">
     <div todo-item="item" target=".player-item" template="partials/todo/item">-</div>
 </div>
 
 <style>
+    .popuppable-target .calendar-popup {
+        position: relative;
+    }
+
+    .popup {
+        width: 240px;
+        height: 240px;
+        background: grey;
+    }
+
     .flex-row {
         display: flex;
         justify-content: flex-start;
@@ -201,7 +229,7 @@
         <div class="calendar calendar-popup">
             <div class="month">
                 <h6 class="flex-row">
-                    <span class="w100">
+                    <span class="wmin">
                         <button type="button" class="btn btn-xs btn-primary" ng-click="doNavMonth(-1)">
                             <i class="icon-prev"></i> <span><i class="icon-prev"></i></span>
                     </button>
@@ -209,7 +237,7 @@
                     <span class="wmax text-center">
                         <b ng-bind="sources.month.getName()"></b>
                     </span>
-                    <span class="w100 text-right">
+                    <span class="wmin text-right">
                         <button type="button" class="btn btn-xs btn-primary" ng-click="doNavMonth(1)">
                             <i class="icon-next"></i> <span><i class="icon-next"></i></span>
                     </button>

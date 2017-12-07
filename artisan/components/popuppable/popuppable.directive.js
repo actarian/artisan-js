@@ -5,7 +5,7 @@
 
 	var app = angular.module('artisan');
 
-	app.directive('expandable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
+	app.directive('popuppable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
 
 		var directive = {
 			restrict: 'A',
@@ -34,11 +34,13 @@
 			var from, to, current,
 				boundingClientRect, styleObj, originalCssText;
 
-			var expanded = false;
+			var opened = false;
 
+			/*
 			var placeholder = document.createElement('div'),
 				placeholderElement = angular.element(placeholder);
-			placeholderElement.addClass('expandable-placeholder');
+			placeholderElement.addClass('popuppable-placeholder');
+			*/
 
 			function getStyle(node) {
 				var style = window.getComputedStyle(node, null);
@@ -77,27 +79,32 @@
 			}
 
 			function add() {
+				/*
 				styleObj = getStyle(target);
 				setStyle(placeholder, styleObj);
 				target.parentNode.insertBefore(placeholder, target);
 				originalCssText = target.style.cssText;
-				targetElement.addClass('expandable-expanding');
+				*/
+				targetElement.addClass('popuppable-opening');
 				Dom.getParents(target).each(function (element, node) {
-					element.addClass('expandable-parent');
+					element.addClass('popuppable-parent');
 				});
 			}
 
 			function remove() {
+				/*
 				target.style.cssText = originalCssText;
-				targetElement.removeClass('expandable-expanding');
 				placeholder.parentNode.removeChild(placeholder);
+				*/
+				targetElement.removeClass('popuppable-opening');
 				Dom.getParents(target).each(function (element, node) {
-					element.removeClass('expandable-parent');
+					element.removeClass('popuppable-parent');
 				});
 			}
 
+			/*
 			function setRects() {
-				if (targetElement && targetElement.hasClass('expandable-expanding')) {
+				if (targetElement && targetElement.hasClass('popuppable-opening')) {
 					boundingClientRect = placeholder.getBoundingClientRect();
 				} else {
 					boundingClientRect = target.getBoundingClientRect();
@@ -131,40 +138,46 @@
 					to.height = absoluteBottom - absoluteTop;
 				}
 			}
+			*/
 
-			function expand() {
-				if (!expanded) {
-					setRects();
+			function open() {
+				if (!opened) {
+					// setRects();
 					add();
 					current = angular.copy(from);
-					setStyle(target, from);
+					// setStyle(target, from);
+					openAnimation();
+					/*
 					dynamics.animate(state, {
 						pow: 1
 					}, {
 						type: dynamics.easeInOut,
 						duration: 350,
 						complete: function () {
-							expanded = true;
+							opened = true;
 							state.idle();
 						},
 						change: function () {
 							update();
 						}
 					});
+					*/
 				} else {
 					state.idle();
 				}
 			}
 
-			function contract() {
-				if (expanded) {
+			function close() {
+				if (opened) {
+					closeAnimation();
+					/*
 					dynamics.animate(state, {
 						pow: 0
 					}, {
 						type: dynamics.easeInOut,
 						duration: 350,
 						complete: function () {
-							expanded = false;
+							opened = false;
 							remove();
 							state.idle();
 						},
@@ -172,12 +185,20 @@
 							update();
 						}
 					});
+					*/
 				} else {
 					state.idle();
 				}
 			}
 
 			function update() {
+				/*
+				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
+				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
+				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
+				current.height = (from.height + (to.height - from.height) * state.pow) + 'px';
+				setStyle(target, current);
+				*/
 				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
 				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
 				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
@@ -187,27 +208,30 @@
 
 			function toggle() {
 				if (state.busy()) {
-					if (expanded) {
-						contract();
+					if (opened) {
+						close();
 					} else {
-						expand();
+						open();
 					}
 				}
 			}
 
 			function set() {
-				relative = attributes.expandableRelative ? $parse(attributes.expandableRelative)(scope) : {};
-				absolute = attributes.expandableAbsolute ? $parse(attributes.expandableAbsolute)(scope) : {};
-				target = element[0].querySelector(attributes.expandable);
+				/*
+				relative = attributes.popuppableRelative ? $parse(attributes.popuppableRelative)(scope) : {};
+				absolute = attributes.popuppableAbsolute ? $parse(attributes.popuppableAbsolute)(scope) : {};
+				*/
+				target = element[0].querySelector(attributes.popuppable);
 				if (target) {
 					targetElement = angular.element(target);
+					targetElement.addClass('popuppable-target');
 				}
 			}
 
 			function onDown(e) {
 				set();
 				if (target) {
-					expand();
+					open();
 				}
 			}
 
@@ -217,14 +241,14 @@
 				} else {
 					set();
 					if (target) {
-						contract();
+						close();
 					}
 				}
 			}
 
 			function onResize(e) {
-				if (expanded || state.isBusy) {
-					setRects();
+				if (opened || state.isBusy) {
+					// setRects();
 					update();
 				}
 			}
@@ -235,20 +259,22 @@
 					case 'escape':
 						set();
 						if (target) {
-							contract();
+							close();
 						}
 						break;
 					case 'enter':
 						set();
 						if (target && target.tagName && target.tagName.toLowerCase() === 'input') {
-							contract();
+							close();
 						}
 						break;
 				}
 			}
 
 			function addListeners() {
-				element
+				var trigger = element[0].querySelector('.popuppable-trigger');
+				var triggerElement = trigger ? angular.element(trigger) : element;
+				triggerElement
 					.on('mousedown touchstart', onDown)
 					.on('keydown', onKeyDown);
 				angular.element(window)
@@ -257,7 +283,9 @@
 			}
 
 			function removeListeners() {
-				element
+				var trigger = element[0].querySelector('.popuppable-trigger');
+				var triggerElement = trigger ? angular.element(trigger) : element;
+				triggerElement
 					.off('mousedown touchstart', onDown)
 					.off('keydown', onKeyDown);
 				angular.element(window)
@@ -270,6 +298,66 @@
 			});
 
 			addListeners();
+
+			set();
+
+			function openAnimation() {
+				// Animate the popover
+				dynamics.animate(target, {
+					opacity: 1,
+					scale: 1
+				}, {
+					type: dynamics.spring,
+					frequency: 200,
+					friction: 270,
+					duration: 800,
+					complete: function () {
+						opened = true;
+						state.idle();
+					},
+				});
+
+				/*
+			  // Animate each line individually
+			  for(var i=0; i<items.length; i++) {
+				var item = items[i]
+				// Define initial properties
+				dynamics.css(item, {
+				  opacity: 0,
+				  translateY: 20
+				});
+			
+				// Animate to final properties
+				dynamics.animate(item, {
+				  opacity: 1,
+				  translateY: 0
+				}, {
+				  type: dynamics.spring,
+				  frequency: 300,
+				  friction: 435,
+				  duration: 1000,
+				  delay: 100 + i * 40
+				});
+			  }
+			*/
+			}
+
+			function closeAnimation() {
+				// Animate the popover
+				dynamics.animate(target, {
+					opacity: 0,
+					scale: 0.1
+				}, {
+					type: dynamics.easeInOut,
+					duration: 300,
+					friction: 100,
+					complete: function () {
+						opened = false;
+						remove();
+						state.idle();
+					},
+				});
+			}
 
 		}
 

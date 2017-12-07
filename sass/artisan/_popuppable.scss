@@ -1,0 +1,27 @@
+@import '../variables';
+@import '../mixins';
+
+[popuppable] {
+	position: relative;
+}
+
+.popuppable-placeholder {
+	background: #111;
+}
+
+.popuppable-target {
+	position: absolute; // display: none;
+	transform-origin: 50% 10px;
+	transform: scale(.1);
+	opacity: 0;
+}
+
+.popuppable-opening {
+	display: block;
+	position: absolute;
+	z-index: 100000;
+}
+
+.popuppable-parent {
+	z-index: 100000;
+}

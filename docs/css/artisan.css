@@ -657,12 +657,13 @@ Scrollbar
       text-align: right; }
 
 .calendar-popup-container {
-  position: relative;
-  width: 100%; }
+  position: relative; }
 
 .calendar-popup {
   position: absolute;
   width: 100%;
+  max-width: 400px;
+  background: white;
   z-index: 100;
   box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.35);
   /*
@@ -677,18 +678,23 @@ Scrollbar
 			line-height: 16px;
 		}
 		*/ }
-  .calendar-popup ul > .week {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: stretch; }
-    .calendar-popup ul > .week > .cell {
-      max-width: 12.5%;
-      flex: 0 0 12.5%;
-      min-height: 40px;
-      line-height: 20px;
-      padding: 4px;
-      text-align: right; }
+  .calendar-popup ul {
+    padding: 0;
+    margin: 0;
+    list-style: none; }
+    .calendar-popup ul > .week {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: stretch; }
+      .calendar-popup ul > .week > .cell {
+        max-width: 12.5%;
+        flex: 0 0 12.5%;
+        min-width: 40px;
+        min-height: 40px;
+        line-height: 20px;
+        padding: 4px;
+        text-align: right; }
   .calendar-popup .cell {
     background: transparent;
     pointer-events: none; }
@@ -920,6 +926,42 @@ Scrollbar
 
 .expandable-parent {
   z-index: 100000; }
+
+.flex-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-family: monospace;
+  font-size: .8em; }
+  .flex-row > div {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 160px;
+    margin-bottom: 10px;
+    border: 1px solid grey;
+    height: 40px;
+    border-radius: 5px;
+    margin: 5px; }
+  .flex-row > .w50 {
+    min-width: 50px;
+    flex: 0 0 100px; }
+  .flex-row > .w100 {
+    min-width: 100px;
+    flex: 0 0 100px; }
+  .flex-row > .w150 {
+    min-width: 150px;
+    flex: 0 0 100px; }
+  .flex-row > .w200 {
+    min-width: 200px;
+    flex: 0 0 100px; }
+  .flex-row > .w250 {
+    min-width: 250px;
+    flex: 0 0 100px; }
+  .flex-row > .wmax {
+    min-width: 100px;
+    flex: 0 1 100%; }
 
 .form-group {
   position: relative;
@@ -1966,6 +2008,216 @@ Scrollbar
   width: 100%;
   height: 100%;
   background: #0000fe; }
+
+/*
+@function pow($number, $exp) {
+    $value: 1;
+
+    @if $exp > 0 {
+        @for $i from 1 through $exp {
+            $value: $value * $number;
+        }
+    }
+    @else if $exp < 0 {
+        @for $i from 1 through -$exp {
+            $value: $value / $number;
+        }
+    }
+
+    @return $value;
+}
+*/
+/*
+.btn-link {
+  font-weight: normal;
+  color: $link-color;
+  border-radius: 0;
+
+  &,
+  &:active,
+  &.active,
+  &:disabled {
+    background-color: transparent;
+    @include box-shadow(none);
+  }
+  &,
+  &:focus,
+  &:active {
+    border-color: transparent;
+  }
+  @include hover {
+    border-color: transparent;
+  }
+  @include hover-focus {
+    color: $link-hover-color;
+    text-decoration: $link-hover-decoration;
+    background-color: transparent;
+  }
+  &:disabled {
+    @include hover-focus {
+      color: $btn-link-disabled-color;
+      text-decoration: none;
+    }
+  }
+}
+*/
+/*
+@mixin btn-color($color, $background, $border) {
+  $active-background: darken($background, 10%);
+  $active-border: darken($border, 12%);
+
+  color: $color;
+  background-color: $background;
+  border-color: $border;
+  @include box-shadow($btn-box-shadow);
+
+  @include hover {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+  }
+
+  &:focus,
+  &.focus {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+  }
+
+  &:active,
+  &.active,
+  .open > &.dropdown-toggle {
+    color: $color;
+    background-color: $active-background;
+        border-color: $active-border;
+    // Remove the gradient for the pressed/active state
+    background-image: none;
+    @include box-shadow($btn-active-box-shadow);
+
+    &:hover,
+    &:focus,
+    &.focus {
+      color: $color;
+      background-color: darken($background, 17%);
+          border-color: darken($border, 25%);
+    }
+  }
+
+  &.disabled,
+  &:disabled {
+    &:focus,
+    &.focus {
+      background-color: $background;
+          border-color: $border;
+    }
+    @include hover {
+      background-color: $background;
+          border-color: $border;
+    }
+  }
+}
+*/
+/*
+@mixin btn-outline-color($color) {
+    color: $color;
+    background-image: none;
+    background-color: transparent;
+    border-color: $color;
+
+    @include hover {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+    }
+
+    &:focus,
+    &.focus {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+    }
+
+    &:active,
+    &.active,
+    .open > &.dropdown-toggle {
+        color: #fff;
+        background-color: $color;
+        border-color: $color;
+
+        &:hover,
+        &:focus,
+        &.focus {
+            color: #fff;
+            background-color: darken($color, 17%);
+            border-color: darken($color, 25%);
+        }
+    }
+
+    &.disabled,
+    &:disabled {
+        &:focus,
+        &.focus {
+            border-color: lighten($color, 20%);
+        }
+
+        @include hover {
+            border-color: lighten($color, 20%);
+        }
+    }
+}
+*/
+/*
+@function pow($number, $exp) {
+    $value: 1;
+
+    @if $exp > 0 {
+        @for $i from 1 through $exp {
+            $value: $value * $number;
+        }
+    }
+    @else if $exp < 0 {
+        @for $i from 1 through -$exp {
+            $value: $value / $number;
+        }
+    }
+
+    @return $value;
+}
+*/
+/*
+Scrollbar
+--------------------
+        1
+────────┐
+        ┴   2
+        ┬   2
+        ║   3-4
+        ║   3-4
+        │   5-4
+        │   5-4
+────────┘   6-7
+        1
+--------------------
+*/
+[popuppable] {
+  position: relative; }
+
+.popuppable-placeholder {
+  background: #111; }
+
+.popuppable-target {
+  position: absolute;
+  transform-origin: 50% 10px;
+  transform: scale(0.1);
+  opacity: 0; }
+
+.popuppable-opening {
+  display: block;
+  position: absolute;
+  z-index: 100000; }
+
+.popuppable-parent {
+  z-index: 100000; }
 
 [scrollable-x],
 [scrollable-y] {

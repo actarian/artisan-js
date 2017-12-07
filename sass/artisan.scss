@@ -1,6 +1,7 @@
 @import "mixins";
 @import "artisan/calendar";
 @import "artisan/expandable";
+@import "artisan/flex";
 @import "artisan/forms";
 @import "artisan/interactions";
 @import "artisan/modals";
@@ -8,5 +9,6 @@
 @import "artisan/page";
 @import "artisan/plugins/googlemaps";
 @import "artisan/plugins/mapbox";
+@import "artisan/popuppable";
 @import "artisan/scrollable";
 @import "artisan/video";

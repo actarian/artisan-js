@@ -33,6 +33,7 @@
         "artisan/components/modals/modal.provider.js",
         "artisan/components/nav/nav.directives.js",
         "artisan/components/nav/nav.factory.js",
+        "artisan/components/popuppable/popuppable.directive.js",
         "artisan/components/scrollable/scrollable.directive.js",
         "artisan/components/scrollable/scrollable.factory.js",
         "artisan/components/video/video.directive.js",

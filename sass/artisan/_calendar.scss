@@ -360,16 +360,21 @@ $hover: #03a9f4;
 
 .calendar-popup-container {
 	position: relative;
-	width: 100%;
 }
 
 .calendar-popup {
 	position: absolute;
 	width: 100%;
+	max-width: 400px;
+	background: white;
 	z-index: 100;
 	box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.35);
 
 	ul {
+		padding: 0;
+		margin: 0;
+		list-style: none;
+
 		&>.week {
 			display: flex;
 			flex-direction: row;
@@ -379,6 +384,7 @@ $hover: #03a9f4;
 			&>.cell {
 				max-width: 12.5%;
 				flex: 0 0 12.5%;
+				min-width: 40px;
 				min-height: 40px;
 				line-height: 20px;
 				padding: 4px;
