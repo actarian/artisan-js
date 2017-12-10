@@ -18,7 +18,7 @@
 				return url;
 			},
 			link: function (scope, element, attributes, model, transclude) {
-				console.log('todoItem.link');
+				// console.log('todoItem.link');
 
 				var SPEED = 1;
 
@@ -134,7 +134,7 @@
 								scope.$root.$broadcast('onTodoPlayer', item);
 							}
 						}
-						console.log('StorageGet', item.key, player.playing, player.startTime);
+						// console.log('StorageGet', item.key, player.playing, player.startTime);
 					}
 				}
 
@@ -152,7 +152,7 @@
 						players[item.key] = stored;
 						storage.set('players', players);
 						animate.play();
-						console.log('StoragePlay', item.key, player.playing, player.startTime);
+						// console.log('StoragePlay', item.key, player.playing, player.startTime);
 						scope.$root.$broadcast('onTodoPlayer', item);
 					}
 				}
@@ -160,7 +160,7 @@
 				function StoragePause() {
 					item = scope.item; // $parse(attributes.todoItem)(scope);
 					if (item) {
-						console.log('StoragePause', item.key);
+						// console.log('StoragePause', item.key);
 						player = item.player;
 						player.accumulatedTime = player.elapsedTime - player.recordedTime;
 						player.elapsedTime = 0;
@@ -173,7 +173,7 @@
 						players[item.key] = stored;
 						storage.set('players', players);
 						animate.pause();
-						console.log('StoragePause', item.key, player.playing, player.startTime);
+						// console.log('StoragePause', item.key, player.playing, player.startTime);
 						scope.$root.$broadcast('onTodoPause', item);
 					}
 				}
@@ -204,7 +204,7 @@
 						}
 						players[item.key] = stored;
 						storage.set('players', players);
-						console.log('StorageUpdate', item.key, player.playing, player.startTime);
+						// console.log('StorageUpdate', item.key, player.playing, player.startTime);
 					}
 				}
 
@@ -220,7 +220,7 @@
 						player.toggle = PlayerToggle;
 						player.update = StorageUpdate;
 						//
-						console.log('PlayerInit', item.key);
+						// console.log('PlayerInit', item.key);
 					}
 				}
 

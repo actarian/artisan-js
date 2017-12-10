@@ -17,12 +17,12 @@
 				return attributes.template || 'artisan/components/nav/partial/nav';
             },
             */
-			link: ExpandableLink,
+			link: link,
 		};
 
 		return directive;
 
-		function ExpandableLink(scope, element, attributes, model) {
+		function link(scope, element, attributes, model) {
 
 			var state = new State();
 			state.pow = 0;

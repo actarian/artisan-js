@@ -84,6 +84,7 @@
 		};
 
 		var publics = {
+
 			setYear: setYear,
 			setSemester: setSemester,
 			setTrimester: setTrimester,
@@ -97,6 +98,7 @@
 
 			setYearPeriod: setYearPeriod,
 			setLastSemester: setLastSemester,
+
 			nextYear: nextYear,
 			currentYear: currentYear,
 			currentSemester: currentSemester,
@@ -106,6 +108,7 @@
 			currentWeek: currentWeek,
 			currentYearPeriod: currentYearPeriod,
 			lastSemester: lastSemester,
+
 			getDiff: getDiff,
 			getParams: getParams,
 			getDate: getDate,
@@ -189,6 +192,13 @@
 			range.to = new Date(range.to.getTime() + time);
 			console.log('RangeExpand', range.toString());
 			return range;
+		}
+
+		function getDiff(diff) {
+			var range = this;
+			return new Range({
+				type: range.type,
+			}).setDate(range.from).setDiff(diff);
 		}
 
 		function getMonth(date) {
@@ -315,7 +325,12 @@
 			};
 		}
 
-		function setYear(date, diff, size) {
+		function setYear(date, diff, size, step) {
+			var range = this;
+			range.from = DateTime.getYearLeft(date, diff, size, step);
+			range.to = DateTime.getYearRight(date, diff, size, step);
+			return range;
+			/*
 			diff = diff || 0;
 			size = size || 1;
 			var left = DateTime.yearDiff(diff, date);
@@ -324,62 +339,34 @@
 			range.from = DateTime.yearLeft(left);
 			range.to = DateTime.yearRight(right);
 			return range;
+			*/
 		}
 
 		function setSemester(date, diff, size) {
-			diff = diff || 0;
-			size = size || 1;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 6 * diff));
-			var yyyy = date.getFullYear();
-			var semester = Math.floor(date.getMonth() / 6);
-			var range = this;
-			// range.type = RangeTypes.SEMESTER;
-			range.from = new Date(yyyy, semester * 6, 1, 0, 0, 0, 0, 0);
-			range.to = new Date(yyyy, semester * 6 + 6, 0, 23, 59, 59, 999);
-			return range;
+			return this.setMonth(date, diff, size, 6);
 		}
 
 		function setTrimester(date, diff, size) {
-			diff = diff || 0;
-			size = size || 1;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 4 * diff));
-			var yyyy = date.getFullYear();
-			var trimester = Math.floor(date.getMonth() / 4);
-			var range = this;
-			// range.type = RangeTypes.TRIMESTER;
-			range.from = new Date(yyyy, trimester * 4, 1, 0, 0, 0, 0, 0);
-			range.to = new Date(yyyy, trimester * 4 + 4, 0, 23, 59, 59, 999);
-			return range;
+			return this.setMonth(date, diff, size, 4);
 		}
 
 		function setQuarter(date, diff, size) {
-			diff = diff || 0;
-			size = size || 1;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 3 * diff));
-			var yyyy = date.getFullYear();
-			var quarter = Math.floor(date.getMonth() / 3);
+			return this.setMonth(date, diff, size, 3);
+		}
+
+		function setMonth(date, diff, size, step) {
 			var range = this;
-			// range.type = RangeTypes.QUARTER;
-			range.from = new Date(yyyy, quarter * 3, 1, 0, 0, 0, 0, 0);
-			range.to = new Date(yyyy, quarter * 3 + 3, 0, 23, 59, 59, 999);
+			range.from = DateTime.getMonthLeft(date, diff, size, step);
+			range.to = DateTime.getMonthRight(date, diff, size, step);
 			return range;
 		}
 
-		function setMonth(date, diff, size) {
-			diff = diff || 0;
-			size = size || 1;
-			var left = DateTime.monthDiff(diff, date);
-			var right = DateTime.monthDiff(diff + size - 1, date);
+		function setWeek(date, diff, size, step) {
 			var range = this;
-			range.from = DateTime.monthLeft(left);
-			range.to = DateTime.monthRight(right);
+			range.from = DateTime.getWeekLeft(date, diff, size, step);
+			range.to = DateTime.getWeekRight(date, diff, size, step);
 			return range;
-		}
-
-		function setWeek(date, diff, size) {
+			/*
 			diff = diff || 0;
 			size = size || 1;
 			var left = DateTime.weekDiff(diff, date);
@@ -388,9 +375,15 @@
 			range.from = DateTime.weekLeft(left);
 			range.to = DateTime.weekRight(right);
 			return range;
+			*/
 		}
 
-		function setDay(date, diff, size) {
+		function setDay(date, diff, size, step) {
+			var range = this;
+			range.from = DateTime.getDayLeft(date, diff, size, step);
+			range.to = DateTime.getDayRight(date, diff, size, step);
+			return range;
+			/*
 			diff = diff || 0;
 			size = size || 1;
 			var left = DateTime.dayDiff(diff, date);
@@ -399,6 +392,7 @@
 			range.from = DateTime.dayLeft(left);
 			range.to = DateTime.dayRight(right);
 			return range;
+			*/
 		}
 
 		function setYearPeriod(date, diff) {
@@ -544,13 +538,6 @@
 
 		function extract(obj, value) {
 			return Object.keys(obj)[Object.values(obj).indexOf(value)];
-		}
-
-		function getDiff(diff) {
-			var range = this;
-			return new Range({
-				type: range.type,
-			}).setDate(range.from).setDiff(diff);
 		}
 
 		function eachDay(callback) {

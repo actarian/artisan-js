@@ -20,6 +20,21 @@
 		var today = getDate();
 
 		var statics = {
+			getIndexLeft: getIndexLeft,
+			getIndexRight: getIndexRight,
+			//
+			getDayLeft: getDayLeft,
+			getDayRight: getDayRight,
+			//
+			getMonthLeft: getMonthLeft,
+			getMonthRight: getMonthRight,
+			//
+			getWeekLeft: getWeekLeft,
+			getWeekRight: getWeekRight,
+			//
+			getYearLeft: getYearLeft,
+			getYearRight: getYearRight,
+			//
 			dateToKey: dateToKey,
 			//
 			dayDiff: dayDiff,
@@ -27,6 +42,7 @@
 			dayRight: dayRight,
 			//
 			getDate: getDate,
+			hourToTime: hourToTime,
 			keyToDate: keyToDate,
 			//
 			monthDiff: monthDiff,
@@ -42,8 +58,7 @@
 			yearDiff: yearDiff,
 			yearLeft: yearLeft,
 			yearRight: yearRight,
-			// conversion
-			hourToTime: hourToTime,
+			// 
 			timeToHour: timeToHour,
 			timeToQuarterHour: timeToQuarterHour,
 			// units
@@ -107,27 +122,33 @@
 			};
 		}
 
+		function hourToTime(hour) {
+			return hour * HOUR;
+		}
+
 		function keyToDate(key) {
 			return new Date(new Date().setTime(key * DAY));
 		}
 
-		function monthDiff(diff, date) {
+		function monthDiff(diff, date, step) {
+			step = step || 1;
 			var c = components(date);
-			return new Date(c.yyyy, c.MM + diff, 1, c.HH, c.mm, c.ss, c.sss);
+			var MM = Math.floor(c.MM / step) * step + diff * step;
+			return new Date(c.yyyy, MM, 1, c.HH, c.mm, c.ss, c.sss);
 		}
 
-		function monthLeft(date) {
+		function monthLeft(date, step) {
+			step = step || 1;
 			var c = components(date);
-			return new Date(c.yyyy, c.MM, 1, 0, 0, 0, 0);
+			var MM = Math.floor(c.MM / step) * step;
+			return new Date(c.yyyy, MM, 1, 0, 0, 0, 0);
 		}
 
-		function monthRight(date) {
+		function monthRight(date, step) {
+			step = step || 1;
 			var c = components(date);
-			return new Date(c.yyyy, c.MM + 1, 0, 23, 59, 59, 999);
-		}
-
-		function hourToTime(hour) {
-			return hour * HOUR;
+			var MM = Math.floor(c.MM / step) * step;
+			return new Date(c.yyyy, MM + step, 0, 23, 59, 59, 999);
 		}
 
 		function timeToHour(time) {
@@ -168,7 +189,96 @@
 			return new Date(c.yyyy, 12, 0, 23, 59, 59, 999);
 		}
 
+		function getIndexLeft(diff, size, step) {
+			diff = diff || 0;
+			size = size || 1;
+			step = step || 1;
+			var index = diff * step + (size - 1) * step;
+			return index;
+		}
+
+		function getIndexRight(diff, size, step) {
+			step = step || 1;
+			var index = getIndexLeft(diff, size, step) + (step - 1);
+			return index;
+		}
+
+		function getYearLeft(date, diff, size, step) {
+			step = step || 1;
+			var c = components(date);
+			var yyyy = Math.floor(c.yyyy / step) * step;
+			yyyy += getIndexLeft(diff, size, step);
+			date = new Date(yyyy, c.MM, c.dd, c.HH, c.mm, c.ss, c.sss);
+			return yearLeft(date);
+		}
+
+		function getYearRight(date, diff, size, step) {
+			step = step || 1;
+			var c = components(date);
+			var yyyy = Math.floor(c.yyyy / step) * step;
+			yyyy += getIndexRight(diff, size, step);
+			date = new Date(yyyy, c.MM, c.dd, c.HH, c.mm, c.ss, c.sss);
+			return yearRight(date);
+		}
+
+		function getMonthLeft(date, diff, size, step) {
+			step = step || 1;
+			var c = components(date);
+			var MM = Math.floor(c.MM / step) * step;
+			MM += getIndexLeft(diff, size, step);
+			date = new Date(c.yyyy, MM, c.dd, c.HH, c.mm, c.ss, c.sss);
+			return monthLeft(date);
+		}
+
+		function getMonthRight(date, diff, size, step) {
+			step = step || 1;
+			var c = components(date);
+			var MM = Math.floor(c.MM / step) * step;
+			MM += getIndexRight(diff, size, step);
+			date = new Date(c.yyyy, MM, c.dd, c.HH, c.mm, c.ss, c.sss);
+			return monthRight(date);
+		}
+
+		function getWeekLeft(date, diff, size, step) {
+			var c = components(date);
+			var dd = c.dd + getIndexLeft(diff, size, step) * 7;
+			date = new Date(c.yyyy, c.MM, dd, c.HH, c.mm, c.ss, c.sss);
+			return weekLeft(date);
+		}
+
+		function getWeekRight(date, diff, size, step) {
+			var c = components(date);
+			var dd = c.dd + getIndexRight(diff, size, step) * 7;
+			date = new Date(c.yyyy, c.MM, dd, c.HH, c.mm, c.ss, c.sss);
+			return weekRight(date);
+		}
+
+		function getDayLeft(date, diff, size, step) {
+			step = step || 1;
+			var c = components(date);
+			var dd = Math.floor(c.dd / step) * step;
+			dd += getIndexLeft(diff, size, step);
+			date = new Date(c.yyyy, c.MM, dd, c.HH, c.mm, c.ss, c.sss);
+			return dayLeft(date);
+		}
+
+		function getDayRight(date, diff, size, step) {
+			step = step || 1;
+			var c = components(date);
+			var dd = Math.floor(c.dd / step) * step;
+			dd += getIndexRight(diff, size, step);
+			date = new Date(c.yyyy, c.MM, dd, c.HH, c.mm, c.ss, c.sss);
+			return dayRight(date);
+		}
+
 		/*
+
+		function apply(callback, args, slice) {
+			slice = slice || 0;
+			args = Array.prototype.slice.call(args, slice);
+			return callback.apply(this, args);
+		}
+
 		ArrayFrom = function(len, callback) {
 			var a = [];
 			while (a.length < len) {

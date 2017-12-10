@@ -151,7 +151,7 @@
 				return url;
 			},
 			link: function (scope, element, attributes, model, transclude) {
-				console.log('todoItem.link');
+				// console.log('todoItem.link');
 
 				var SPEED = 1;
 
@@ -267,7 +267,7 @@
 								scope.$root.$broadcast('onTodoPlayer', item);
 							}
 						}
-						console.log('StorageGet', item.key, player.playing, player.startTime);
+						// console.log('StorageGet', item.key, player.playing, player.startTime);
 					}
 				}
 
@@ -285,7 +285,7 @@
 						players[item.key] = stored;
 						storage.set('players', players);
 						animate.play();
-						console.log('StoragePlay', item.key, player.playing, player.startTime);
+						// console.log('StoragePlay', item.key, player.playing, player.startTime);
 						scope.$root.$broadcast('onTodoPlayer', item);
 					}
 				}
@@ -293,7 +293,7 @@
 				function StoragePause() {
 					item = scope.item; // $parse(attributes.todoItem)(scope);
 					if (item) {
-						console.log('StoragePause', item.key);
+						// console.log('StoragePause', item.key);
 						player = item.player;
 						player.accumulatedTime = player.elapsedTime - player.recordedTime;
 						player.elapsedTime = 0;
@@ -306,7 +306,7 @@
 						players[item.key] = stored;
 						storage.set('players', players);
 						animate.pause();
-						console.log('StoragePause', item.key, player.playing, player.startTime);
+						// console.log('StoragePause', item.key, player.playing, player.startTime);
 						scope.$root.$broadcast('onTodoPause', item);
 					}
 				}
@@ -337,7 +337,7 @@
 						}
 						players[item.key] = stored;
 						storage.set('players', players);
-						console.log('StorageUpdate', item.key, player.playing, player.startTime);
+						// console.log('StorageUpdate', item.key, player.playing, player.startTime);
 					}
 				}
 
@@ -353,7 +353,7 @@
 						player.toggle = PlayerToggle;
 						player.update = StorageUpdate;
 						//
-						console.log('PlayerInit', item.key);
+						// console.log('PlayerInit', item.key);
 					}
 				}
 
@@ -417,7 +417,7 @@
 
 	var app = angular.module('app');
 
-	app.controller('HomeCtrl', ['$scope', 'State', 'View', function ($scope, State, View) {
+	app.controller('HomeCtrl', ['$scope', 'State', 'View', 'Range', function ($scope, State, View, Range) {
 		var state = new State();
 
 		View.current().then(function (view) {
@@ -429,133 +429,172 @@
 
 		});
 
+		/*
+		function getIndexLeft(diff, size, step) {
+			diff = diff || 0;
+			size = size || 1;
+			step = step || 1;
+			var index = diff * step + (size - 1) * step;
+			return index;
+		}
+
+		function getIndexRight(diff, size, step) {
+			step = step || 1;
+			var index = getIndexLeft(diff, size, step) + (step - 1);
+			return index;
+		}
+
+		console.log('index', getIndexLeft(0, 1, 6), getIndexRight(0, 1, 6));
+		console.log('index', getIndexLeft(0, 1, 4), getIndexRight(0, 1, 4));
+		console.log('index', getIndexLeft(0, 1, 3), getIndexRight(0, 1, 3));
+
+		console.log('index', getIndexLeft(1, 1, 6), getIndexRight(1, 1, 6));
+		console.log('index', getIndexLeft(1, 1, 4), getIndexRight(1, 1, 4));
+		console.log('index', getIndexLeft(1, 1, 3), getIndexRight(1, 1, 3));
+		*/
+
 		$scope.state = state;
     }]);
 
 }());
-
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
+	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function ($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
 
-        var nav = new Nav({
-            onPath: onPath,
-            onNav: onNav,
-        });
+		var nav = new Nav({
+			onPath: onPath,
+			onNav: onNav,
+		});
 
-        Api.navs.main().then(function(items) {
-            nav.setItems(items);
+		Api.navs.main().then(function (items) {
+			nav.setItems(items);
 
-        }, function(error) {
-            console.log('RootCtrl.error', error);
+		}, function (error) {
+			console.log('RootCtrl.error', error);
 
-        });
+		});
 
-        function onPath(item) {
-            var path = item.path;
-            // console.log('RootCtrl.onPath', item.$nav.level, path);
-            return path;
-        }
+		function onPath(item) {
+			var path = item.path;
+			// console.log('RootCtrl.onPath', item.$nav.level, path);
+			return path;
+		}
 
-        function onNav(item) {
-            // console.log('RootCtrl.onNav', item.$nav.level, item.$nav.path);
-            Nav.path(item.$nav.path);
-            return false; // returning false disable default link behaviour;
-        }
+		function onNav(item) {
+			// console.log('RootCtrl.onNav', item.$nav.level, item.$nav.path);
+			Nav.path(item.$nav.path);
+			return false; // returning false disable default link behaviour;
+		}
 
-        function onNavPromise(item) {
-            $scope.selected = item;
-            return $promise(function(promise) {
-                // console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.path);
-                $timeout(function() {
-                    if (item.items) {
-                        item.$nav.addItems({
-                            name: "Item",
-                        });
-                    }
-                    promise.resolve();
-                });
-            }); // a promise always disable default link behaviour;
-        }
+		function onNavPromise(item) {
+			$scope.selected = item;
+			return $promise(function (promise) {
+				// console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.path);
+				$timeout(function () {
+					if (item.items) {
+						item.$nav.addItems({
+							name: "Item",
+						});
+					}
+					promise.resolve();
+				});
+			}); // a promise always disable default link behaviour;
+		}
 
-        $scope.nav = nav;
+		$scope.nav = nav;
 
-        ////////////
+		////////////
 
-        var items = new Array(20).fill(null).map(function(value, index) {
-            return {
-                id: index + 1,
-                name: 'Item',
-                items: new Array(3).fill(null).map(function(value, index) {
-                    return {
-                        id: index + 1,
-                        name: 'Item',
-                        items: new Array(2).fill(null).map(function(value, index) {
-                            return {
-                                id: index + 1,
-                                name: 'Item',
-                            };
-                        }),
-                    };
-                }),
-            };
-        });
+		var items = new Array(20).fill(null).map(function (value, index) {
+			return {
+				id: index + 1,
+				name: 'Item',
+				items: new Array(3).fill(null).map(function (value, index) {
+					return {
+						id: index + 1,
+						name: 'Item',
+						items: new Array(2).fill(null).map(function (value, index) {
+							return {
+								id: index + 1,
+								name: 'Item',
+							};
+						}),
+					};
+				}),
+			};
+		});
 
-        $scope.items = items;
+		$scope.items = items;
 
-        var scrollable = new Scrollable();
+		var scrollable = new Scrollable();
 
-        $scope.scrollable = scrollable;
+		$scope.scrollable = scrollable;
 
-        //////////////
+		//////////////
 
-        function getFacebookMe() {
-            FacebookService.getMe().then(function(user) {
-                console.log('FacebookService.getMe', user);
-            }, function(error) {
-                console.log('FacebookService.getMe.error', error);
-            });
-        }
+		function getFacebookMe() {
+			FacebookService.getMe().then(function (user) {
+				console.log('FacebookService.getMe', user);
+			}, function (error) {
+				console.log('FacebookService.getMe.error', error);
+			});
+		}
 
-        function getGoogleMe() {
-            GoogleService.getMe().then(function(user) {
-                console.log('GoogleService.getMe', user);
-            }, function(error) {
-                console.log('GoogleService.getMe.error', error);
-            });
-        }
+		function getGoogleMe() {
+			GoogleService.getMe().then(function (user) {
+				console.log('GoogleService.getMe', user);
+			}, function (error) {
+				console.log('GoogleService.getMe.error', error);
+			});
+		}
 
-        $scope.getFacebookMe = getFacebookMe;
-        $scope.getGoogleMe = getGoogleMe;
+		$scope.getFacebookMe = getFacebookMe;
+		$scope.getGoogleMe = getGoogleMe;
 
-        var year = new Range({ type: Range.types.YEAR });
-        var semester = new Range({ type: Range.types.SEMESTER });
-        var trimester = new Range({ type: Range.types.TRIMESTER });
-        var quarter = new Range({ type: Range.types.QUARTER });
-        var month = new Range({ type: Range.types.MONTH });
-        var week = new Range({ type: Range.types.WEEK });
-        var day = new Range({ type: Range.types.DAY });
+		var year = new Range({
+			type: Range.types.YEAR
+		});
+		var semester = new Range({
+			type: Range.types.SEMESTER
+		});
+		var trimester = new Range({
+			type: Range.types.TRIMESTER
+		});
+		var quarter = new Range({
+			type: Range.types.QUARTER
+		});
+		var month = new Range({
+			type: Range.types.MONTH
+		});
+		var week = new Range({
+			type: Range.types.WEEK
+		});
+		var day = new Range({
+			type: Range.types.DAY
+		});
 
-        var ranges = {
-            year: year,
-            semester: semester,
-            trimester: trimester,
-            quarter: quarter,
-            month: month,
-            week: week,
-            day: day,
-        };
+		var ranges = {
+			year: year,
+			semester: semester,
+			trimester: trimester,
+			quarter: quarter,
+			month: month,
+			week: week,
+			day: day,
+		};
 
-        angular.forEach(ranges, function(range) {
-            console.log(range.toString());
-        });
+		/*
+		angular.forEach(ranges, function(range) {
+		    console.log(range.toString());
+		});
+		*/
 
-        $scope.ranges = ranges;
+		$scope.ranges = ranges;
 
     }]);
 
@@ -595,22 +634,14 @@
 
 		var state = new State();
 
-		var calendarOptions = {
-			month: function () {
-				console.log('TestCtrl.month', arguments);
-			},
-		};
-
-		var sources = {
-			calendarOptions: calendarOptions,
-		};
+		var sources = {};
 
 		var publics = {
 			state: state,
 			sources: sources,
 		};
 
-		angular.extend($scope, publics); // todo
+		angular.extend($scope, publics);
 
 		$http.get('api/test.json').then(function (response) {
 			var slots = response.data;
@@ -645,20 +676,23 @@
 				todo.hours += day.hours;
 				// console.log(key, day);
 			});
+			/*
 			todos.each(function (todo) {
 				console.log(todo.key, todo);
 			});
+			*/
 			todos.forward();
 			sources.todos = todos;
 		}
 
 		$scope.$on('onTodoPause', function (scope, item) {
 			var accumulatedHours = DateTime.timeToQuarterHour(item.player.accumulatedTime);
-			console.log('onTodoPause', accumulatedHours);
+			// console.log('onTodoPause', accumulatedHours);
 			item.recordedHours += accumulatedHours;
 			item.player.update();
 		});
 
+		/*
 		var day = new Range({
 			type: Range.types.DAY
 		});
@@ -669,69 +703,17 @@
 		}
 
 		sources.day = day;
+		*/
+
+		//
+
+		var range = new Range({
+			type: Range.types.SEMESTER
+		});
+
+		console.log(range.toString());
 
     }]);
-
-	/*
-	app.controller('TodoRecordModalCtrl', ['$scope', '$routeParams', '$q', '$timeout', '$filter', 'State', 'Api', 'Range', 'Painter', function ($scope, $routeParams, $q, $timeout, $filter, State, Api, Range, Painter) {
-
-		var state = new State();
-		var user = $scope.modal.params.user;
-		var row = $scope.modal.params.row;
-		var model = angular.copy(row);
-		var sources = $scope.modal.params.sources;
-		sources = {
-			hours: sources.hours,
-			activities: sources.activities.map(function (row) {
-				return row.activity;
-			}),
-		}
-		var publics = {
-			state: state,
-			user: user,
-			row: row,
-			model: model,
-			sources: sources,
-			getStatusColor: getStatusColor,
-		};
-
-		angular.extend($scope, publics);
-
-		function getDefaultAvatar() {
-			var p = new Painter().setSize(100, 100);
-			p.setFill(p.colors.blue);
-			p.fillRect();
-			p.setText('60px Project');
-			p.setFill(p.colors.white);
-			p.fillText('2', p.rect.center());
-			return p.toDataURL();
-		}
-
-		var colors = ['blue', 'red', 'orange', 'light-orange', 'green', 'light-green', 'purple', 'light-blue']; // 'yellow', 'azur', 
-		function getStatusColor(row) {
-			return 'status-' + colors[row.activity.id % colors.length];
-		}
-
-		function Init() {
-			if (!state.isReady) {
-				state.ready();
-			}
-		}
-
-		Init();
-
-		$scope.submit = function () {
-			if (state.busy()) {
-				$scope.modal.resolve(model);
-			}
-		};
-
-		$scope.onResourceSelect = function (resource) {
-			model.resource = resource;
-		};
-
-	}]);
-	*/
 
 }());
 /* global angular */
