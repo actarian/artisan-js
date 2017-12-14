@@ -42,6 +42,10 @@
 			dayRight: dayRight,
 			//
 			getDate: getDate,
+			getDay: getDay,
+			getWeek: getWeek,
+			getDayByKey: getDayByKey,
+			getDayByDate: getDayByDate,
 			hourToTime: hourToTime,
 			keyToDate: keyToDate,
 			//
@@ -96,7 +100,8 @@
 		}
 
 		function dateToKey(date) {
-			return Math.ceil(date.getTime() / DAY);
+			var offset = date.getTimezoneOffset();
+			return Math.floor((date.valueOf() - offset * MINUTE) / DAY);
 		}
 
 		function dayDiff(diff, date) {
@@ -122,12 +127,64 @@
 			};
 		}
 
+		function getWeek(date, offsetDays) {
+			offsetDays = offsetDays || 0; // default offsetDays to zero
+			var startingDayOfWeek = 4; // first week of year with thursday;
+			var firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+			var dayOfWeek = firstDayOfYear.getDay() - offsetDays; // the day of week the year begins on
+			dayOfWeek = (dayOfWeek >= 0 ? dayOfWeek : dayOfWeek + 7);
+			var dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime() - (date.getTimezoneOffset() - firstDayOfYear.getTimezoneOffset()) * 60000) / 86400000) + 1;
+			var week;
+			// if the year starts before the middle of a week
+			if (dayOfWeek < startingDayOfWeek) {
+				week = Math.floor((dayOfYear + dayOfWeek - 1) / 7) + 1;
+				if (week > 52) {
+					var firstDayOfNextYear = new Date(date.getFullYear() + 1, 0, 1);
+					dayOfWeek = firstDayOfNextYear.getDay() - offsetDays;
+					dayOfWeek = (dayOfWeek >= 0 ? dayOfWeek : dayOfWeek + 7);
+					// if the next year starts before the middle of the week, it is week #1 of that year
+					week = dayOfWeek < startingDayOfWeek ? 1 : 53;
+				}
+			} else {
+				week = Math.floor((dayOfYear + dayOfWeek - 1) / 7);
+			}
+			return week;
+		}
+
+		function getDay(date, key, week) {
+			/*
+			var yyyy = date.getFullYear();
+			var MM = date.getMonth();
+			var WW = getWeek(date, week);
+			var wKey = yyyy * 60 + WW;
+			var mKey = yyyy * 12 + MM;
+			*/
+			var mKey = dateToKey(monthLeft(date));
+			var wKey = dateToKey(weekLeft(date));
+			return {
+				date: date,
+				key: key,
+				wKey: wKey,
+				mKey: mKey,
+			};
+		}
+
+		function getDayByKey(key, week) {
+			return getDay(keyToDate(key), key, week);
+		}
+
+		function getDayByDate(date, week) {
+			return getDay(date, dateToKey(date), week);
+		}
+
 		function hourToTime(hour) {
 			return hour * HOUR;
 		}
 
 		function keyToDate(key) {
-			return new Date(new Date().setTime(key * DAY));
+			var date = new Date();
+			var offset = date.getTimezoneOffset();
+			return new Date(date.setTime(key * DAY + offset * MINUTE));
 		}
 
 		function monthDiff(diff, date, step) {
@@ -272,7 +329,6 @@
 		}
 
 		/*
-
 		function apply(callback, args, slice) {
 			slice = slice || 0;
 			args = Array.prototype.slice.call(args, slice);

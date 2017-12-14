@@ -37,8 +37,8 @@
 
 		var publics = {
 			has: has,
-			getId: getId,
 			get: get,
+			getItem: getItem,
 			set: set,
 			once: once,
 			add: add,
@@ -70,14 +70,14 @@
 			return this.pool[id] !== undefined;
 		}
 
-		function getId(id) {
+		function get(id) {
 			return this.pool[id];
 		}
 
-		function get(item) {
+		function getItem(item) {
 			var hash = this,
 				key = this.key;
-			return item ? hash.getId(item[key]) : null;
+			return item ? hash.get(item[key]) : null;
 		}
 
 		function set(item) {
@@ -91,7 +91,7 @@
 
 		function once(newItem, callback) {
 			var hash = this;
-			var item = hash.get(newItem);
+			var item = hash.getItem(newItem);
 			if (!item) {
 				item = hash.set(newItem);
 			} else if (typeof callback == 'function') {
@@ -102,7 +102,7 @@
 
 		function add(newItem) {
 			var hash = this;
-			var item = hash.get(newItem);
+			var item = hash.getItem(newItem);
 			if (item) {
 				for (var i = 0, keys = Object.keys(newItem), p; i < keys.length; i++) {
 					p = keys[i];
@@ -118,7 +118,7 @@
 			var hash = this,
 				pool = this.pool,
 				key = this.key;
-			var item = hash.get(oldItem);
+			var item = hash.getItem(oldItem);
 			if (item) {
 				var index = hash.indexOf(item);
 				if (index !== -1) {

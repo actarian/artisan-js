@@ -708,10 +708,17 @@
 		//
 
 		var range = new Range({
-			type: Range.types.SEMESTER
+			type: Range.types.WEEK
 		});
 
 		console.log(range.toString());
+
+		var days = new Hash('key');
+		range.eachDay(function (day) {
+			days.add(day);
+		});
+
+		console.log('days', days);
 
     }]);
 

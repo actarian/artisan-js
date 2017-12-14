@@ -160,7 +160,7 @@
 						day.workable = day.working && !day.past && has;
 					});
 					angular.forEach(monthRecords, function (row) {
-						var day = calendar.days.getId(row.record.key);
+						var day = calendar.days.get(row.record.key);
 						if (day) {
 							day.recordedHours += row.record.hours;
 						}
@@ -213,7 +213,7 @@
 					}
 					if (date) {
 						var key = CalendarFactory.getKey(date);
-						var day = calendar.days.getId(key);
+						var day = calendar.days.get(key);
 						// console.log('getFirstWorkingDate', day.working, day.vacation, date);
 						if (day && day.working && !day.vacation) {
 							firstWorkingDate = date;
