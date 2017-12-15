@@ -3577,7 +3577,7 @@
 						day.workable = day.working && !day.past && has;
 					});
 					angular.forEach(monthRecords, function (row) {
-						var day = calendar.days.getId(row.record.key);
+						var day = calendar.days.get(row.record.key);
 						if (day) {
 							day.recordedHours += row.record.hours;
 						}
@@ -3630,7 +3630,7 @@
 					}
 					if (date) {
 						var key = CalendarFactory.getKey(date);
-						var day = calendar.days.getId(key);
+						var day = calendar.days.get(key);
 						// console.log('getFirstWorkingDate', day.working, day.vacation, date);
 						if (day && day.working && !day.vacation) {
 							firstWorkingDate = date;
@@ -3855,7 +3855,7 @@
 			var MM = date.getMonth();
 			var key = Math.ceil(date.getTime() / DateTime.DAY);
 			var mKey = yyyy * 12 + MM;
-			var month = months.getId(mKey);
+			var month = months.get(mKey);
 			if (!month) {
 				var fromDay = new Date(yyyy, MM, 1).getDay() - 1;
 				fromDay = fromDay < 0 ? 6 : fromDay;
@@ -4035,7 +4035,7 @@
 			var MM = date.getMonth();
 			var key = Math.ceil(date.getTime() / DateTime.DAY);
 			var mKey = yyyy * 12 + MM;
-			var month = calendar.months.getId(mKey);
+			var month = calendar.months.get(mKey);
 			if (!month) {
 				var fromDay = new Date(yyyy, MM, 1).getDay() - 1;
 				fromDay = fromDay < 0 ? 6 : fromDay;
@@ -6823,7 +6823,7 @@ $(window).on('resize', function () {
 
 		var publics = {
 			has: has,
-			getId: getId,
+			getItem: getItem,
 			get: get,
 			set: set,
 			once: once,
@@ -6856,14 +6856,14 @@ $(window).on('resize', function () {
 			return this.pool[id] !== undefined;
 		}
 
-		function getId(id) {
+		function get(id) {
 			return this.pool[id];
 		}
 
-		function get(item) {
+		function getItem(item) {
 			var hash = this,
 				key = this.key;
-			return item ? hash.getId(item[key]) : null;
+			return item ? hash.get(item[key]) : null;
 		}
 
 		function set(item) {
@@ -6877,7 +6877,7 @@ $(window).on('resize', function () {
 
 		function once(newItem, callback) {
 			var hash = this;
-			var item = hash.get(newItem);
+			var item = hash.getItem(newItem);
 			if (!item) {
 				item = hash.set(newItem);
 			} else if (typeof callback == 'function') {
@@ -6888,7 +6888,7 @@ $(window).on('resize', function () {
 
 		function add(newItem) {
 			var hash = this;
-			var item = hash.get(newItem);
+			var item = hash.getItem(newItem);
 			if (item) {
 				for (var i = 0, keys = Object.keys(newItem), p; i < keys.length; i++) {
 					p = keys[i];
@@ -6904,7 +6904,7 @@ $(window).on('resize', function () {
 			var hash = this,
 				pool = this.pool,
 				key = this.key;
-			var item = hash.get(oldItem);
+			var item = hash.getItem(oldItem);
 			if (item) {
 				var index = hash.indexOf(item);
 				if (index !== -1) {
@@ -8076,134 +8076,134 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('Preload', ['$promise', function($promise) {
+	app.factory('Preload', ['$promise', function ($promise) {
 
-        function Preload(path) {
-            var preload = this;
-            preload.path = path;
-            preload.loaded = 0;
-            preload.total = 0;
-            preload.progress = 0;
-        }
+		function Preload(path) {
+			var preload = this;
+			preload.path = path;
+			preload.loaded = 0;
+			preload.total = 0;
+			preload.progress = 0;
+		}
 
-        var statics = {
-            all: PreloadAll,
-        };
+		var statics = {
+			all: PreloadAll,
+		};
 
-        var publics = {
-            start: PreloadStart,
-            image: PreloadImage,
-        };
+		var publics = {
+			start: PreloadStart,
+			image: PreloadImage,
+		};
 
-        angular.extend(Preload, statics);
-        angular.extend(Preload.prototype, publics);
+		angular.extend(Preload, statics);
+		angular.extend(Preload.prototype, publics);
 
-        return Preload;
+		return Preload;
 
-        // statics methods
+		// statics methods
 
-        function PreloadAll(paths, callback) {
-            return $promise(function(promise) {
-                var preloads = paths.map(function(path) {
-                    return new Preload(path);
-                });
-                var progress = {
-                    loaded: 0,
-                    total: 0,
-                    progress: 0,
-                    preloads: preloads
-                };
-                var i = setInterval(update, 1000 / 10);
-                $promise.all(
-                    preloads.map(function(preload) {
-                        return preload.start();
-                    })
-                ).then(function() {
-                    clearInterval(i);
-                    update();
-                    promise.resolve(preloads.slice());
-                    // destroy();
-                }, function(error) {
-                    promise.reject(error);
-                    // destroy();
-                });
+		function PreloadAll(paths, callback) {
+			return $promise(function (promise) {
+				var preloads = paths.map(function (path) {
+					return new Preload(path);
+				});
+				var progress = {
+					loaded: 0,
+					total: 0,
+					progress: 0,
+					preloads: preloads
+				};
+				var i = setInterval(update, 1000 / 10);
+				$promise.all(
+					preloads.map(function (preload) {
+						return preload.start();
+					})
+				).then(function () {
+					clearInterval(i);
+					update();
+					promise.resolve(preloads.slice());
+					// destroy();
+				}, function (error) {
+					promise.reject(error);
+					// destroy();
+				});
 
-                function update() {
-                    progress.loaded = 0;
-                    progress.total = 0;
-                    angular.forEach(preloads, function(preload) {
-                        progress.loaded += preload.loaded;
-                        progress.total += preload.total;
-                    });
-                    var percent = progress.total ? progress.loaded / progress.total : 0;
-                    if (percent > progress.progress) {
-                        progress.progress = percent;
-                        if (callback) {
-                            callback(progress);
-                        }
-                    }
-                }
+				function update() {
+					progress.loaded = 0;
+					progress.total = 0;
+					angular.forEach(preloads, function (preload) {
+						progress.loaded += preload.loaded;
+						progress.total += preload.total;
+					});
+					var percent = progress.total ? progress.loaded / progress.total : 0;
+					if (percent > progress.progress) {
+						progress.progress = percent;
+						if (callback) {
+							callback(progress);
+						}
+					}
+				}
 
-                function destroy() {
-                    angular.forEach(preloads, function(preload) {
-                        preload.buffer = null;
-                        preload.xhr = null;
-                    });
-                }
-            });
-        }
+				function destroy() {
+					angular.forEach(preloads, function (preload) {
+						preload.buffer = null;
+						preload.xhr = null;
+					});
+				}
+			});
+		}
 
-        // instance methods
+		// instance methods
 
-        function PreloadStart() {
-            var preload = this;
-            return $promise(function(promise) {
-                var xhr = new XMLHttpRequest();
-                xhr.responseType = "arraybuffer";
-                xhr.open("GET", preload.path, true);
-                xhr.onloadstart = function(e) {
-                    /*
-                    preload.loaded = 0;
-                    preload.total = 1;
-                    preload.progress = 0;
-                    */
-                };
-                xhr.onprogress = function(e) {
-                    preload.loaded = e.loaded;
-                    preload.total = e.total;
-                    preload.progress = e.total ? e.loaded / e.total : 0;
-                };
-                xhr.onloadend = function(e) {
-                    preload.loaded = preload.total;
-                    preload.progress = 1;
-                };
-                xhr.onload = function() {
-                    preload.buffer = xhr.response;
-                    promise.resolve(preload);
-                };
-                xhr.onerror = function(error) {
-                    console.log('Preload.xhr.onerror', error);
-                    preload.loaded = preload.total;
-                    preload.progress = 1;
-                    promise.reject(error);
-                };
-                xhr.send();
-                preload.xhr = xhr;
-            });
-        }
+		function PreloadStart() {
+			var preload = this;
+			return $promise(function (promise) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", preload.path, true);
+				xhr.responseType = "arraybuffer"; // should be after open for ie11
+				xhr.onloadstart = function (e) {
+					/*
+					preload.loaded = 0;
+					preload.total = 1;
+					preload.progress = 0;
+					*/
+				};
+				xhr.onprogress = function (e) {
+					preload.loaded = e.loaded;
+					preload.total = e.total;
+					preload.progress = e.total ? e.loaded / e.total : 0;
+				};
+				xhr.onloadend = function (e) {
+					preload.loaded = preload.total;
+					preload.progress = 1;
+				};
+				xhr.onload = function () {
+					preload.buffer = xhr.response;
+					promise.resolve(preload);
+				};
+				xhr.onerror = function (error) {
+					console.log('Preload.xhr.onerror', error);
+					preload.loaded = preload.total;
+					preload.progress = 1;
+					promise.reject(error);
+				};
+				xhr.send();
+				preload.xhr = xhr;
+			});
+		}
 
-        function PreloadImage() {
-            var preload = this;
-            var blob = new Blob([preload.buffer]);
-            var image = new Image();
-            image.src = window.URL.createObjectURL(blob);
-            return image;
-        }
+		function PreloadImage() {
+			var preload = this;
+			var blob = new Blob([preload.buffer]);
+			var image = new Image();
+			image.src = window.URL.createObjectURL(blob);
+			return image;
+		}
 
     }]);
 

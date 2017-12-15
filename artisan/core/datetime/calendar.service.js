@@ -48,7 +48,7 @@
 			var MM = date.getMonth();
 			var key = Math.ceil(date.getTime() / DateTime.DAY);
 			var mKey = yyyy * 12 + MM;
-			var month = months.getId(mKey);
+			var month = months.get(mKey);
 			if (!month) {
 				var fromDay = new Date(yyyy, MM, 1).getDay() - 1;
 				fromDay = fromDay < 0 ? 6 : fromDay;
@@ -228,7 +228,7 @@
 			var MM = date.getMonth();
 			var key = Math.ceil(date.getTime() / DateTime.DAY);
 			var mKey = yyyy * 12 + MM;
-			var month = calendar.months.getId(mKey);
+			var month = calendar.months.get(mKey);
 			if (!month) {
 				var fromDay = new Date(yyyy, MM, 1).getDay() - 1;
 				fromDay = fromDay < 0 ? 6 : fromDay;
