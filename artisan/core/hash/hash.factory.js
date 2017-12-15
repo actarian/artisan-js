@@ -37,8 +37,8 @@
 
 		var publics = {
 			has: has,
-			getItem: getItem,
 			get: get,
+			getItem: getItem,
 			set: set,
 			once: once,
 			add: add,

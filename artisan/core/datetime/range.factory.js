@@ -70,15 +70,19 @@
 		};
 
 		var statics = {
+			//
 			copy: RangeCopy,
 			expand: RangeExpand,
+			getMonth: getMonth,
+			addYear: addYear,
+			types: RangeTypes,
+			// getRange: getRange,
 			getDate: DateTime.getDate,
 			dateToKey: DateTime.dateToKey,
 			keyToDate: DateTime.keyToDate,
-			getMonth: getMonth,
-			addYear: addYear,
-			// getRange: getRange,
-			types: RangeTypes,
+			getDay: DateTime.getDay,
+			getDayByKey: DateTime.getDayByKey,
+			getDayByDate: DateTime.getDayByDate,
 			today: DateTime.today,
 			DateTime: DateTime,
 		};
@@ -545,13 +549,13 @@
 			if (typeof callback !== 'function') {
 				return range;
 			}
-			var fromKey = Range.dateToKey(range.from);
-			var toKey = Range.dateToKey(range.to);
+			console.log(range.from, range.to);
+			var fromKey = DateTime.dateToKey(range.from);
+			var toKey = DateTime.dateToKey(range.to);
+			console.log(fromKey, toKey);
+			console.log(DateTime.keyToDate(fromKey), DateTime.keyToDate(toKey));
 			while (fromKey <= toKey) {
-				callback({
-					key: fromKey,
-					date: Range.keyToDate(fromKey),
-				});
+				callback(DateTime.getDayByKey(fromKey, formats.week));
 				fromKey++;
 			}
 			return range;
