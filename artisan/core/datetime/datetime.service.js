@@ -62,7 +62,7 @@
 			yearDiff: yearDiff,
 			yearLeft: yearLeft,
 			yearRight: yearRight,
-			// 
+			// conversion
 			timeToHour: timeToHour,
 			timeToQuarterHour: timeToQuarterHour,
 			// units
@@ -100,6 +100,7 @@
 		}
 
 		function dateToKey(date) {
+			date = datetime(date);
 			var offset = date.getTimezoneOffset();
 			return Math.floor((date.valueOf() - offset * MINUTE) / DAY);
 		}
@@ -121,13 +122,12 @@
 
 		function getDate(date) {
 			date = dayLeft(date);
-			return {
-				date: date,
-				key: dateToKey(date),
-			};
+			return getDayByDate(date);
 		}
 
 		function getWeek(date, offsetDays) {
+			// getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.epoch-calendar.com
+			date = datetime(date);
 			offsetDays = offsetDays || 0; // default offsetDays to zero
 			var startingDayOfWeek = 4; // first week of year with thursday;
 			var firstDayOfYear = new Date(date.getFullYear(), 0, 1);
@@ -151,30 +151,28 @@
 			return week;
 		}
 
-		function getDay(date, key, week) {
-			/*
-			var yyyy = date.getFullYear();
-			var MM = date.getMonth();
-			var WW = getWeek(date, week);
-			var wKey = yyyy * 60 + WW;
-			var mKey = yyyy * 12 + MM;
-			*/
-			var mKey = dateToKey(monthLeft(date));
+		function getDay(date, key) {
+			var c = components(date);
+			var ww = getWeek(date, FIRSTDAYOFWEEK);
 			var wKey = dateToKey(weekLeft(date));
+			var mKey = dateToKey(monthLeft(date));
 			return {
 				date: date,
 				key: key,
 				wKey: wKey,
 				mKey: mKey,
+				ww: ww,
+				MM: c.MM,
+				yyyy: c.yyyy,
 			};
 		}
 
-		function getDayByKey(key, week) {
-			return getDay(keyToDate(key), key, week);
+		function getDayByKey(key) {
+			return getDay(keyToDate(key), key);
 		}
 
-		function getDayByDate(date, week) {
-			return getDay(date, dateToKey(date), week);
+		function getDayByDate(date) {
+			return getDay(date, dateToKey(date));
 		}
 
 		function hourToTime(hour) {
@@ -223,12 +221,12 @@
 
 		function weekLeft(date) {
 			var c = components(date);
-			return new Date(c.yyyy, c.MM, c.dd - c.ee + service.FIRSTDAYOFWEEK, 0, 0, 0, 0);
+			return new Date(c.yyyy, c.MM, c.dd - c.ee + FIRSTDAYOFWEEK, 0, 0, 0, 0);
 		}
 
 		function weekRight(date) {
 			var c = components(date);
-			return new Date(c.yyyy, c.MM, c.dd - c.ee + service.FIRSTDAYOFWEEK + 6, 23, 59, 59, 999);
+			return new Date(c.yyyy, c.MM, c.dd - c.ee + FIRSTDAYOFWEEK + 6, 23, 59, 59, 999);
 		}
 
 		function yearDiff(diff, date) {
@@ -250,13 +248,15 @@
 			diff = diff || 0;
 			size = size || 1;
 			step = step || 1;
-			var index = diff * step + (size - 1) * step;
+			var index = diff * step;
 			return index;
 		}
 
 		function getIndexRight(diff, size, step) {
+			size = size || 1;
 			step = step || 1;
-			var index = getIndexLeft(diff, size, step) + (step - 1);
+			var index = getIndexLeft(diff, size, step);
+			index += (size * step) - 1;
 			return index;
 		}
 
@@ -344,6 +344,6 @@
 		};
 		*/
 
-	}]);
+    }]);
 
 }());

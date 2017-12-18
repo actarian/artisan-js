@@ -196,7 +196,6 @@
     }]);
 
 	app.filter('isoWeek', ['DateTime', function (DateTime) {
-		// getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.epoch-calendar.com
 		return function (value, offsetDays) {
 			if (value) {
 				value = new Date(value);

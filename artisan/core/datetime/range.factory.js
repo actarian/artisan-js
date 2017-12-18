@@ -55,7 +55,7 @@
 			week: 0,
 		};
 
-		var formats = en_US;
+		var formats = it_IT;
 
 		var RangeTypes = {
 			RANGE: 10,
@@ -128,6 +128,7 @@
 			isAfter: isAfter,
 
 			eachDay: eachDay,
+			totalDays: totalDays,
 
 			getName: getName,
 			getShortName: getShortName,
@@ -150,38 +151,6 @@
 		return Range;
 
 		// static methods
-
-		/*
-		function getRange(type, size, diff, date) {
-			var unit = DateTime.DAY;
-			type = type || RangeTypes.DAY;
-			size = size || 1;
-			diff = diff || 0;
-			date = date || new Date();
-			var range = new Range();
-			setDate
-			switch (type) {
-				case RangeTypes.YEAR:
-					range.setSemester(date, diff);
-				case RangeTypes.SEMESTER:
-					range.setSemester(date, diff);
-				case RangeTypes.TRIMESTER:
-					range.setSemester(date, diff);
-				case RangeTypes.QUARTER:
-					range.setSemester(date, diff);
-				case RangeTypes.MONTH:
-					range.setSemester(date, diff);
-					break;
-				case RangeTypes.WEEK:
-					range.setSemester(date, diff);
-					break;
-				case RangeTypes.DAY:
-					range.setSemester(date, diff);
-					break;
-			}
-			var from = DateTime.dayLeft(date);
-		}
-		*/
 
 		function RangeCopy($range) {
 			var range = new Range($range);
@@ -334,16 +303,6 @@
 			range.from = DateTime.getYearLeft(date, diff, size, step);
 			range.to = DateTime.getYearRight(date, diff, size, step);
 			return range;
-			/*
-			diff = diff || 0;
-			size = size || 1;
-			var left = DateTime.yearDiff(diff, date);
-			var right = DateTime.yearDiff(diff + size - 1, date);
-			var range = this;
-			range.from = DateTime.yearLeft(left);
-			range.to = DateTime.yearRight(right);
-			return range;
-			*/
 		}
 
 		function setSemester(date, diff, size) {
@@ -370,16 +329,6 @@
 			range.from = DateTime.getWeekLeft(date, diff, size, step);
 			range.to = DateTime.getWeekRight(date, diff, size, step);
 			return range;
-			/*
-			diff = diff || 0;
-			size = size || 1;
-			var left = DateTime.weekDiff(diff, date);
-			var right = DateTime.weekDiff(diff + size - 1, date);
-			var range = this;
-			range.from = DateTime.weekLeft(left);
-			range.to = DateTime.weekRight(right);
-			return range;
-			*/
 		}
 
 		function setDay(date, diff, size, step) {
@@ -387,16 +336,6 @@
 			range.from = DateTime.getDayLeft(date, diff, size, step);
 			range.to = DateTime.getDayRight(date, diff, size, step);
 			return range;
-			/*
-			diff = diff || 0;
-			size = size || 1;
-			var left = DateTime.dayDiff(diff, date);
-			var right = DateTime.dayDiff(diff + size - 1, date);
-			var range = this;
-			range.from = DateTime.dayLeft(left);
-			range.to = DateTime.dayRight(right);
-			return range;
-			*/
 		}
 
 		function setYearPeriod(date, diff) {
@@ -549,16 +488,20 @@
 			if (typeof callback !== 'function') {
 				return range;
 			}
-			console.log(range.from, range.to);
 			var fromKey = DateTime.dateToKey(range.from);
 			var toKey = DateTime.dateToKey(range.to);
-			console.log(fromKey, toKey);
-			console.log(DateTime.keyToDate(fromKey), DateTime.keyToDate(toKey));
 			while (fromKey <= toKey) {
 				callback(DateTime.getDayByKey(fromKey, formats.week));
 				fromKey++;
 			}
 			return range;
+		}
+
+		function totalDays() {
+			var range = this;
+			var fromKey = DateTime.dateToKey(range.from);
+			var toKey = DateTime.dateToKey(range.to);
+			return toKey - fromKey + 1;
 		}
 
 		function getName() {
@@ -599,7 +542,7 @@
 				'] \'' + this.getName() + '\'';
 		}
 
-	}]);
+    }]);
 
 	(function () {
 		// POLYFILL Object.values
