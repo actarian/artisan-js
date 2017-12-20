@@ -68,9 +68,7 @@
 		});
 
 		/*
-		var day = new Range({
-			type: Range.types.DAY
-		});
+		var day = Range.currentDay();
 		var date = new Date();
 
 		if (day.isInside(date)) {
@@ -82,9 +80,7 @@
 
 		//
 
-		var range = new Range({
-			type: Range.types.WEEK
-		});
+		var range = Range.currentWeek();
 
 		console.log(range.toString());
 

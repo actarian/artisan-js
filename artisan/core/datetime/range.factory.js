@@ -66,17 +66,24 @@
 			MONTH: 15,
 			WEEK: 16,
 			DAY: 17,
-			NEXT_YEAR: 20,
 		};
 
 		var statics = {
 			//
 			copy: RangeCopy,
 			expand: RangeExpand,
-			getMonth: getMonth,
-			addYear: addYear,
+			getMonth: RangeGetMonth,
+			addYear: RangeAddYear,
 			types: RangeTypes,
-			// getRange: getRange,
+			// 
+			currentYear: RangeYear,
+			currentSemester: RangeSemester,
+			currentTrimester: RangeTrimester,
+			currentQuarter: RangeQuarter,
+			currentMonth: RangeMonth,
+			currentWeek: RangeWeek,
+			currentDay: RangeDay,
+			//
 			getDate: DateTime.getDate,
 			dateToKey: DateTime.dateToKey,
 			keyToDate: DateTime.keyToDate,
@@ -100,20 +107,7 @@
 			prev: prev,
 			next: next,
 
-			setYearPeriod: setYearPeriod,
-			setLastSemester: setLastSemester,
-
-			nextYear: nextYear,
-			currentYear: currentYear,
-			currentSemester: currentSemester,
-			currentTrimester: currentTrimester,
-			currentQuarter: currentQuarter,
-			currentMonth: currentMonth,
-			currentWeek: currentWeek,
-			currentYearPeriod: currentYearPeriod,
-			lastSemester: lastSemester,
-
-			getDiff: getDiff,
+			// getDiff: getDiff,
 			getParams: getParams,
 			getDate: getDate,
 			setDate: setDate,
@@ -145,55 +139,12 @@
 			range.setDiff();
 		}
 
-		angular.extend(Range, statics);
 		angular.extend(Range.prototype, publics);
+		angular.extend(Range, statics);
 
 		return Range;
 
-		// static methods
-
-		function RangeCopy($range) {
-			var range = new Range($range);
-			range.from = new Date($range.from);
-			range.to = new Date($range.to);
-			return range;
-		}
-
-		function RangeExpand(range, time) {
-			range = RangeCopy(range);
-			range.from = new Date(range.from.getTime() - time);
-			range.to = new Date(range.to.getTime() + time);
-			console.log('RangeExpand', range.toString());
-			return range;
-		}
-
-		function getDiff(diff) {
-			var range = this;
-			return new Range({
-				type: range.type,
-			}).setDate(range.from).setDiff(diff);
-		}
-
-		function getMonth(date) {
-			if (!date) {
-				return null;
-			}
-			date = new Date(date);
-			date.setDate(1);
-			date.setHours(0, 0, 0, 0);
-			return date.getTime();
-		}
-
-		function addYear(date, years) {
-			if (!date) {
-				return null;
-			}
-			date = new Date(date);
-			return new Date(date.setFullYear(date.getFullYear() + years));
-		}
-
 		// public methods
-
 		function isInside(date) {
 			var range = this;
 			return !range.isOutside(date);
@@ -253,9 +204,6 @@
 				case RangeTypes.DAY:
 					range.setDay(date, diff);
 					break;
-				case RangeTypes.NEXT_YEAR:
-					range.nextYear(date, diff);
-					break;
 			}
 			return range;
 		}
@@ -266,7 +214,6 @@
 			var date = new Date(range.from);
 			switch (range.type) {
 				case RangeTypes.YEAR:
-				case RangeTypes.NEXT_YEAR:
 					date = new Date(date.setFullYear(date.getFullYear() + diff));
 					break;
 				case RangeTypes.SEMESTER:
@@ -338,95 +285,12 @@
 			return range;
 		}
 
-		function setYearPeriod(date, diff) {
-			diff = diff || 0;
-			this.type = RangeTypes.YEAR;
-			var now = new Date();
-			var m = now.getMonth() + 1;
-			now.setMonth(m * diff);
-			var year = now.getFullYear();
-			this.from = new Date(year, 0, 1, 0, 0, 0, 0, 0);
-			this.to = new Date(year, m, 0, 23, 59, 59, 999);
-			return this;
-		}
-
-		function setLastSemester(date, diff) {
-			// should be setLastSixMonths;
-			diff = diff || 0;
-			date = date || new Date();
-			date = new Date(date.setMonth(date.getMonth() + 6 * diff + 1));
-			var range = this;
-			range.type = RangeTypes.SEMESTER;
-			var yyyy = date.getFullYear();
-			range.from = new Date(yyyy, date.getMonth(), 1, 0, 0, 0, 0, 0);
-			range.to = new Date(yyyy, date.getMonth() + 6, 0, 23, 59, 59, 999);
-			return range;
-		}
-
 		function prev() {
 			return this.setDiff(-1);
 		}
 
 		function next() {
 			return this.setDiff(1);
-		}
-
-		function nextYear() {
-			var date = new Date();
-			var yyyy = date.getFullYear();
-			var range = this;
-			range.type = RangeTypes.NEXT_YEAR;
-			range.from = new Date(yyyy, date.getMonth(), 1, 0, 0, 0, 0, 0);
-			range.to = new Date(yyyy, date.getMonth() + 12, 0, 23, 59, 59, 999);
-			return range;
-		}
-
-		function currentYear() {
-			var range = this;
-			range.setYear();
-			return range;
-		}
-
-		function currentYearPeriod() {
-			var range = this;
-			range.setYearPeriod();
-			return range;
-		}
-
-		function currentSemester() {
-			var range = this;
-			range.setSemester();
-			return range;
-		}
-
-		function currentTrimester() {
-			var range = this;
-			range.setTrimester();
-			return range;
-		}
-
-		function currentQuarter() {
-			var range = this;
-			range.setQuarter();
-			return range;
-		}
-
-		function currentMonth() {
-			var range = this;
-			range.setMonth();
-			return range;
-		}
-
-		function currentWeek() {
-			var range = this;
-			range.setWeek();
-			return range;
-		}
-
-		function lastSemester() {
-			var range = this;
-			range.setLastSemester(null, -1);
-			return range;
 		}
 
 		function setDiff(diff) {
@@ -452,9 +316,6 @@
 					break;
 				case RangeTypes.DAY:
 					range.setDay(range.from, diff);
-					break;
-				case RangeTypes.NEXT_YEAR:
-					range.nextYear(range.from, diff);
 					break;
 			}
 			return range;
@@ -540,6 +401,91 @@
 				$filter('date')(this.from, 'MMM dd yyyy HH:mm:ss.sss') + ', ' +
 				$filter('date')(this.to, 'MMM dd yyyy HH:mm:ss.sss') +
 				'] \'' + this.getName() + '\'';
+		}
+
+		/*
+		function getDiff(diff) {
+		    var range = this;
+		    return new Range({
+		        type: range.type,
+		    }).setDate(range.from).setDiff(diff);
+		}
+		*/
+
+		// static methods        
+		function RangeCopy($range) {
+			var range = new Range($range);
+			range.from = new Date($range.from);
+			range.to = new Date($range.to);
+			return range;
+		}
+
+		function RangeExpand(range, time) {
+			range = RangeCopy(range);
+			range.from = new Date(range.from.getTime() - time);
+			range.to = new Date(range.to.getTime() + time);
+			console.log('RangeExpand', range.toString());
+			return range;
+		}
+
+		function RangeGetMonth(date) {
+			if (!date) {
+				return null;
+			}
+			date = new Date(date);
+			date.setDate(1);
+			date.setHours(0, 0, 0, 0);
+			return date.getTime();
+		}
+
+		function RangeAddYear(date, years) {
+			if (!date) {
+				return null;
+			}
+			date = new Date(date);
+			return new Date(date.setFullYear(date.getFullYear() + years));
+		}
+
+		function RangeYear() {
+			return new Range({
+				type: RangeTypes.YEAR
+			});
+		}
+
+		function RangeSemester() {
+			return new Range({
+				type: RangeTypes.SEMESTER
+			});
+		}
+
+		function RangeTrimester() {
+			return new Range({
+				type: RangeTypes.TRIMESTER
+			});
+		}
+
+		function RangeQuarter() {
+			return new Range({
+				type: RangeTypes.QUARTER
+			});
+		}
+
+		function RangeMonth() {
+			return new Range({
+				type: RangeTypes.MONTH
+			});
+		}
+
+		function RangeWeek() {
+			return new Range({
+				type: RangeTypes.WEEK
+			});
+		}
+
+		function RangeDay() {
+			return new Range({
+				type: RangeTypes.DAY
+			});
 		}
 
     }]);

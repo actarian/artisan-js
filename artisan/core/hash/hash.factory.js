@@ -6,10 +6,11 @@
 	var app = angular.module('artisan');
 
 	app.factory('Hash', [function () {
+		var pools = {};
 
 		function Hash(key, pool) {
 			key = key || 'id';
-			pool = pool ? HashGet(pool) : {};
+			pool = pool ? Hash.get(pool) : {};
 			Object.defineProperties(this, {
 				key: {
 					value: key,
@@ -27,43 +28,6 @@
 					writable: true
 				}
 			});
-		}
-
-		var pools = {};
-
-		var statics = {
-			get: HashGet,
-		};
-
-		var publics = {
-			has: has,
-			get: get,
-			getItem: getItem,
-			set: set,
-			once: once,
-			add: add,
-			remove: remove,
-			each: each,
-			addMany: addMany,
-			removeMany: removeMany,
-			removeAll: removeAll,
-			forward: forward,
-			backward: backward,
-			differs: differs,
-			updatePool: updatePool,
-		};
-
-		Hash.prototype = new Array;
-
-		angular.extend(Hash, statics);
-		angular.extend(Hash.prototype, publics);
-
-		return Hash;
-
-		// static methods
-
-		function HashGet(pool) {
-			return (pools[pool] = pools[pool] || {});
 		}
 
 		function has(id) {
@@ -89,17 +53,6 @@
 			return item;
 		}
 
-		function once(newItem, callback) {
-			var hash = this;
-			var item = hash.getItem(newItem);
-			if (!item) {
-				item = hash.set(newItem);
-			} else if (typeof callback == 'function') {
-				callback(item);
-			}
-			return item;
-		}
-
 		function add(newItem) {
 			var hash = this;
 			var item = hash.getItem(newItem);
@@ -110,6 +63,18 @@
 				}
 			} else {
 				item = hash.set(newItem);
+			}
+			return item;
+		}
+
+		function once(newItem, callback) {
+			var hash = this;
+			var item = hash.getItem(newItem);
+			if (!item) {
+				item = hash.set(newItem);
+			}
+			if (typeof callback == 'function') {
+				callback(item);
 			}
 			return item;
 		}
@@ -183,8 +148,8 @@
 		}
 
 		function forward(key, reverse) {
-			var hash = this;
-			key = (key || this.key);
+			var hash = this,
+				key = (key || this.key);
 			hash.sort(function (c, d) {
 				var a = reverse ? d : c;
 				var b = reverse ? c : d;
@@ -224,6 +189,29 @@
 			});
 		}
 
-    }]);
+		Hash.get = function (pool) {
+			return pools[pool] = (pools[pool] || {});
+		};
+
+		Hash.prototype = new Array;
+		Hash.prototype.has = has;
+		Hash.prototype.get = get;
+		Hash.prototype.getItem = getItem;
+		Hash.prototype.set = set;
+		Hash.prototype.add = add;
+		Hash.prototype.once = once;
+		Hash.prototype.remove = remove;
+		Hash.prototype.each = each;
+		Hash.prototype.addMany = addMany;
+		Hash.prototype.removeMany = removeMany;
+		Hash.prototype.removeAll = removeAll;
+		Hash.prototype.forward = forward;
+		Hash.prototype.backward = backward;
+		Hash.prototype.differs = differs;
+		Hash.prototype.updatePool = updatePool;
+
+		return Hash;
+
+	}]);
 
 }());

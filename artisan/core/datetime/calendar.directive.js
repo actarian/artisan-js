@@ -36,9 +36,7 @@
 
 				angular.extend(scope, publics);
 
-				var currentDay = new Range({
-					type: Range.types.DAY
-				});
+				var currentDay = Range.currentDay();
 
 				state.busy();
 				$q.all([
@@ -263,15 +261,9 @@
 				onDayDidSelect: function () {},
 			};
 
-			var month = new Range({
-				type: Range.types.MONTH
-			});
-			var week = new Range({
-				type: Range.types.WEEK
-			});
-			var day = new Range({
-				type: Range.types.DAY
-			});
+			var month = Range.currentMonth();
+			var week = Range.currentWeek();
+			var day = Range.currentDay();
 
 			var sources = {
 				month: month,

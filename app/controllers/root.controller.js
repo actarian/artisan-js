@@ -97,27 +97,13 @@
 		$scope.getFacebookMe = getFacebookMe;
 		$scope.getGoogleMe = getGoogleMe;
 
-		var year = new Range({
-			type: Range.types.YEAR
-		});
-		var semester = new Range({
-			type: Range.types.SEMESTER
-		});
-		var trimester = new Range({
-			type: Range.types.TRIMESTER
-		});
-		var quarter = new Range({
-			type: Range.types.QUARTER
-		});
-		var month = new Range({
-			type: Range.types.MONTH
-		});
-		var week = new Range({
-			type: Range.types.WEEK
-		});
-		var day = new Range({
-			type: Range.types.DAY
-		});
+		var year = Range.currentYear();
+		var semester = Range.currentSemester();
+		var trimester = Range.currentTrimester();
+		var quarter = Range.currentQuarter();
+		var month = Range.currentMonth();
+		var week = Range.currentWeek();
+		var day = Range.currentDay();
 
 		var ranges = {
 			year: year,
