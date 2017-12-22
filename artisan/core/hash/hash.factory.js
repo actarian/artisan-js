@@ -10,7 +10,7 @@
 
 		function Hash(key, pool) {
 			key = key || 'id';
-			pool = pool ? Hash.get(pool) : {};
+			pool = pool ? HashGet(pool) : {};
 			Object.defineProperties(this, {
 				key: {
 					value: key,
@@ -30,6 +30,35 @@
 			});
 		}
 
+		var publics = {
+			has: has,
+			get: get,
+			getItem: getItem,
+			set: set,
+			add: add,
+			once: once,
+			remove: remove,
+			each: each,
+			addMany: addMany,
+			removeMany: removeMany,
+			removeAll: removeAll,
+			forward: forward,
+			backward: backward,
+			differs: differs,
+			updatePool: updatePool,
+		};
+
+		var statics = {
+			get: HashGet,
+		};
+
+		Hash.prototype = new Array;
+		angular.extend(Hash.prototype, publics);
+		angular.extend(Hash, statics);
+
+		return Hash;
+
+		// publics
 		function has(id) {
 			return this.pool[id] !== undefined;
 		}
@@ -189,29 +218,11 @@
 			});
 		}
 
-		Hash.get = function (pool) {
+		// statics
+		function HashGet(pool) {
 			return pools[pool] = (pools[pool] || {});
-		};
+		}
 
-		Hash.prototype = new Array;
-		Hash.prototype.has = has;
-		Hash.prototype.get = get;
-		Hash.prototype.getItem = getItem;
-		Hash.prototype.set = set;
-		Hash.prototype.add = add;
-		Hash.prototype.once = once;
-		Hash.prototype.remove = remove;
-		Hash.prototype.each = each;
-		Hash.prototype.addMany = addMany;
-		Hash.prototype.removeMany = removeMany;
-		Hash.prototype.removeAll = removeAll;
-		Hash.prototype.forward = forward;
-		Hash.prototype.backward = backward;
-		Hash.prototype.differs = differs;
-		Hash.prototype.updatePool = updatePool;
-
-		return Hash;
-
-	}]);
+    }]);
 
 }());

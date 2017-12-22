@@ -17,7 +17,7 @@
 		var WEEK = 7 * DAY;
 		var FIRSTDAYOFWEEK = 1;
 
-		var today = getDate();
+		var today = getFullDate();
 
 		var statics = {
 			getIndexLeft: getIndexLeft,
@@ -42,7 +42,9 @@
 			dayRight: dayRight,
 			//
 			getDate: getDate,
+			getFullDate: getFullDate,
 			getDay: getDay,
+			getFullDay: getFullDay,
 			getWeek: getWeek,
 			getDayByKey: getDayByKey,
 			getDayByDate: getDayByDate,
@@ -125,45 +127,14 @@
 			return getDayByDate(date);
 		}
 
-		function getWeek(date, offsetDays) {
-			// getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.epoch-calendar.com
-			date = datetime(date);
-			offsetDays = offsetDays || 0; // default offsetDays to zero
-			var startingDayOfWeek = 4; // first week of year with thursday;
-			var firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-			var dayOfWeek = firstDayOfYear.getDay() - offsetDays; // the day of week the year begins on
-			dayOfWeek = (dayOfWeek >= 0 ? dayOfWeek : dayOfWeek + 7);
-			var dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime() - (date.getTimezoneOffset() - firstDayOfYear.getTimezoneOffset()) * 60000) / 86400000) + 1;
-			var week;
-			// if the year starts before the middle of a week
-			if (dayOfWeek < startingDayOfWeek) {
-				week = Math.floor((dayOfYear + dayOfWeek - 1) / 7) + 1;
-				if (week > 52) {
-					var firstDayOfNextYear = new Date(date.getFullYear() + 1, 0, 1);
-					dayOfWeek = firstDayOfNextYear.getDay() - offsetDays;
-					dayOfWeek = (dayOfWeek >= 0 ? dayOfWeek : dayOfWeek + 7);
-					// if the next year starts before the middle of the week, it is week #1 of that year
-					week = dayOfWeek < startingDayOfWeek ? 1 : 53;
-				}
-			} else {
-				week = Math.floor((dayOfYear + dayOfWeek - 1) / 7);
-			}
-			return week;
+		function getFullDate(date) {
+			return getFullDay(getDate(date));
 		}
 
 		function getDay(date, key) {
-			var c = components(date);
-			var ww = getWeek(date, FIRSTDAYOFWEEK);
-			var wKey = dateToKey(weekLeft(date));
-			var mKey = dateToKey(monthLeft(date));
 			return {
 				date: date,
 				key: key,
-				wKey: wKey,
-				mKey: mKey,
-				ww: ww,
-				MM: c.MM,
-				yyyy: c.yyyy,
 			};
 		}
 
@@ -173,6 +144,15 @@
 
 		function getDayByDate(date) {
 			return getDay(date, dateToKey(date));
+		}
+
+		function getFullDay(day) {
+			var c = components(day.date);
+			c.key = day.key;
+			c.wKey = dateToKey(weekLeft(day.date));
+			c.mKey = dateToKey(monthLeft(day.date));
+			c.ww = getWeek(day.date, FIRSTDAYOFWEEK);
+			return c;
 		}
 
 		function hourToTime(hour) {
@@ -328,22 +308,46 @@
 			return dayRight(date);
 		}
 
-		/*
-		function apply(callback, args, slice) {
-			slice = slice || 0;
-			args = Array.prototype.slice.call(args, slice);
-			return callback.apply(this, args);
+		function getWeekDay(date, offsetDays) {
+			offsetDays = offsetDays || 0; // default offsetDays to zero
+			var ee = date.getDay();
+			ee -= offsetDays;
+			if (ee < 0) {
+				ee += 7;
+			}
+			return ee;
 		}
 
-		ArrayFrom = function(len, callback) {
-			var a = [];
-			while (a.length < len) {
-				a.push(callback(a.length));
+		function getWeek(date, offsetDays) {
+			var startingDayOfWeek = 4; // first week of year with thursday;
+			var now = getDayByDate(date);
+			var first = getDayByDate(getYearLeft(date)); // diff, size, step
+			var ee = getWeekDay(first.date, offsetDays);
+			var num = now.key - first.key;
+			var week = Math.floor((num + ee) / 7);
+			if (ee < startingDayOfWeek) {
+				week++;
+				if (week > 52) {
+					// next year
+					ee = getWeekDay(getYearLeft(date, 1), offsetDays);
+					// if the next year starts before the middle of the week, it is week #1 of that year
+					week = ee < startingDayOfWeek ? 1 : 53;
+				}
 			}
-			return a;
-		};
-		*/
+			return week;
+		}
 
+    }]);
+
+	app.filter('isoWeek', ['DateTime', function (DateTime) {
+		return function (value, offsetDays) {
+			if (value) {
+				var week = DateTime.getWeek(value, offsetDays);
+				return week < 10 ? '0' + week : week; // padded
+			} else {
+				return '-';
+			}
+		};
     }]);
 
 }());

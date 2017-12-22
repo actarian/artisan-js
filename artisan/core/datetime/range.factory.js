@@ -5,97 +5,80 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Range', ['$filter', 'DateTime', function ($filter, DateTime) {
+	var it_IT = {
+		long: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: 'Anno {from|date:yyyy}',
+			SEMESTER: 'Semestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: 'Quadrimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: 'Trimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM yyyy}',
+			WEEK: 'Settimana {to|isoWeek:1}',
+			DAY: '{from|date:EEEE dd MMM yyyy}',
+		},
+		short: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: '{from|date:yyyy}',
+			SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM}',
+			WEEK: 'W{to|isoWeek:1}',
+			DAY: '{from|date:EEEE}',
+		},
+		week: 1,
+	};
 
-		var it_IT = {
-			long: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: 'Anno {from|date:yyyy}',
-				SEMESTER: 'Semestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: 'Quadrimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: 'Trimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM yyyy}',
-				WEEK: 'Settimana {to|isoWeek:1}',
-				DAY: '{from|date:EEEE dd MMM yyyy}',
-			},
-			short: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: '{from|date:yyyy}',
-				SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM}',
-				WEEK: 'W{to|isoWeek:1}',
-				DAY: '{from|date:EEEE}',
-			},
-			week: 1,
-		};
+	var en_US = {
+		long: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: 'Year {from|date:yyyy}',
+			SEMESTER: 'Semester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: 'Trimester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: 'Quarter {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM yyyy}',
+			WEEK: 'Week {from|isoWeek:0}',
+			DAY: '{from|date:EEEE MM/dd/yyyy}',
+		},
+		short: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: '{from|date:yyyy}',
+			SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM}',
+			WEEK: 'W{from|isoWeek:0}',
+			DAY: '{from|date:EEEE}',
+		},
+		week: 0,
+	};
 
-		var en_US = {
-			long: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: 'Year {from|date:yyyy}',
-				SEMESTER: 'Semester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: 'Trimester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: 'Quarter {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM yyyy}',
-				WEEK: 'Week {from|isoWeek:0}',
-				DAY: '{from|date:EEEE MM/dd/yyyy}',
-			},
-			short: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: '{from|date:yyyy}',
-				SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM}',
-				WEEK: 'W{from|isoWeek:0}',
-				DAY: '{from|date:EEEE}',
-			},
-			week: 0,
-		};
+	var formats = it_IT;
 
-		var formats = it_IT;
+	app.constant('RangeTypes', {
+		RANGE: 10,
+		YEAR: 11,
+		SEMESTER: 12,
+		TRIMESTER: 13,
+		QUARTER: 14,
+		MONTH: 15,
+		WEEK: 16,
+		DAY: 17,
+	});
 
-		var RangeTypes = {
-			RANGE: 10,
-			YEAR: 11,
-			SEMESTER: 12,
-			TRIMESTER: 13,
-			QUARTER: 14,
-			MONTH: 15,
-			WEEK: 16,
-			DAY: 17,
-		};
+	app.factory('Range', ['$filter', 'DateTime', 'RangeTypes', function ($filter, DateTime, RangeTypes) {
 
-		var statics = {
-			//
-			copy: RangeCopy,
-			expand: RangeExpand,
-			getMonth: RangeGetMonth,
-			addYear: RangeAddYear,
-			types: RangeTypes,
-			// 
-			currentYear: RangeYear,
-			currentSemester: RangeSemester,
-			currentTrimester: RangeTrimester,
-			currentQuarter: RangeQuarter,
-			currentMonth: RangeMonth,
-			currentWeek: RangeWeek,
-			currentDay: RangeDay,
-			//
-			getDate: DateTime.getDate,
-			dateToKey: DateTime.dateToKey,
-			keyToDate: DateTime.keyToDate,
-			getDay: DateTime.getDay,
-			getDayByKey: DateTime.getDayByKey,
-			getDayByDate: DateTime.getDayByDate,
-			today: DateTime.today,
-			DateTime: DateTime,
-		};
+		function Range(options) {
+			var range = this;
+			range.from = DateTime.dayLeft();
+			range.type = RangeTypes.QUARTER;
+			if (options) {
+				angular.extend(range, options);
+			}
+			range.setDiff();
+		}
 
 		var publics = {
-
 			setYear: setYear,
 			setSemester: setSemester,
 			setTrimester: setTrimester,
@@ -107,7 +90,7 @@
 			prev: prev,
 			next: next,
 
-			// getDiff: getDiff,
+			getDiff: getDiff,
 			getParams: getParams,
 			getDate: getDate,
 			setDate: setDate,
@@ -129,15 +112,33 @@
 			toString: toString,
 		};
 
-		function Range(options) {
-			var range = this;
-			range.from = DateTime.dayLeft();
-			range.type = RangeTypes.QUARTER;
-			if (options) {
-				angular.extend(range, options);
-			}
-			range.setDiff();
-		}
+		var statics = {
+			//
+			copy: RangeCopy,
+			expand: RangeExpand,
+			getMonth: RangeGetMonth,
+			addYear: RangeAddYear,
+			types: RangeTypes,
+			// 
+			Year: RangeYear,
+			Semester: RangeSemester,
+			Trimester: RangeTrimester,
+			Quarter: RangeQuarter,
+			Month: RangeMonth,
+			Week: RangeWeek,
+			Day: RangeDay,
+			//
+			getDate: DateTime.getDate,
+			getFullDate: DateTime.getFullDate,
+			dateToKey: DateTime.dateToKey,
+			keyToDate: DateTime.keyToDate,
+			getDay: DateTime.getDay,
+			getFullDay: DateTime.getFullDay,
+			getDayByKey: DateTime.getDayByKey,
+			getDayByDate: DateTime.getDayByDate,
+			today: DateTime.today,
+			DateTime: DateTime,
+		};
 
 		angular.extend(Range.prototype, publics);
 		angular.extend(Range, statics);
@@ -236,6 +237,13 @@
 					break;
 			}
 			return date;
+		}
+
+		function getDiff(diff) {
+			var range = this;
+			return new Range({
+				type: range.type,
+			}).setDate(range.from).setDiff(diff);
 		}
 
 		function getParams() {
@@ -340,10 +348,6 @@
 			return flag;
 		}
 
-		function extract(obj, value) {
-			return Object.keys(obj)[Object.values(obj).indexOf(value)];
-		}
-
 		function eachDay(callback) {
 			var range = this;
 			if (typeof callback !== 'function') {
@@ -367,50 +371,23 @@
 
 		function getName() {
 			var range = this;
-			var key = extract(RangeTypes, range.type);
+			var key = RangeExtract(RangeTypes, range.type);
 			return RangeFormat(range, formats.long[key]);
 		}
 
 		function getShortName() {
 			var range = this;
-			var key = extract(RangeTypes, range.type);
+			var key = RangeExtract(RangeTypes, range.type);
 			return RangeFormat(range, formats.short[key]);
 		}
 
-		function RangeFormat(range, format) {
-			var name = format;
-			name = name.replace(/{(.*?)}/g, function (replaced, token) {
-				var a = token.split('|');
-				var p = a.shift();
-				var f = a.join(''),
-					j;
-				if (f.indexOf(':') !== -1) {
-					f = f.split(':');
-					j = f.length ? f.pop() : null;
-					f = f.join('');
-				}
-				// console.log(token, f, p, j);
-				return f.length ? $filter(f)(range[p], j) : range[p];
-			});
-			// console.log(name);
-			return name;
-		}
-
 		function toString() {
+			var range = this;
 			return '[' +
-				$filter('date')(this.from, 'MMM dd yyyy HH:mm:ss.sss') + ', ' +
-				$filter('date')(this.to, 'MMM dd yyyy HH:mm:ss.sss') +
-				'] \'' + this.getName() + '\'';
+				$filter('date')(range.from, 'MMM dd yyyy HH:mm:ss.sss') + ', ' +
+				$filter('date')(range.to, 'MMM dd yyyy HH:mm:ss.sss') +
+				'] \'' + range.getName() + '\'';
 		}
-
-		/*
-		function getDiff(diff) {
-		    var range = this;
-		    return new Range({
-		        type: range.type,
-		    }).setDate(range.from).setDiff(diff);
-		}
-		*/
 
 		// static methods        
 		function RangeCopy($range) {
@@ -424,7 +401,7 @@
 			range = RangeCopy(range);
 			range.from = new Date(range.from.getTime() - time);
 			range.to = new Date(range.to.getTime() + time);
-			console.log('RangeExpand', range.toString());
+			// console.log('RangeExpand', range.toString());
 			return range;
 		}
 
@@ -486,6 +463,29 @@
 			return new Range({
 				type: RangeTypes.DAY
 			});
+		}
+
+		function RangeFormat(range, format) {
+			var name = format;
+			name = name.replace(/{(.*?)}/g, function (replaced, token) {
+				var a = token.split('|');
+				var p = a.shift();
+				var f = a.join(''),
+					j;
+				if (f.indexOf(':') !== -1) {
+					f = f.split(':');
+					j = f.length ? f.pop() : null;
+					f = f.join('');
+				}
+				// console.log(token, f, p, j);
+				return f.length ? $filter(f)(range[p], j) : range[p];
+			});
+			// console.log(name);
+			return name;
+		}
+
+		function RangeExtract(obj, value) {
+			return Object.keys(obj)[Object.values(obj).indexOf(value)];
 		}
 
     }]);

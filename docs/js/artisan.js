@@ -848,19 +848,20 @@
 				}
 			}
 
+			var trigger = attributes.expandableTrigger ? element[0].querySelector(attributes.expandableTrigger) : null;
+			trigger = trigger ? angular.element(trigger) : element;
+
 			function addListeners() {
-				element
-					.on('mousedown touchstart', onDown)
-					.on('keydown', onKeyDown);
+				trigger.on('mousedown touchstart', onDown);
+				element.on('keydown', onKeyDown);
 				angular.element(window)
 					.on('click', onUp)
 					.on('resize', onResize);
 			}
 
 			function removeListeners() {
-				element
-					.off('mousedown touchstart', onDown)
-					.off('keydown', onKeyDown);
+				trigger.off('mousedown touchstart', onDown);
+				element.off('keydown', onKeyDown);
 				angular.element(window)
 					.off('click', onUp)
 					.off('resize', onResize);
@@ -1901,14 +1902,6 @@
 
 		var directive = {
 			restrict: 'A',
-			// template: '<div ng-transclude></div>',
-			// transclude: true,
-			// replace: true,
-			/*
-			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/components/nav/partial/nav';
-            },
-            */
 			link: link,
 		};
 
@@ -1927,12 +1920,6 @@
 				boundingClientRect, styleObj, originalCssText;
 
 			var opened = false;
-
-			/*
-			var placeholder = document.createElement('div'),
-				placeholderElement = angular.element(placeholder);
-			placeholderElement.addClass('popuppable-placeholder');
-			*/
 
 			function getStyle(node) {
 				var style = window.getComputedStyle(node, null);
@@ -1971,12 +1958,6 @@
 			}
 
 			function add() {
-				/*
-				styleObj = getStyle(target);
-				setStyle(placeholder, styleObj);
-				target.parentNode.insertBefore(placeholder, target);
-				originalCssText = target.style.cssText;
-				*/
 				targetElement.addClass('popuppable-opening');
 				Dom.getParents(target).each(function (element, node) {
 					element.addClass('popuppable-parent');
@@ -1984,76 +1965,17 @@
 			}
 
 			function remove() {
-				/*
-				target.style.cssText = originalCssText;
-				placeholder.parentNode.removeChild(placeholder);
-				*/
 				targetElement.removeClass('popuppable-opening');
 				Dom.getParents(target).each(function (element, node) {
 					element.removeClass('popuppable-parent');
 				});
 			}
 
-			/*
-			function setRects() {
-				if (targetElement && targetElement.hasClass('popuppable-opening')) {
-					boundingClientRect = placeholder.getBoundingClientRect();
-				} else {
-					boundingClientRect = target.getBoundingClientRect();
-				}
-				from = {
-					top: 0,
-					left: 0,
-					width: boundingClientRect.width, // parseInt(styleObj.width), // boundingClientRect.width,
-					height: boundingClientRect.height, // parseInt(styleObj.height), // boundingClientRect.height,
-				};
-				to = {
-					top: 0 + (relative.top || 0),
-					left: 0 + (relative.left || 0),
-					width: from.width + (relative.right || 0),
-					height: from.height + (relative.bottom || 0),
-				};
-				if (absolute.top) {
-					to.top = absolute.top - boundingClientRect.top;
-				}
-				if (absolute.left) {
-					to.left = absolute.left - boundingClientRect.left;
-				}
-				if (absolute.right) {
-					var absoluteRight = (window.innerWidth - absolute.right);
-					var absoluteLeft = boundingClientRect.left + to.left;
-					to.width = absoluteRight - absoluteLeft;
-				}
-				if (absolute.bottom) {
-					var absoluteBottom = (window.innerHeight - absolute.bottom);
-					var absoluteTop = boundingClientRect.top + to.top;
-					to.height = absoluteBottom - absoluteTop;
-				}
-			}
-			*/
-
 			function open() {
 				if (!opened) {
-					// setRects();
 					add();
 					current = angular.copy(from);
-					// setStyle(target, from);
 					openAnimation();
-					/*
-					dynamics.animate(state, {
-						pow: 1
-					}, {
-						type: dynamics.easeInOut,
-						duration: 350,
-						complete: function () {
-							opened = true;
-							state.idle();
-						},
-						change: function () {
-							update();
-						}
-					});
-					*/
 				} else {
 					state.idle();
 				}
@@ -2062,35 +1984,12 @@
 			function close() {
 				if (opened) {
 					closeAnimation();
-					/*
-					dynamics.animate(state, {
-						pow: 0
-					}, {
-						type: dynamics.easeInOut,
-						duration: 350,
-						complete: function () {
-							opened = false;
-							remove();
-							state.idle();
-						},
-						change: function () {
-							update();
-						}
-					});
-					*/
 				} else {
 					state.idle();
 				}
 			}
 
 			function update() {
-				/*
-				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
-				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
-				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
-				current.height = (from.height + (to.height - from.height) * state.pow) + 'px';
-				setStyle(target, current);
-				*/
 				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
 				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
 				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
@@ -2109,10 +2008,6 @@
 			}
 
 			function set() {
-				/*
-				relative = attributes.popuppableRelative ? $parse(attributes.popuppableRelative)(scope) : {};
-				absolute = attributes.popuppableAbsolute ? $parse(attributes.popuppableAbsolute)(scope) : {};
-				*/
 				target = element[0].querySelector(attributes.popuppable);
 				if (target) {
 					targetElement = angular.element(target);
@@ -2140,7 +2035,6 @@
 
 			function onResize(e) {
 				if (opened || state.isBusy) {
-					// setRects();
 					update();
 				}
 			}
@@ -2194,7 +2088,6 @@
 			set();
 
 			function openAnimation() {
-				// Animate the popover
 				dynamics.animate(target, {
 					opacity: 1,
 					scale: 1
@@ -2208,34 +2101,9 @@
 						state.idle();
 					},
 				});
-
-				/*
-			  // Animate each line individually
-			  for(var i=0; i<items.length; i++) {
-				var item = items[i]
-				// Define initial properties
-				dynamics.css(item, {
-				  opacity: 0,
-				  translateY: 20
-				});
-			
-				// Animate to final properties
-				dynamics.animate(item, {
-				  opacity: 1,
-				  translateY: 0
-				}, {
-				  type: dynamics.spring,
-				  frequency: 300,
-				  friction: 435,
-				  duration: 1000,
-				  delay: 100 + i * 40
-				});
-			  }
-			*/
 			}
 
 			function closeAnimation() {
-				// Animate the popover
 				dynamics.animate(target, {
 					opacity: 0,
 					scale: 0.1
@@ -3453,7 +3321,7 @@
 
 				angular.extend(scope, publics);
 
-				var currentDay = Range.currentDay();
+				var currentDay = Range.Day();
 
 				state.busy();
 				$q.all([
@@ -3678,9 +3546,9 @@
 				onDayDidSelect: function () {},
 			};
 
-			var month = Range.currentMonth();
-			var week = Range.currentWeek();
-			var day = Range.currentDay();
+			var month = Range.Month();
+			var week = Range.Week();
+			var day = Range.Day();
 
 			var sources = {
 				month: month,
@@ -3797,6 +3665,623 @@
     }]);
 
 }());
+
+/*
+
+(function () {
+    "use strict";
+
+    var app = angular.module('app');
+
+    
+    app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+        return {
+            restrict: 'A',
+            template: function (element, attributes) {
+                return '<div calendar-popup="options"></div>';
+            },
+            require: 'ngModel',
+            scope: {
+                user: '=calendarUser',
+            },
+            link: CalendarPopupLink,
+        };
+
+        function CalendarPopupLink(scope, element, attributes, model, transclude) {
+            console.log('calendarPopupRecords.link');
+
+            var user = scope.user;
+
+            var state = new State();
+
+            var options = {
+                onMonthDidChange: onMonthDidChange,
+                onWeekDidSelect: onWeekDidSelect,
+                onDayDidSelect: onDayDidSelect,
+            };
+
+            var sources = {};
+
+            var publics = {
+                // user: user,
+                state: state,
+                options: options,
+                // sources: sources,
+            };
+
+            angular.extend(scope, publics);
+
+            var currentDay = new Range({ type: Range.types.DAY });
+
+            function loadResources() {
+                var deferred = $q.defer();
+                if (sources.resources) {
+                    deferred.resolve();
+                } else {
+                    Api.gantt.resources.actives().then(function success(response) {
+                        setResources(response);
+                        deferred.resolve();
+                    }, function (error) {
+                        deferred.reject();
+                    });
+                }
+                return deferred.promise;
+            }
+
+            function getFirstWorkingDate(date, month, calendar) {
+                // console.log('calendarPopupRecords.getFirstWorkingDate', date);
+                var firstWorkingDate = null;
+                function setFirstDay() {
+                    calendar.days.forward();
+                    calendar.days.each(function (day) {
+                        if (!firstWorkingDate && !month.isOutside(day.date) && day.working && !day.vacation) {
+                            // console.log('check', day.working, day.vacation, day.date);
+                            firstWorkingDate = day.date;
+                        }
+                    });
+                    // console.log('setFirstDay', firstWorkingDate);
+                }
+                if (date) {
+                    var key = CalendarFactory.getKey(date);
+                    var day = calendar.days.get(key);
+                    // console.log('getFirstWorkingDate', day.working, day.vacation, date);
+                    if (day && day.working && !day.vacation) {
+                        firstWorkingDate = date;
+                    } else {
+                        setFirstDay();
+                    }
+                } else {
+                    setFirstDay();
+                }
+                return firstWorkingDate;
+            }
+
+            function getMonthRecords(month) {
+                var deferred = $q.defer();
+                var user = scope.user;
+                var monthExpanded = Range.expand(month, DateTime.DAY * 7);
+                // console.log('calendarPopupRecords.getMonthRecords', monthExpanded.toString());
+                $q.all([
+                    loadResources(),
+                    Api.gantt.absencesAndOvertimes(monthExpanded.getParams()).then(function success(response) {
+                        sources.absencesAndOvertimes = response;
+                    }),
+                    Api.gantt.calendar(monthExpanded.getParams()).then(function success(response) {
+                        var unworkings = {};
+                        angular.forEach(response, function (item) {
+                            unworkings[item.key] = item;
+                        });
+                        sources.unworkings = unworkings;
+                        sources.calendar = response;
+                    }),
+                    Api.gantt.records(user.id, monthExpanded.getParams()).then(function (rows) {
+                        sources.monthRecords = rows.map(function (row) {
+                            row.state = new State();
+                            row.record.date = new Date(row.record.date);
+                            return row;
+                        });
+                    }),
+
+                ]).then(function (response) {
+                    // state.success();
+                    deferred.resolve();
+
+                }, function (error) {
+                    // state.error(error);
+                    deferred.reject();
+
+                });
+                return deferred.promise;
+            }
+
+            function onDayDidSelect(day, month, calendar) {
+                // var monthExpanded = Range.expand(month, DateTime.DAY * 7);
+                if (!day || currentDay.isBefore(day.date)) {
+                    return;
+                }
+                // console.log('calendarPopupRecords.onDayDidSelect', day, day.working, day.date);
+                if (day && day.working) {
+                    $timeout(function () {
+                        model.$setViewValue(day.date);
+                    });
+                    return true;
+                }
+            }
+
+            function onMonthDidChange(date, month, calendar) {
+                var deferred = $q.defer();
+                console.log('calendarPopupRecords.onMonthDidChange', month.toString());
+                getMonthRecords(month).then(function () {
+                    setAbsencesAndOvertimes();
+                    updateCalendar(date, month, calendar);
+                    deferred.resolve(getFirstWorkingDate(date, month, calendar));
+
+                }, function () {
+                    deferred.reject();
+
+                });
+                return deferred.promise;
+            }
+
+            function onWeekDidSelect(week, month, calendar) {
+                // console.log('calendarPopupRecords.onWeekDidSelect', month.toString());
+                // var monthExpanded = Range.expand(month, DateTime.DAY * 7);
+                return true;
+            }
+
+            function setAbsencesAndOvertimes() {
+                var resource = sources.resource;
+                if (!resource) {
+                    return;
+                }
+                // assegno assenze e straordinari alla risorsa
+                resource.absencesAndOvertimes = {};
+                angular.forEach(sources.absencesAndOvertimes, function (item) {
+                    if (resource.id === item.resourceId) {
+                        resource.absencesAndOvertimes[item.key] = item;
+                    }
+                });
+            }
+
+            function setResources(resources) {
+                var user = scope.user;
+                sources.resources = resources;
+                console.log('calendarPopupRecords.setResources', resources.length, user);
+                angular.forEach(resources, function (resource) {
+                    resource.absencesAndOvertimes = {};
+                    if (resource.id === user.id) {
+                        sources.resource = resource;
+                        // console.log('calendarPopupRecords.setResources.resource', resource);
+                    }
+                });
+            }
+
+            function setWorkableDay(day) {
+                var resource = sources.resource;
+                day.working = !sources.unworkings[day.key];
+                var availableHours = 0;
+                if (resource) {
+                    if (day.working) {
+                        availableHours += resource.baseHours;
+                    }
+                    var ao = resource.absencesAndOvertimes[day.key];
+                    if (ao) {
+                        availableHours += ao.hours;
+                    }
+                } else if (day.working) {
+                    availableHours += 8;
+                }
+                var has = availableHours > 0;
+                day.availableHours = availableHours;
+                day.recordedHours = 0;
+                day.holiday = !day.working && !has && !day.weekend;
+                day.vacation = day.working && !has;
+                day.wasVacation = day.vacation && day.past;
+                day.workable = day.working && !day.past && has;
+                day.wasWorkable = day.working && day.past && has;
+            }
+
+            function updateCalendar(date, month, calendar) {
+                calendar.days.each(function (day) {
+                    setWorkableDay(day);
+                });
+            }
+
+            function updateCalendar(date, month, calendar) {                
+                calendar.days.each(function (day) {
+                    setWorkableDay(day);
+                });
+                var monthRecords = sources.monthRecords;
+                if (monthRecords) {
+                    angular.forEach(monthRecords, function (row) {
+                        var day = calendar.days.get(row.record.key);
+                        if (day) {
+                            day.recordedHours += row.record.hours;
+                        }
+                    });
+                    calendar.days.each(function (day) {
+                        day.green = day.working && !currentDay.isBefore(day.date) && day.recordedHours >= 8;
+                        day.orange = day.working && !currentDay.isBefore(day.date) && day.recordedHours < 8;
+                        // day.full = day.workable && day.hours >= day.availableHours;
+                        // day.available = day.workable && day.hours < day.availableHours;
+                    });
+                }
+            }
+
+        }
+    }]);
+
+    app.directive('calendarPopupWorkables', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+        return {
+            restrict: 'A',
+            template: function (element, attributes) {
+                return '<div calendar-popup="options" template="partials/calendar/popup/workables"></div>';
+            },
+            require: 'ngModel',
+            scope: {
+                user: '=?calendarUser',
+            },
+            link: CalendarPopupLink,
+        };
+
+        function CalendarPopupLink(scope, element, attributes, model, transclude) {
+            console.log('calendarPopupWorkables.link');
+
+            var user = scope.user;
+
+            var state = new State();
+
+            var options = {
+                onMonthDidChange: onMonthDidChange,
+                onWeekDidSelect: onWeekDidSelect,
+                onDayDidSelect: onDayDidSelect,
+            };
+
+            var sources = {};
+
+            var publics = {
+                state: state,
+                options: options,
+            };
+
+            angular.extend(scope, publics);
+
+            var currentDay = new Range({ type: Range.types.DAY });
+
+            function getFirstWorkingDate(date, month, calendar) {
+                var firstWorkingDate = null;
+                function setFirstDay() {
+                    calendar.days.forward();
+                    calendar.days.each(function (day) {
+                        if (!firstWorkingDate && !month.isOutside(day.date) && day.working && !day.vacation) {
+                            firstWorkingDate = day.date;
+                        }
+                    });
+                }
+                if (date) {
+                    var key = CalendarFactory.getKey(date);
+                    var day = calendar.days.get(key);
+                    if (day && day.working && !day.vacation) {
+                        firstWorkingDate = date;
+                    } else {
+                        setFirstDay();
+                    }
+                } else {
+                    setFirstDay();
+                }
+                return firstWorkingDate;
+            }
+
+            function loadResources(monthExpanded) {
+                var deferred = $q.defer();
+                if (sources.resources) {
+                    deferred.resolve();
+                } else {
+                    Api.gantt.resources.actives().then(function success(response) {
+                        setResources(response);
+                        deferred.resolve();
+                    }, function (error) {
+                        deferred.reject();
+                    });
+                }
+                return deferred.promise;
+            }
+
+            function loadAbsencesAndOvertimes(monthExpanded) {
+                return Api.gantt.absencesAndOvertimes(monthExpanded.getParams()).then(function success(response) {
+                    sources.absencesAndOvertimes = response;
+                });
+            }
+
+            function loadCalendar(monthExpanded) {
+                return Api.gantt.calendar(monthExpanded.getParams()).then(function success(response) {
+                    var unworkings = {};
+                    angular.forEach(response, function (item) {
+                        unworkings[item.key] = item;
+                    });
+                    sources.unworkings = unworkings;
+                    sources.calendar = response;
+                })
+            }
+
+            function getMonthRecords(month) {
+                var deferred = $q.defer();
+                var user = scope.user;
+                var monthExpanded = Range.expand(month, DateTime.DAY * 7);
+                var promises;
+                if (user) {
+                    promises = [loadResources(monthExpanded), loadAbsencesAndOvertimes(monthExpanded), loadCalendar(monthExpanded)];
+                } else {
+                    promises = [loadCalendar(monthExpanded)];
+                }
+                $q.all(promises).then(function (response) {
+                    deferred.resolve();
+
+                }, function (error) {
+                    deferred.reject();
+
+                });
+                return deferred.promise;
+            }
+
+            function onDayDidSelect(day, month, calendar) {
+                if (!day) { // || currentDay.isBefore(day.date)) {
+                    return;
+                }
+                if (day && day.working) {
+                    $timeout(function () {
+                        model.$setViewValue(day.date);
+                    });
+                    return true;
+                }
+            }
+
+            function onMonthDidChange(date, month, calendar) {
+                var deferred = $q.defer();
+                console.log('calendarPopupRecords.onMonthDidChange', month.toString());
+                getMonthRecords(month).then(function () {
+                    setAbsencesAndOvertimes();
+                    updateCalendar(date, month, calendar);
+                    deferred.resolve(getFirstWorkingDate(date, month, calendar));
+
+                }, function () {
+                    deferred.reject();
+
+                });
+                return deferred.promise;
+            }
+
+            function onWeekDidSelect(week, month, calendar) {
+                // console.log('calendarPopupRecords.onWeekDidSelect', month.toString());
+                // var monthExpanded = Range.expand(month, DateTime.DAY * 7);
+                return true;
+            }
+
+            function setAbsencesAndOvertimes() {
+                var resource = sources.resource;
+                if (!resource) {
+                    return;
+                }
+                // assegno assenze e straordinari alla risorsa
+                resource.absencesAndOvertimes = {};
+                angular.forEach(sources.absencesAndOvertimes, function (item) {
+                    if (resource.id === item.resourceId) {
+                        resource.absencesAndOvertimes[item.key] = item;
+                    }
+                });
+            }
+
+            function setResources(resources) {
+                var user = scope.user;
+                sources.resources = resources;
+                console.log('calendarPopupRecords.setResources', resources.length, user);
+                angular.forEach(resources, function (resource) {
+                    resource.absencesAndOvertimes = {};
+                    if (resource.id === user.id) {
+                        sources.resource = resource;
+                        // console.log('calendarPopupRecords.setResources.resource', resource);
+                    }
+                });
+            }
+
+            function setWorkableDay(day) {
+                var resource = sources.resource;
+                day.working = !sources.unworkings[day.key];
+                var availableHours = 0;
+                if (resource) {
+                    if (day.working) {
+                        availableHours += resource.baseHours;
+                    }
+                    var ao = resource.absencesAndOvertimes[day.key];
+                    if (ao) {
+                        availableHours += ao.hours;
+                    }
+                } else if (day.working) {
+                    availableHours += 8;
+                }
+                // console.log('setWorkableDay', day.key, 'day.working', day.working, 'availableHours', availableHours);
+                var has = availableHours > 0;
+                day.availableHours = availableHours;
+                day.recordedHours = 0;
+                day.holiday = !day.working && !has && !day.weekend;
+                day.vacation = day.working && !has;
+                day.wasVacation = day.vacation && day.past;
+                day.workable = day.working && !day.past && has;
+                day.wasWorkable = day.working && day.past && has;                
+            }
+
+            function updateCalendar(date, month, calendar) {
+                calendar.days.each(function (day) {
+                    setWorkableDay(day);
+                });
+            }
+
+        }
+    }]);
+
+    app.directive('calendarPopup', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+        return {
+            restrict: 'A',
+            templateUrl: TemplateUrl,
+            scope: {
+                options: '=calendarPopup',
+            },
+            link: CalendarPopupLink,
+        }
+
+        function TemplateUrl(element, attributes) {
+            var url = attributes.template;
+            if (!url) {
+                url = 'partials/calendar/popup';
+                if (!$templateCache.get(url)) {
+                    $templateCache.put(url, '<div><json-formatter json="item"></json-formatter></div>');
+                }
+            }
+            return url;
+        }
+
+        function CalendarPopupLink(scope, element, attributes, model, transclude) {
+            console.log('calendarPopup.link', scope.options);
+
+            var calendar = new CalendarFactory();
+
+            var options;
+
+            var month = new Range({ type: Range.types.MONTH });
+            var week = new Range({ type: Range.types.WEEK });
+            var day = new Range({ type: Range.types.DAY });
+
+            var sources = {
+                month: month,
+                week: week,
+                day: day,
+            };
+
+            var publics = {
+                sources: sources,
+                doNavMonth: doNavMonth,
+                onWeekSelect: onWeekSelect,
+                onDaySelect: onDaySelect,
+                getDayClasses: getDayClasses,
+            };
+
+            angular.extend(scope, publics);
+
+            // console.log('scope', scope);
+
+            scope.$watch('options', function (newValue) {
+                options = newValue;
+                options = options || {
+                    onMonthDidChange: function () {
+                        var deferred = $q.defer();
+                        deferred.resolve();
+                        return deferred.promise;
+                    },
+                    onWeekDidSelect: function () { },
+                    onDayDidSelect: function () { },
+                }
+                setMonth(); // Init
+            });
+
+            function setMonth(date) {
+                if (!date || month.isOutside(date)) {
+                    onMonthChange(date);
+                }
+            }
+
+            function onMonthChange(date) {
+                var calendarMonth = calendar.getMonthByDate(date); // month.getDate();
+                calendarMonth.days.each(function (day) {
+                    var d = day.date.getDay();
+                    day.dirty = true;
+                    day.hours = 0;
+                    day.availableHours = 0;
+                    day.recordedHours = 0;
+                    day.selected = sources.day.isCurrent(day.date);
+                    day.past = day.key < Range.today.key;
+                    day.weekend = d === 0 || d === 6;
+                    day.working = !day.weekend;
+                    // reset
+                    day.holiday = false;
+                    day.vacation = false;
+                    day.wasVacation = false;
+                    day.wasWorkable = false;
+                    day.workable = false;
+                    day.green = false;
+                    day.orange = false;
+                });
+                // console.log('calendarPopup.onMonthChange', calendarMonth);
+                options.onMonthDidChange(date, Range.currentMonth().setDate(date), calendarMonth).then(function () {
+                    date ? month.setDate(date) : null;
+                    sources.calendarMonth = calendarMonth;
+                    scope.$emit('onMonthDidChange', options);                    
+                });
+            }
+
+            function onWeekSelect(week) {
+                // console.log('onWeekSelect', week);
+                if (!week) {
+                    return;
+                }
+                if (options.onWeekDidSelect(week, month, sources.calendarMonth) === true) {
+                    // sources.week.setDate(week.date);
+                    // updateSelections();
+                    scope.$emit('onWeekDidSelect', options);
+                }
+            }
+
+            function onDaySelect(day) {
+                // console.log('onDaySelect', day);
+                if (!day) {
+                    return;
+                }
+                if (options.onDayDidSelect(day, month, sources.calendarMonth) === true) {
+                    sources.day.setDate(day.date);
+                    updateSelections();
+                    scope.$emit('onDayDidSelect', options);
+                }
+            }
+
+            function updateSelections() {
+                var calendarMonth = sources.calendarMonth;
+                calendarMonth.days.each(function (day) {
+                    day.selected = sources.day.isCurrent(day.date);
+                });
+            }
+
+            function doNavMonth(dir) {
+                // console.log('doNavMonth', dir);
+                setMonth(month.getDate(dir));
+            }
+
+            function getDayClasses(day) {
+                var classes = {
+                    'day': day,
+                }
+                if (day) {
+                    angular.extend(classes, {
+                        'today': day.$today,
+                        'selected': day.selected,
+                        'workable': day.workable,
+                        'holiday': day.holiday,
+                        'vacation': day.vacation,
+                        'working': day.working,
+                        'available': day.available,
+                        'full': day.full,
+                        'status-green': day.green,
+                        'status-orange': day.orange,
+                    });
+                }
+                return classes;
+            }
+
+        }
+
+    }]);
+
+}());
+
+*/
 /* global angular */
 
 (function () {
@@ -3843,6 +4328,7 @@
 		}
 
 		function getMonthByDate(date) {
+			date = date || new Date();
 			var yyyy = date.getFullYear();
 			var MM = date.getMonth();
 			var key = Math.ceil(date.getTime() / DateTime.DAY);
@@ -3935,7 +4421,7 @@
 			return Math.ceil(date.getTime() / DateTime.DAY);
 		}
 
-	}]);
+    }]);
 
 	app.factory('CalendarFactory', ['DateTime', 'Hash', function (DateTime, Hash) {
 
@@ -4022,6 +4508,7 @@
 		}
 
 		function getMonthByDate(date) {
+			date = date || new Date();
 			var calendar = this;
 			var yyyy = date.getFullYear();
 			var MM = date.getMonth();
@@ -4079,7 +4566,7 @@
 			return month;
 		}
 
-	}]);
+    }]);
 
 }());
 /* global angular */
@@ -4101,7 +4588,7 @@
 		var WEEK = 7 * DAY;
 		var FIRSTDAYOFWEEK = 1;
 
-		var today = getDate();
+		var today = getFullDate();
 
 		var statics = {
 			getIndexLeft: getIndexLeft,
@@ -4126,7 +4613,9 @@
 			dayRight: dayRight,
 			//
 			getDate: getDate,
+			getFullDate: getFullDate,
 			getDay: getDay,
+			getFullDay: getFullDay,
 			getWeek: getWeek,
 			getDayByKey: getDayByKey,
 			getDayByDate: getDayByDate,
@@ -4209,45 +4698,14 @@
 			return getDayByDate(date);
 		}
 
-		function getWeek(date, offsetDays) {
-			// getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.epoch-calendar.com
-			date = datetime(date);
-			offsetDays = offsetDays || 0; // default offsetDays to zero
-			var startingDayOfWeek = 4; // first week of year with thursday;
-			var firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-			var dayOfWeek = firstDayOfYear.getDay() - offsetDays; // the day of week the year begins on
-			dayOfWeek = (dayOfWeek >= 0 ? dayOfWeek : dayOfWeek + 7);
-			var dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime() - (date.getTimezoneOffset() - firstDayOfYear.getTimezoneOffset()) * 60000) / 86400000) + 1;
-			var week;
-			// if the year starts before the middle of a week
-			if (dayOfWeek < startingDayOfWeek) {
-				week = Math.floor((dayOfYear + dayOfWeek - 1) / 7) + 1;
-				if (week > 52) {
-					var firstDayOfNextYear = new Date(date.getFullYear() + 1, 0, 1);
-					dayOfWeek = firstDayOfNextYear.getDay() - offsetDays;
-					dayOfWeek = (dayOfWeek >= 0 ? dayOfWeek : dayOfWeek + 7);
-					// if the next year starts before the middle of the week, it is week #1 of that year
-					week = dayOfWeek < startingDayOfWeek ? 1 : 53;
-				}
-			} else {
-				week = Math.floor((dayOfYear + dayOfWeek - 1) / 7);
-			}
-			return week;
+		function getFullDate(date) {
+			return getFullDay(getDate(date));
 		}
 
 		function getDay(date, key) {
-			var c = components(date);
-			var ww = getWeek(date, FIRSTDAYOFWEEK);
-			var wKey = dateToKey(weekLeft(date));
-			var mKey = dateToKey(monthLeft(date));
 			return {
 				date: date,
 				key: key,
-				wKey: wKey,
-				mKey: mKey,
-				ww: ww,
-				MM: c.MM,
-				yyyy: c.yyyy,
 			};
 		}
 
@@ -4257,6 +4715,15 @@
 
 		function getDayByDate(date) {
 			return getDay(date, dateToKey(date));
+		}
+
+		function getFullDay(day) {
+			var c = components(day.date);
+			c.key = day.key;
+			c.wKey = dateToKey(weekLeft(day.date));
+			c.mKey = dateToKey(monthLeft(day.date));
+			c.ww = getWeek(day.date, FIRSTDAYOFWEEK);
+			return c;
 		}
 
 		function hourToTime(hour) {
@@ -4412,22 +4879,46 @@
 			return dayRight(date);
 		}
 
-		/*
-		function apply(callback, args, slice) {
-			slice = slice || 0;
-			args = Array.prototype.slice.call(args, slice);
-			return callback.apply(this, args);
+		function getWeekDay(date, offsetDays) {
+			offsetDays = offsetDays || 0; // default offsetDays to zero
+			var ee = date.getDay();
+			ee -= offsetDays;
+			if (ee < 0) {
+				ee += 7;
+			}
+			return ee;
 		}
 
-		ArrayFrom = function(len, callback) {
-			var a = [];
-			while (a.length < len) {
-				a.push(callback(a.length));
+		function getWeek(date, offsetDays) {
+			var startingDayOfWeek = 4; // first week of year with thursday;
+			var now = getDayByDate(date);
+			var first = getDayByDate(getYearLeft(date)); // diff, size, step
+			var ee = getWeekDay(first.date, offsetDays);
+			var num = now.key - first.key;
+			var week = Math.floor((num + ee) / 7);
+			if (ee < startingDayOfWeek) {
+				week++;
+				if (week > 52) {
+					// next year
+					ee = getWeekDay(getYearLeft(date, 1), offsetDays);
+					// if the next year starts before the middle of the week, it is week #1 of that year
+					week = ee < startingDayOfWeek ? 1 : 53;
+				}
 			}
-			return a;
-		};
-		*/
+			return week;
+		}
 
+    }]);
+
+	app.filter('isoWeek', ['DateTime', function (DateTime) {
+		return function (value, offsetDays) {
+			if (value) {
+				var week = DateTime.getWeek(value, offsetDays);
+				return week < 10 ? '0' + week : week; // padded
+			} else {
+				return '-';
+			}
+		};
     }]);
 
 }());
@@ -4438,97 +4929,80 @@
 
 	var app = angular.module('artisan');
 
-	app.factory('Range', ['$filter', 'DateTime', function ($filter, DateTime) {
+	var it_IT = {
+		long: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: 'Anno {from|date:yyyy}',
+			SEMESTER: 'Semestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: 'Quadrimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: 'Trimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM yyyy}',
+			WEEK: 'Settimana {to|isoWeek:1}',
+			DAY: '{from|date:EEEE dd MMM yyyy}',
+		},
+		short: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: '{from|date:yyyy}',
+			SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM}',
+			WEEK: 'W{to|isoWeek:1}',
+			DAY: '{from|date:EEEE}',
+		},
+		week: 1,
+	};
 
-		var it_IT = {
-			long: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: 'Anno {from|date:yyyy}',
-				SEMESTER: 'Semestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: 'Quadrimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: 'Trimestre {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM yyyy}',
-				WEEK: 'Settimana {to|isoWeek:1}',
-				DAY: '{from|date:EEEE dd MMM yyyy}',
-			},
-			short: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: '{from|date:yyyy}',
-				SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM}',
-				WEEK: 'W{to|isoWeek:1}',
-				DAY: '{from|date:EEEE}',
-			},
-			week: 1,
-		};
+	var en_US = {
+		long: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: 'Year {from|date:yyyy}',
+			SEMESTER: 'Semester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: 'Trimester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: 'Quarter {from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM yyyy}',
+			WEEK: 'Week {from|isoWeek:0}',
+			DAY: '{from|date:EEEE MM/dd/yyyy}',
+		},
+		short: {
+			RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			YEAR: '{from|date:yyyy}',
+			SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
+			MONTH: '{from|date:MMMM}',
+			WEEK: 'W{from|isoWeek:0}',
+			DAY: '{from|date:EEEE}',
+		},
+		week: 0,
+	};
 
-		var en_US = {
-			long: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: 'Year {from|date:yyyy}',
-				SEMESTER: 'Semester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: 'Trimester {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: 'Quarter {from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM yyyy}',
-				WEEK: 'Week {from|isoWeek:0}',
-				DAY: '{from|date:EEEE MM/dd/yyyy}',
-			},
-			short: {
-				RANGE: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				YEAR: '{from|date:yyyy}',
-				SEMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				TRIMESTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				QUARTER: '{from|date:MMM yyyy} - {to|date:MMM yyyy}',
-				MONTH: '{from|date:MMMM}',
-				WEEK: 'W{from|isoWeek:0}',
-				DAY: '{from|date:EEEE}',
-			},
-			week: 0,
-		};
+	var formats = it_IT;
 
-		var formats = it_IT;
+	app.constant('RangeTypes', {
+		RANGE: 10,
+		YEAR: 11,
+		SEMESTER: 12,
+		TRIMESTER: 13,
+		QUARTER: 14,
+		MONTH: 15,
+		WEEK: 16,
+		DAY: 17,
+	});
 
-		var RangeTypes = {
-			RANGE: 10,
-			YEAR: 11,
-			SEMESTER: 12,
-			TRIMESTER: 13,
-			QUARTER: 14,
-			MONTH: 15,
-			WEEK: 16,
-			DAY: 17,
-		};
+	app.factory('Range', ['$filter', 'DateTime', 'RangeTypes', function ($filter, DateTime, RangeTypes) {
 
-		var statics = {
-			//
-			copy: RangeCopy,
-			expand: RangeExpand,
-			getMonth: RangeGetMonth,
-			addYear: RangeAddYear,
-			types: RangeTypes,
-			// 
-			currentYear: RangeYear,
-			currentSemester: RangeSemester,
-			currentTrimester: RangeTrimester,
-			currentQuarter: RangeQuarter,
-			currentMonth: RangeMonth,
-			currentWeek: RangeWeek,
-			currentDay: RangeDay,
-			//
-			getDate: DateTime.getDate,
-			dateToKey: DateTime.dateToKey,
-			keyToDate: DateTime.keyToDate,
-			getDay: DateTime.getDay,
-			getDayByKey: DateTime.getDayByKey,
-			getDayByDate: DateTime.getDayByDate,
-			today: DateTime.today,
-			DateTime: DateTime,
-		};
+		function Range(options) {
+			var range = this;
+			range.from = DateTime.dayLeft();
+			range.type = RangeTypes.QUARTER;
+			if (options) {
+				angular.extend(range, options);
+			}
+			range.setDiff();
+		}
 
 		var publics = {
-
 			setYear: setYear,
 			setSemester: setSemester,
 			setTrimester: setTrimester,
@@ -4540,7 +5014,7 @@
 			prev: prev,
 			next: next,
 
-			// getDiff: getDiff,
+			getDiff: getDiff,
 			getParams: getParams,
 			getDate: getDate,
 			setDate: setDate,
@@ -4562,15 +5036,33 @@
 			toString: toString,
 		};
 
-		function Range(options) {
-			var range = this;
-			range.from = DateTime.dayLeft();
-			range.type = RangeTypes.QUARTER;
-			if (options) {
-				angular.extend(range, options);
-			}
-			range.setDiff();
-		}
+		var statics = {
+			//
+			copy: RangeCopy,
+			expand: RangeExpand,
+			getMonth: RangeGetMonth,
+			addYear: RangeAddYear,
+			types: RangeTypes,
+			// 
+			Year: RangeYear,
+			Semester: RangeSemester,
+			Trimester: RangeTrimester,
+			Quarter: RangeQuarter,
+			Month: RangeMonth,
+			Week: RangeWeek,
+			Day: RangeDay,
+			//
+			getDate: DateTime.getDate,
+			getFullDate: DateTime.getFullDate,
+			dateToKey: DateTime.dateToKey,
+			keyToDate: DateTime.keyToDate,
+			getDay: DateTime.getDay,
+			getFullDay: DateTime.getFullDay,
+			getDayByKey: DateTime.getDayByKey,
+			getDayByDate: DateTime.getDayByDate,
+			today: DateTime.today,
+			DateTime: DateTime,
+		};
 
 		angular.extend(Range.prototype, publics);
 		angular.extend(Range, statics);
@@ -4669,6 +5161,13 @@
 					break;
 			}
 			return date;
+		}
+
+		function getDiff(diff) {
+			var range = this;
+			return new Range({
+				type: range.type,
+			}).setDate(range.from).setDiff(diff);
 		}
 
 		function getParams() {
@@ -4773,10 +5272,6 @@
 			return flag;
 		}
 
-		function extract(obj, value) {
-			return Object.keys(obj)[Object.values(obj).indexOf(value)];
-		}
-
 		function eachDay(callback) {
 			var range = this;
 			if (typeof callback !== 'function') {
@@ -4800,50 +5295,23 @@
 
 		function getName() {
 			var range = this;
-			var key = extract(RangeTypes, range.type);
+			var key = RangeExtract(RangeTypes, range.type);
 			return RangeFormat(range, formats.long[key]);
 		}
 
 		function getShortName() {
 			var range = this;
-			var key = extract(RangeTypes, range.type);
+			var key = RangeExtract(RangeTypes, range.type);
 			return RangeFormat(range, formats.short[key]);
 		}
 
-		function RangeFormat(range, format) {
-			var name = format;
-			name = name.replace(/{(.*?)}/g, function (replaced, token) {
-				var a = token.split('|');
-				var p = a.shift();
-				var f = a.join(''),
-					j;
-				if (f.indexOf(':') !== -1) {
-					f = f.split(':');
-					j = f.length ? f.pop() : null;
-					f = f.join('');
-				}
-				// console.log(token, f, p, j);
-				return f.length ? $filter(f)(range[p], j) : range[p];
-			});
-			// console.log(name);
-			return name;
-		}
-
 		function toString() {
+			var range = this;
 			return '[' +
-				$filter('date')(this.from, 'MMM dd yyyy HH:mm:ss.sss') + ', ' +
-				$filter('date')(this.to, 'MMM dd yyyy HH:mm:ss.sss') +
-				'] \'' + this.getName() + '\'';
+				$filter('date')(range.from, 'MMM dd yyyy HH:mm:ss.sss') + ', ' +
+				$filter('date')(range.to, 'MMM dd yyyy HH:mm:ss.sss') +
+				'] \'' + range.getName() + '\'';
 		}
-
-		/*
-		function getDiff(diff) {
-		    var range = this;
-		    return new Range({
-		        type: range.type,
-		    }).setDate(range.from).setDiff(diff);
-		}
-		*/
 
 		// static methods        
 		function RangeCopy($range) {
@@ -4857,7 +5325,7 @@
 			range = RangeCopy(range);
 			range.from = new Date(range.from.getTime() - time);
 			range.to = new Date(range.to.getTime() + time);
-			console.log('RangeExpand', range.toString());
+			// console.log('RangeExpand', range.toString());
 			return range;
 		}
 
@@ -4919,6 +5387,29 @@
 			return new Range({
 				type: RangeTypes.DAY
 			});
+		}
+
+		function RangeFormat(range, format) {
+			var name = format;
+			name = name.replace(/{(.*?)}/g, function (replaced, token) {
+				var a = token.split('|');
+				var p = a.shift();
+				var f = a.join(''),
+					j;
+				if (f.indexOf(':') !== -1) {
+					f = f.split(':');
+					j = f.length ? f.pop() : null;
+					f = f.join('');
+				}
+				// console.log(token, f, p, j);
+				return f.length ? $filter(f)(range[p], j) : range[p];
+			});
+			// console.log(name);
+			return name;
+		}
+
+		function RangeExtract(obj, value) {
+			return Object.keys(obj)[Object.values(obj).indexOf(value)];
 		}
 
     }]);
@@ -6100,18 +6591,6 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('isoWeek', ['DateTime', function (DateTime) {
-		return function (value, offsetDays) {
-			if (value) {
-				value = new Date(value);
-				var week = DateTime.getWeek(value, offsetDays);
-				return week < 10 ? '0' + week : week; // padded
-			} else {
-				return '-';
-			}
-		};
-    }]);
-
 	app.filter('customDate', ['$filter', function ($filter) {
 		var filter = $filter('date');
 		return function (value, format, timezone) {
@@ -6717,7 +7196,7 @@ $(window).on('resize', function () {
 
 		function Hash(key, pool) {
 			key = key || 'id';
-			pool = pool ? Hash.get(pool) : {};
+			pool = pool ? HashGet(pool) : {};
 			Object.defineProperties(this, {
 				key: {
 					value: key,
@@ -6737,6 +7216,35 @@ $(window).on('resize', function () {
 			});
 		}
 
+		var publics = {
+			has: has,
+			get: get,
+			getItem: getItem,
+			set: set,
+			add: add,
+			once: once,
+			remove: remove,
+			each: each,
+			addMany: addMany,
+			removeMany: removeMany,
+			removeAll: removeAll,
+			forward: forward,
+			backward: backward,
+			differs: differs,
+			updatePool: updatePool,
+		};
+
+		var statics = {
+			get: HashGet,
+		};
+
+		Hash.prototype = new Array;
+		angular.extend(Hash.prototype, publics);
+		angular.extend(Hash, statics);
+
+		return Hash;
+
+		// publics
 		function has(id) {
 			return this.pool[id] !== undefined;
 		}
@@ -6896,30 +7404,12 @@ $(window).on('resize', function () {
 			});
 		}
 
-		Hash.get = function (pool) {
+		// statics
+		function HashGet(pool) {
 			return pools[pool] = (pools[pool] || {});
-		};
+		}
 
-		Hash.prototype = new Array;
-		Hash.prototype.has = has;
-		Hash.prototype.get = get;
-		Hash.prototype.getItem = getItem;
-		Hash.prototype.set = set;
-		Hash.prototype.add = add;
-		Hash.prototype.once = once;
-		Hash.prototype.remove = remove;
-		Hash.prototype.each = each;
-		Hash.prototype.addMany = addMany;
-		Hash.prototype.removeMany = removeMany;
-		Hash.prototype.removeAll = removeAll;
-		Hash.prototype.forward = forward;
-		Hash.prototype.backward = backward;
-		Hash.prototype.differs = differs;
-		Hash.prototype.updatePool = updatePool;
-
-		return Hash;
-
-	}]);
+    }]);
 
 }());
 /* global angular */

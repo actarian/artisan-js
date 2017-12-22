@@ -44,6 +44,7 @@
 		}
 
 		function getMonthByDate(date) {
+			date = date || new Date();
 			var yyyy = date.getFullYear();
 			var MM = date.getMonth();
 			var key = Math.ceil(date.getTime() / DateTime.DAY);
@@ -136,7 +137,7 @@
 			return Math.ceil(date.getTime() / DateTime.DAY);
 		}
 
-	}]);
+    }]);
 
 	app.factory('CalendarFactory', ['DateTime', 'Hash', function (DateTime, Hash) {
 
@@ -223,6 +224,7 @@
 		}
 
 		function getMonthByDate(date) {
+			date = date || new Date();
 			var calendar = this;
 			var yyyy = date.getFullYear();
 			var MM = date.getMonth();
@@ -280,6 +282,6 @@
 			return month;
 		}
 
-	}]);
+    }]);
 
 }());

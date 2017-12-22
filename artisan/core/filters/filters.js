@@ -195,18 +195,6 @@
 		};
     }]);
 
-	app.filter('isoWeek', ['DateTime', function (DateTime) {
-		return function (value, offsetDays) {
-			if (value) {
-				value = new Date(value);
-				var week = DateTime.getWeek(value, offsetDays);
-				return week < 10 ? '0' + week : week; // padded
-			} else {
-				return '-';
-			}
-		};
-    }]);
-
 	app.filter('customDate', ['$filter', function ($filter) {
 		var filter = $filter('date');
 		return function (value, format, timezone) {

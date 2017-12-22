@@ -247,19 +247,20 @@
 				}
 			}
 
+			var trigger = attributes.expandableTrigger ? element[0].querySelector(attributes.expandableTrigger) : null;
+			trigger = trigger ? angular.element(trigger) : element;
+
 			function addListeners() {
-				element
-					.on('mousedown touchstart', onDown)
-					.on('keydown', onKeyDown);
+				trigger.on('mousedown touchstart', onDown);
+				element.on('keydown', onKeyDown);
 				angular.element(window)
 					.on('click', onUp)
 					.on('resize', onResize);
 			}
 
 			function removeListeners() {
-				element
-					.off('mousedown touchstart', onDown)
-					.off('keydown', onKeyDown);
+				trigger.off('mousedown touchstart', onDown);
+				element.off('keydown', onKeyDown);
 				angular.element(window)
 					.off('click', onUp)
 					.off('resize', onResize);

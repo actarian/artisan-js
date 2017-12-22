@@ -9,14 +9,6 @@
 
 		var directive = {
 			restrict: 'A',
-			// template: '<div ng-transclude></div>',
-			// transclude: true,
-			// replace: true,
-			/*
-			templateUrl: function (element, attributes) {
-				return attributes.template || 'artisan/components/nav/partial/nav';
-            },
-            */
 			link: link,
 		};
 
@@ -35,12 +27,6 @@
 				boundingClientRect, styleObj, originalCssText;
 
 			var opened = false;
-
-			/*
-			var placeholder = document.createElement('div'),
-				placeholderElement = angular.element(placeholder);
-			placeholderElement.addClass('popuppable-placeholder');
-			*/
 
 			function getStyle(node) {
 				var style = window.getComputedStyle(node, null);
@@ -79,12 +65,6 @@
 			}
 
 			function add() {
-				/*
-				styleObj = getStyle(target);
-				setStyle(placeholder, styleObj);
-				target.parentNode.insertBefore(placeholder, target);
-				originalCssText = target.style.cssText;
-				*/
 				targetElement.addClass('popuppable-opening');
 				Dom.getParents(target).each(function (element, node) {
 					element.addClass('popuppable-parent');
@@ -92,76 +72,17 @@
 			}
 
 			function remove() {
-				/*
-				target.style.cssText = originalCssText;
-				placeholder.parentNode.removeChild(placeholder);
-				*/
 				targetElement.removeClass('popuppable-opening');
 				Dom.getParents(target).each(function (element, node) {
 					element.removeClass('popuppable-parent');
 				});
 			}
 
-			/*
-			function setRects() {
-				if (targetElement && targetElement.hasClass('popuppable-opening')) {
-					boundingClientRect = placeholder.getBoundingClientRect();
-				} else {
-					boundingClientRect = target.getBoundingClientRect();
-				}
-				from = {
-					top: 0,
-					left: 0,
-					width: boundingClientRect.width, // parseInt(styleObj.width), // boundingClientRect.width,
-					height: boundingClientRect.height, // parseInt(styleObj.height), // boundingClientRect.height,
-				};
-				to = {
-					top: 0 + (relative.top || 0),
-					left: 0 + (relative.left || 0),
-					width: from.width + (relative.right || 0),
-					height: from.height + (relative.bottom || 0),
-				};
-				if (absolute.top) {
-					to.top = absolute.top - boundingClientRect.top;
-				}
-				if (absolute.left) {
-					to.left = absolute.left - boundingClientRect.left;
-				}
-				if (absolute.right) {
-					var absoluteRight = (window.innerWidth - absolute.right);
-					var absoluteLeft = boundingClientRect.left + to.left;
-					to.width = absoluteRight - absoluteLeft;
-				}
-				if (absolute.bottom) {
-					var absoluteBottom = (window.innerHeight - absolute.bottom);
-					var absoluteTop = boundingClientRect.top + to.top;
-					to.height = absoluteBottom - absoluteTop;
-				}
-			}
-			*/
-
 			function open() {
 				if (!opened) {
-					// setRects();
 					add();
 					current = angular.copy(from);
-					// setStyle(target, from);
 					openAnimation();
-					/*
-					dynamics.animate(state, {
-						pow: 1
-					}, {
-						type: dynamics.easeInOut,
-						duration: 350,
-						complete: function () {
-							opened = true;
-							state.idle();
-						},
-						change: function () {
-							update();
-						}
-					});
-					*/
 				} else {
 					state.idle();
 				}
@@ -170,35 +91,12 @@
 			function close() {
 				if (opened) {
 					closeAnimation();
-					/*
-					dynamics.animate(state, {
-						pow: 0
-					}, {
-						type: dynamics.easeInOut,
-						duration: 350,
-						complete: function () {
-							opened = false;
-							remove();
-							state.idle();
-						},
-						change: function () {
-							update();
-						}
-					});
-					*/
 				} else {
 					state.idle();
 				}
 			}
 
 			function update() {
-				/*
-				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
-				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
-				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
-				current.height = (from.height + (to.height - from.height) * state.pow) + 'px';
-				setStyle(target, current);
-				*/
 				current.left = (from.left + (to.left - from.left) * state.pow) + 'px';
 				current.top = (from.top + (to.top - from.top) * state.pow) + 'px';
 				current.width = (from.width + (to.width - from.width) * state.pow) + 'px';
@@ -217,10 +115,6 @@
 			}
 
 			function set() {
-				/*
-				relative = attributes.popuppableRelative ? $parse(attributes.popuppableRelative)(scope) : {};
-				absolute = attributes.popuppableAbsolute ? $parse(attributes.popuppableAbsolute)(scope) : {};
-				*/
 				target = element[0].querySelector(attributes.popuppable);
 				if (target) {
 					targetElement = angular.element(target);
@@ -248,7 +142,6 @@
 
 			function onResize(e) {
 				if (opened || state.isBusy) {
-					// setRects();
 					update();
 				}
 			}
@@ -302,7 +195,6 @@
 			set();
 
 			function openAnimation() {
-				// Animate the popover
 				dynamics.animate(target, {
 					opacity: 1,
 					scale: 1
@@ -316,34 +208,9 @@
 						state.idle();
 					},
 				});
-
-				/*
-			  // Animate each line individually
-			  for(var i=0; i<items.length; i++) {
-				var item = items[i]
-				// Define initial properties
-				dynamics.css(item, {
-				  opacity: 0,
-				  translateY: 20
-				});
-			
-				// Animate to final properties
-				dynamics.animate(item, {
-				  opacity: 1,
-				  translateY: 0
-				}, {
-				  type: dynamics.spring,
-				  frequency: 300,
-				  friction: 435,
-				  duration: 1000,
-				  delay: 100 + i * 40
-				});
-			  }
-			*/
 			}
 
 			function closeAnimation() {
-				// Animate the popover
 				dynamics.animate(target, {
 					opacity: 0,
 					scale: 0.1

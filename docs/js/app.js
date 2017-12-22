@@ -556,13 +556,13 @@
 		$scope.getFacebookMe = getFacebookMe;
 		$scope.getGoogleMe = getGoogleMe;
 
-		var year = Range.currentYear();
-		var semester = Range.currentSemester();
-		var trimester = Range.currentTrimester();
-		var quarter = Range.currentQuarter();
-		var month = Range.currentMonth();
-		var week = Range.currentWeek();
-		var day = Range.currentDay();
+		var year = Range.Year();
+		var semester = Range.Semester();
+		var trimester = Range.Trimester();
+		var quarter = Range.Quarter();
+		var month = Range.Month();
+		var week = Range.Week();
+		var day = Range.Day();
 
 		var ranges = {
 			year: year,
@@ -679,7 +679,7 @@
 		});
 
 		/*
-		var day = Range.currentDay();
+		var day = Range.Day();
 		var date = new Date();
 
 		if (day.isInside(date)) {
@@ -691,7 +691,7 @@
 
 		//
 
-		var range = Range.currentWeek();
+		var range = Range.Week();
 
 		console.log(range.toString());
 

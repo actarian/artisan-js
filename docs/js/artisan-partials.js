@@ -38,22 +38,20 @@ $templateCache.put("artisan/components/calendar/calendar","<section class=\"cont
     "                    <div class=\"cell weekNum\" ng-click=\"onWeekSelect(week.date)\">\n" +
     "                        <span class=\"num\" ng-bind=\"week.date | isoWeek : 1\"></span>\n" +
     "                    </div>\n" +
-    "                    <div class=\"cell\" ng-class=\"{ selected: day && sources.day.isCurrent(day.date), day: day, workable: day.workable, holiday: day.holiday, vacation: day.vacation, working: day.working, available: day.available, full: day.full, today: day.$today }\" ng-repeat=\"day in week.days track by $index\"\n" +
-    "                        ng-click=\"onDaySelect(day)\" title=\"{{day.hours + day.working | customNumber : 2 : 'H'}}\">\n" +
+    "                    <div class=\"cell\" ng-class=\"{ selected: day && sources.day.isCurrent(day.date), day: day, workable: day.workable, holiday: day.holiday, vacation: day.vacation, working: day.working, available: day.available, full: day.full, today: day.$today }\" ng-click=\"onDaySelect(day)\"\n" +
+    "                        ng-repeat=\"day in week.days track by $index\">\n" +
     "                        <span class=\"num\" ng-bind=\"day.d\"></span>\n" +
-    "                        <span class=\"hours\" ng-bind=\"day.hours\" ng-if=\"day.hours\"></span> @*\n" +
-    "                        <div class=\"tasks\">\n" +
-    "                            <span class=\"task\" ng-repeat=\"task in day.tasks track by $index\" ng-style=\"{ width: (task.hours * 4) + 'px' }\" title=\"{{task.hours | customNumber : 2 : 'H ' + task.taskId}}\"></span>\n" +
-    "                        </div>\n" +
-    "                        *@\n" +
+    "                        <span class=\"hours\" ng-bind=\"day.hours\" ng-if=\"day.hours\"></span>\n" +
     "                        <div class=\"activities\" ng-if=\"day.workable\">\n" +
-    "                            <span class=\"activity tag-pill\" ng-class=\"getStatusColor(activity)\" ng-repeat=\"activity in day.activities track by $index\" ng-style=\"{ 'flex-basis': (activity.hours / 8 * 100) + '%', 'max-width': (activity.hours / 8 * 100) + '%' }\" title=\"{{activity.hours | customNumber : 2 : 'H ' + activity.task.id}}\">\n" +
+    "                            <span class=\"activity tag-pill\" ng-class=\"appearance.activityClass(activity.activity.id)\" ng-repeat=\"activity in day.activities track by $index\" ng-style=\"{ 'flex-basis': (activity.hours / day.availableHours * 100) + '%', 'max-width': (activity.hours / day.availableHours * 100) + '%' }\"\n" +
+    "                                title=\"{{(activity.hours | customNumber : 2 : 'H ' + activity.task.id) + ' ' + activity.customer.name}}\">\n" +
     "                                    <span ng-bind=\"activity.customer.name\"></span>\n" +
     "                            </span>\n" +
     "                        </div>\n" +
     "                        <div class=\"records\" ng-if=\"day.wasWorkable\">\n" +
-    "                            <span class=\"record tag-pill\" ng-class=\"{ 'status-green': day.recordedHours >= 8, 'status-orange': day.recordedHours < 8 }\" ng-style=\"{ 'flex-basis': (day.recordedHours / 8 * 100) + '%', 'max-width': (day.recordedHours / 8 * 100) + '%' }\" title=\"{{day.recordedHours | customNumber : 2 : 'H'}}\">\n" +
-    "                                    <span ng-bind=\"day.recordedHours\"></span>\n" +
+    "                            <span class=\"record tag-pill\" ng-class=\"{ 'status-green': day.recordedHours >= day.availableHours, 'status-orange': day.recordedHours < day.availableHours }\" ng-style=\"{ 'flex-basis': (day.recordedHours / day.availableHours * 100) + '%', 'max-width': (day.recordedHours / day.availableHours * 100) + '%' }\"\n" +
+    "                                title=\"{{day.recordedHours | customNumber : 2 : 'H'}}\">\n" +
+    "                                    <span ng-bind=\"day.recordedHours\"></span> / <span ng-bind=\"day.availableHours\"></span>\n" +
     "                            </span>\n" +
     "                        </div>\n" +
     "                    </div>\n" +
