@@ -8399,76 +8399,139 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('Http', ['$http', '$promise', '$timeout', 'environment', function($http, $promise, $timeout, environment) {
+	app.service('Bearer', ['$http', '$promise', 'SessionStorage', 'LocalStorage', 'environment', function ($http, $promise, SessionStorage, LocalStorage, environment) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            get: HttpGet,
-            post: HttpPost,
-            put: HttpPut,
-            patch: HttpPatch,
-            'delete': HttpDelete,
-            fake: HttpFake,
-        };
+		var statics = {
+			'delete': BearerDelete,
+			exist: BearerExists,
+			get: BearerGet,
+			set: BearerSet,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        // statics methods
+		// statics methods
 
-        function HttpPath(path) {
-            return environment.paths.api + path;
-        }
+		function BearerDelete(accessToken, remember) {
+			SessionStorage.delete('accessToken');
+			LocalStorage.delete('accessToken');
+			delete $http.defaults.headers.common['Authorization'];
+		}
 
-        function HttpPromise(method, path, data) {
-            return $promise(function(promise) {
-                $http[method](HttpPath(path), data).then(function(response) {
-                    promise.resolve(response.data);
+		function BearerExists(accessToken, remember) {
+			return SessionStorage.exist('accessToken') || LocalStorage.exist('accessToken');
+		}
 
-                }, function(e, status) {
-                    var error = (e && e.data) ? e.data : {};
-                    error.status = e.status;
-                    promise.reject(error);
+		function BearerGet(accessToken, remember) {
+			var accessToken = null;
+			if (SessionStorage.exist('accessToken')) {
+				accessToken = SessionStorage.get('accessToken');
+				BearerSet(accessToken);
+			} else if (LocalStorage.exist('accessToken')) {
+				accessToken = LocalStorage.get('accessToken');
+				BearerSet(accessToken);
+			}
+			return accessToken;
+		}
 
-                });
-            });
-        }
+		function BearerSet(accessToken, remember) {
+			var header = 'Bearer ' + accessToken;
+			delete $http.defaults.headers.common['Authorization'];
+			$http.defaults.headers.common['Authorization'] = header;
+			SessionStorage.set('accessToken', accessToken);
+			if (remember) {
+				LocalStorage.set('accessToken', accessToken);
+			}
+			return header;
+		}
 
-        function HttpGet(path) {
-            return HttpPromise('get', path);
-        }
+    }]);
 
-        function HttpPost(path, data) {
-            return HttpPromise('post', path, data);
-        }
+}());
+/* global angular */
 
-        function HttpPut(path, data) {
-            return HttpPromise('put', path, data);
-        }
+(function () {
+	"use strict";
 
-        function HttpPatch(path, data) {
-            return HttpPromise('patch', path, data);
-        }
+	var app = angular.module('artisan');
 
-        function HttpDelete(path) {
-            return HttpPromise('delete', path);
-        }
+	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function ($http, $promise, $timeout, environment) {
 
-        function HttpFake(data, msec) {
-            msec = msec || 1000;
-            return $promise(function(promise) {
-                $timeout(function() {
-                    promise.resolve({
-                        data: data
-                    });
-                }, msec);
-            });
-        }
+		var service = this;
+
+		var statics = {
+			get: HttpGet,
+			post: HttpPost,
+			put: HttpPut,
+			patch: HttpPatch,
+			'delete': HttpDelete,
+			'static': HttpStatic,
+			fake: HttpFake,
+		};
+
+		angular.extend(service, statics);
+
+		// statics methods
+
+		function HttpPath(path) {
+			return environment.paths.api + path;
+		}
+
+		function HttpPromise(method, path, data) {
+			return $promise(function (promise) {
+				$http[method](path, data).then(function (response) {
+					promise.resolve(response.data);
+
+				}, function (e, status) {
+					var error = (e && e.data) ? e.data : {};
+					error.status = e.status;
+					promise.reject(error);
+
+				});
+			});
+		}
+
+		function HttpGet(path) {
+			return HttpPromise('get', HttpPath(path));
+		}
+
+		function HttpPost(path, data) {
+			return HttpPromise('post', HttpPath(path), data);
+		}
+
+		function HttpPut(path, data) {
+			return HttpPromise('put', HttpPath(path), data);
+		}
+
+		function HttpPatch(path, data) {
+			return HttpPromise('patch', HttpPath(path), data);
+		}
+
+		function HttpDelete(path) {
+			return HttpPromise('delete', HttpPath(path));
+		}
+
+		function HttpStatic(path) {
+			return HttpPromise('get', path);
+		}
+
+		function HttpFake(data, msec) {
+			msec = msec || 1000;
+			return $promise(function (promise) {
+				$timeout(function () {
+					promise.resolve({
+						data: data
+					});
+				}, msec);
+			});
+		}
 
     }]);
 
@@ -8925,7 +8988,7 @@ $(window).on('resize', function () {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
-			delete: CookieDelete,
+			'delete': CookieDelete,
 			exist: CookieExists,
 			get: CookieGet,
 			on: CookieOn,
@@ -9028,7 +9091,7 @@ $(window).on('resize', function () {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
-			delete: LocalDelete,
+			'delete': LocalDelete,
 			exist: LocalExists,
 			get: LocalGet,
 			on: LocalOn,
@@ -9132,15 +9195,15 @@ $(window).on('resize', function () {
 
     }]);
 
-	app.factory('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
+	app.service('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
-			delete: LocalDelete,
-			exist: LocalExists,
-			get: LocalGet,
-			on: LocalOn,
-			set: LocalSet,
+			'delete': SessionDelete,
+			exist: SessionExists,
+			get: SessionGet,
+			on: SessionOn,
+			set: SessionSet,
 		};
 
 		var supported = SessionSupported();
@@ -9311,423 +9374,429 @@ $(window).on('resize', function () {
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function($promise, $once, storage, environment) {
+	app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function ($promise, $once, storage, environment) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            login: FacebookLogin,
-            logout: FacebookLogout,
-            status: FacebookStatus,
-            getMe: FacebookGetMe,
-            getMyPicture: FacebookGetMyPicture,
-        };
+		var statics = {
+			require: FacebookRequire,
+			login: FacebookLogin,
+			logout: FacebookLogout,
+			status: FacebookStatus,
+			getMe: FacebookGetMe,
+			getMyPicture: FacebookGetMyPicture,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        // private vars
+		// private vars
 
-        if (!environment.plugins.facebook) {
-            trhow('FacebookService.error missing config object in environment.plugins.facebook');
-        }
+		if (!environment.plugins.facebook) {
+			trhow('FacebookService.error missing config object in environment.plugins.facebook');
+		}
 
-        var config = environment.plugins.facebook;
+		var config = environment.plugins.facebook;
 
-        // statics methods
+		// statics methods
 
-        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-         *  calling facebook initializer on page load to avoid popup blockers via asyncronous loading  *
-         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		 *  calling facebook initializer on page load to avoid popup blockers via asyncronous loading  *
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-        Facebook();
+		var authResponse = storage.get('facebook');
+		/*
+		authResponse = {
+		    accessToken: "accessTokenXXXXX",
+		    expiresIn: 4962,
+		    signedRequest: "signedRequestXXXXX",
+		    userID: "10214671620773661",
+		}
+		*/
+		console.log('facebook.storage', authResponse);
 
-        var authResponse = storage.get('facebook');
-        /*
-        authResponse = {
-            accessToken: "accessTokenXXXXX",
-            expiresIn: 4962,
-            signedRequest: "signedRequestXXXXX",
-            userID: "10214671620773661",
-        }
-        */
-        console.log('facebook.storage', authResponse);
+		function FacebookRequire() {
+			return Facebook();
+		}
 
-        function Facebook() {
-            return $promise(function(promise) {
-                if (window.FB !== undefined) {
-                    promise.resolve(window.FB);
-                } else {
-                    FacebookOnce().then(function(success) {
-                        promise.resolve(window.FB);
-                    }, function(error) {
-                        promise.reject(error);
-                    });
-                }
-            });
-        }
+		function Facebook() {
+			return $promise(function (promise) {
+				if (window.FB !== undefined) {
+					promise.resolve(window.FB);
+				} else {
+					FacebookOnce().then(function (success) {
+						promise.resolve(window.FB);
+					}, function (error) {
+						promise.reject(error);
+					});
+				}
+			});
+		}
 
-        function FacebookOnce() {
-            return $promise(function(promise) {
-                $once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
-                    // console.log('FacebookOnce.fbAsyncInit', window.FB);
-                    window.FB.init({
-                        appId: config.appId,
-                        status: true,
-                        cookie: true,
-                        xfbml: true,
-                        version: config.version,
-                    });
-                    promise.resolve(window.FB);
-                    // window.fbAsyncInit = null;
-                }, function(error) {
-                    promise.reject(error);
-                });
-            });
-        }
+		function FacebookOnce() {
+			return $promise(function (promise) {
+				$once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function () {
+					// console.log('FacebookOnce.fbAsyncInit', window.FB);
+					window.FB.init({
+						appId: config.appId,
+						status: true,
+						cookie: true,
+						xfbml: true,
+						version: config.version,
+					});
+					promise.resolve(window.FB);
+					// window.fbAsyncInit = null;
+				}, function (error) {
+					promise.reject(error);
+				});
+			});
+		}
 
-        function FacebookStatus(response, promise, init) {
-            service.authResponse = null;
-            if (response.status === 'connected') {
-                service.authResponse = response.authResponse;
-                storage.set('facebook', response.authResponse);
-                promise.resolve(response);
-            } else if (response.status === 'not_authorized') {
-                storage.delete('facebook');
-                if (init) {
-                    promise.resolve(response);
-                } else {
-                    promise.reject(response);
-                }
-            } else {
-                promise.reject(response);
-            }
-        }
+		function FacebookStatus(response, promise, init) {
+			service.authResponse = null;
+			if (response.status === 'connected') {
+				service.authResponse = response.authResponse;
+				storage.set('facebook', response.authResponse);
+				promise.resolve(response);
+			} else if (response.status === 'not_authorized') {
+				storage.delete('facebook');
+				if (init) {
+					promise.resolve(response);
+				} else {
+					promise.reject(response);
+				}
+			} else {
+				promise.reject(response);
+			}
+		}
 
-        function FacebookGetMe(fields) {
-            fields = fields || config.fields;
-            return $promise(function(promise) {
-                FacebookLogin().then(function(response) {
-                    window.FB.api('/me', {
-                        fields: fields
-                    }, function(response) {
-                        if (!response || response.error) {
-                            var error = response ? response.error : 'error';
-                            console.log('FacebookGetMe.error', error);
-                            promise.reject(error);
+		function FacebookGetMe(fields) {
+			fields = fields || config.fields;
+			return $promise(function (promise) {
+				FacebookLogin().then(function (response) {
+					window.FB.api('/me', {
+						fields: fields
+					}, function (response) {
+						if (!response || response.error) {
+							var error = response ? response.error : 'error';
+							console.log('FacebookGetMe.error', error);
+							promise.reject(error);
 
-                        } else {
-                            console.log('FacebookGetMe.success', response);
-                            promise.resolve(response);
+						} else {
+							console.log('FacebookGetMe.success', response);
+							promise.resolve(response);
 
-                        }
-                    });
-                });
-            });
-        }
+						}
+					});
+				});
+			});
+		}
 
-        function FacebookGetMyPicture(size) {
-            size = size || 300;
-            return $promise(function(promise) {
-                FacebookLogin().then(function(facebook) {
-                    window.FB.api('/me/picture', {
-                        width: size,
-                        height: size,
-                        type: 'square'
-                    }, function(response) {
-                        if (!response || response.error) {
-                            var error = response ? response.error : 'error';
-                            console.log('FacebookGetMyPicture.error', error);
-                            promise.reject(error);
+		function FacebookGetMyPicture(size) {
+			size = size || 300;
+			return $promise(function (promise) {
+				FacebookLogin().then(function (facebook) {
+					window.FB.api('/me/picture', {
+						width: size,
+						height: size,
+						type: 'square'
+					}, function (response) {
+						if (!response || response.error) {
+							var error = response ? response.error : 'error';
+							console.log('FacebookGetMyPicture.error', error);
+							promise.reject(error);
 
-                        } else {
-                            console.log('FacebookGetMyPicture.success', response);
-                            promise.resolve(response);
+						} else {
+							console.log('FacebookGetMyPicture.success', response);
+							promise.resolve(response);
 
-                        }
-                    });
-                });
-            });
-        }
+						}
+					});
+				});
+			});
+		}
 
-        function FacebookLogin() {
-            return $promise(function(promise) {
-                Facebook().then(function(facebook) {
-                    console.log('FacebookLogin', facebook);
-                    facebook.login(function(response) {
-                        FacebookStatus(response, promise);
-                    }, {
-                        scope: config.scope
-                    });
-                });
-            });
-        }
+		function FacebookLogin() {
+			return $promise(function (promise) {
+				Facebook().then(function (facebook) {
+					console.log('FacebookLogin', facebook);
+					facebook.login(function (response) {
+						FacebookStatus(response, promise);
+					}, {
+						scope: config.scope
+					});
+				});
+			});
+		}
 
-        function FacebookLogout() {
-            return $promise(function(promise) {
-                Facebook().then(function(facebook) {
-                    facebook.logout(function(response) {
-                        promise.resolve(response);
-                    });
-                });
-            });
-        }
+		function FacebookLogout() {
+			return $promise(function (promise) {
+				Facebook().then(function (facebook) {
+					facebook.logout(function (response) {
+						promise.resolve(response);
+					});
+				});
+			});
+		}
 
     }]);
 
 }());
 /* global angular */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    // todo !!!
+	// todo !!!
 
-    app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function($timeout, $promise, $once, storage, environment) {
+	app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function ($timeout, $promise, $once, storage, environment) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            login: GoogleLogin,
-            logout: GoogleLogout,
-            getMe: GoogleGetMe,
-            // status: GoogleStatus,
-            // getMyPicture: GoogleGetMyPicture,
-        };
+		var statics = {
+			require: GoogleRequire,
+			login: GoogleLogin,
+			logout: GoogleLogout,
+			getMe: GoogleGetMe,
+			// status: GoogleStatus,
+			// getMyPicture: GoogleGetMyPicture,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        // private vars
+		// private vars
 
-        if (!environment.plugins.google) {
-            trhow('GoogleService.error missing config object in environment.plugins.google');
-        }
+		if (!environment.plugins.google) {
+			trhow('GoogleService.error missing config object in environment.plugins.google');
+		}
 
-        var config = environment.plugins.google;
+		var config = environment.plugins.google;
 
-        var auth2 = null;
+		var auth2 = null;
 
-        var instance = null;
+		var instance = null;
 
-        // statics methods
+		// statics methods
 
-        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-         *  calling google initializer on page load to avoid popup blockers via asyncronous loading  *
-         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		 *  calling google initializer on page load to avoid popup blockers via asyncronous loading  *
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-        Auth2Init();
+		var authResponse = storage.get('google');
+		/*
+		authResponse = {
+		    access_token: "accessTokenXXXXX",
+		    expires_at: 1511992065944,
+		    expires_in: 3600,
+		    first_issued_at: 1511988465944,
+		    id_token: "idTokenXXXXX",
+		    idpId: "google",
+		    login_hint: "loginHintXXXXXX",
+		    scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/plus.me openid email profile"
+		    session_state: {
+		        extraQueryParams: { … }
+		    },
+		    token_type: "Bearer"
+		}
+		*/
+		console.log('google.storage', authResponse);
 
-        var authResponse = storage.get('google');
-        /*
-        authResponse = {
-            access_token: "accessTokenXXXXX",
-            expires_at: 1511992065944,
-            expires_in: 3600,
-            first_issued_at: 1511988465944,
-            id_token: "idTokenXXXXX",
-            idpId: "google",
-            login_hint: "loginHintXXXXXX",
-            scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/plus.me openid email profile"
-            session_state: {
-                extraQueryParams: { … }
-            },
-            token_type: "Bearer"
-        }
-        */
-        console.log('google.storage', authResponse);
+		function GoogleRequire() {
+			return Auth2Init();
+		}
 
-        function Google() {
-            return $promise(function(promise) {
-                if (window.gapi !== undefined) {
-                    promise.resolve(window.gapi);
-                } else {
-                    GoogleOnce().then(function(response) {
-                        promise.resolve(window.gapi);
-                    }, function(error) {
-                        promise.reject(error);
-                    });
-                }
-            });
-        }
+		function Google() {
+			return $promise(function (promise) {
+				if (window.gapi !== undefined) {
+					promise.resolve(window.gapi);
+				} else {
+					GoogleOnce().then(function (response) {
+						promise.resolve(window.gapi);
+					}, function (error) {
+						promise.reject(error);
+					});
+				}
+			});
+		}
 
-        function GoogleOnce() {
-            return $promise(function(promise) {
-                $once.script('https://apis.google.com/js/api:client.js?onload={{callback}}', true).then(function(data) {
-                    promise.resolve(data);
-                }, function(error) {
-                    promise.reject(error);
-                });
-            });
-        }
+		function GoogleOnce() {
+			return $promise(function (promise) {
+				$once.script('https://apis.google.com/js/api:client.js?onload={{callback}}', true).then(function (data) {
+					promise.resolve(data);
+				}, function (error) {
+					promise.reject(error);
+				});
+			});
+		}
 
-        function Auth2Init() {
-            return $promise(function(promise) {
+		function Auth2Init() {
+			return $promise(function (promise) {
 
-                if (auth2) {
-                    promise.resolve(auth2);
-                } else {
-                    Google().then(function() {
-                        function onLoaded() {
-                            var result = window.gapi.auth2.init({
-                                client_id: environment.plugins.google.clientId,
-                                cookiepolicy: 'single_host_origin',
-                                scope: 'profile email',
-                                fetch_basic_profile: true,
-                                ux_mode: 'popup',
+				if (auth2) {
+					promise.resolve(auth2);
+				} else {
+					Google().then(function () {
+						function onLoaded() {
+							var result = window.gapi.auth2.init({
+								client_id: environment.plugins.google.clientId,
+								cookiepolicy: 'single_host_origin',
+								scope: 'profile email',
+								fetch_basic_profile: true,
+								ux_mode: 'popup',
 
-                            }).then(function() {
-                                auth2 = window.gapi.auth2;
-                                console.log('Auth2Init.success', auth2);
-                                promise.resolve(auth2);
+							}).then(function () {
+								auth2 = window.gapi.auth2;
+								console.log('Auth2Init.success', auth2);
+								promise.resolve(auth2);
 
-                            }, function(error) {
-                                console.log('Auth2Init.error', error);
-                                promise.reject(error);
+							}, function (error) {
+								console.log('Auth2Init.error', error);
+								promise.reject(error);
 
-                            });
-                        }
-                        if (window.gapi.auth2) {
-                            onLoaded();
-                        } else {
-                            window.gapi.load('auth2', function() {
-                                $timeout(function() {
-                                    onLoaded();
-                                }, 200);
-                            });
-                        }
-                    }, function(error) {
-                        console.log('Auth2Init.error', error);
-                        promise.reject(error);
+							});
+						}
+						if (window.gapi.auth2) {
+							onLoaded();
+						} else {
+							window.gapi.load('auth2', function () {
+								$timeout(function () {
+									onLoaded();
+								}, 200);
+							});
+						}
+					}, function (error) {
+						console.log('Auth2Init.error', error);
+						promise.reject(error);
 
-                    });
-                }
-            });
-        }
+					});
+				}
+			});
+		}
 
-        function Auth2Instance() {
-            return $promise(function(promise) {
-                if (instance) {
-                    promise.resolve();
-                } else {
-                    Auth2Init().then(function(auth2) {
-                        instance = auth2.getAuthInstance();
-                        console.log('GoogleService.Auth2Instance.success', instance);
-                        promise.resolve();
+		function Auth2Instance() {
+			return $promise(function (promise) {
+				if (instance) {
+					promise.resolve();
+				} else {
+					Auth2Init().then(function (auth2) {
+						instance = auth2.getAuthInstance();
+						console.log('GoogleService.Auth2Instance.success', instance);
+						promise.resolve();
 
-                    }, function(error) {
-                        console.log('GoogleService.Auth2Instance.error', error);
-                        promise.reject(error);
-                    });
-                }
-            });
-        }
+					}, function (error) {
+						console.log('GoogleService.Auth2Instance.error', error);
+						promise.reject(error);
+					});
+				}
+			});
+		}
 
-        function GoogleGetMe() {
-            return $promise(function(promise) {
-                GoogleLogin().then(function(response) {
-                    var profile = instance.currentUser.get().getBasicProfile();
-                    var user = {
-                        id: profile.getId(),
-                        name: profile.getName(),
-                        firstName: profile.getGivenName(),
-                        lastName: profile.getFamilyName(),
-                        picture: profile.getImageUrl(),
-                        email: profile.getEmail(),
-                    };
-                    console.log('GoogleGetMe.success', user);
-                    promise.resolve(user);
+		function GoogleGetMe() {
+			return $promise(function (promise) {
+				GoogleLogin().then(function (response) {
+					var profile = instance.currentUser.get().getBasicProfile();
+					var user = {
+						id: profile.getId(),
+						name: profile.getName(),
+						firstName: profile.getGivenName(),
+						lastName: profile.getFamilyName(),
+						picture: profile.getImageUrl(),
+						email: profile.getEmail(),
+					};
+					console.log('GoogleGetMe.success', user);
+					promise.resolve(user);
 
-                }, function(error) {
-                    console.log('GoogleGetMe.error', error);
-                    promise.reject(error);
+				}, function (error) {
+					console.log('GoogleGetMe.error', error);
+					promise.reject(error);
 
-                });
-            });
-        }
+				});
+			});
+		}
 
-        function GoogleLogin() {
-            return $promise(function(promise) {
-                Auth2Instance().then(function() {
-                    if (instance.isSignedIn && instance.isSignedIn.get()) {
-                        // Auth2Instance.isSignedIn.listen(onStatus);
-                        readAccessToken();
+		function GoogleLogin() {
+			return $promise(function (promise) {
+				Auth2Instance().then(function () {
+					if (instance.isSignedIn && instance.isSignedIn.get()) {
+						// Auth2Instance.isSignedIn.listen(onStatus);
+						readAccessToken();
 
-                    } else {
-                        console.log('GoogleLogin.signIn');
-                        instance.signIn({
-                            scope: 'profile email',
+					} else {
+						console.log('GoogleLogin.signIn');
+						instance.signIn({
+							scope: 'profile email',
 
-                        }).then(function(signed) {
-                            readAccessToken();
+						}).then(function (signed) {
+							readAccessToken();
 
-                        }, function(error) {
-                            console.log('GoogleLogin.error', error);
-                            storage.delete('google');
-                            promise.reject(error);
+						}, function (error) {
+							console.log('GoogleLogin.error', error);
+							storage.delete('google');
+							promise.reject(error);
 
-                        });
-                    }
+						});
+					}
 
-                    function readAccessToken() {
-                        console.log('GoogleLogin.readAccessToken');
-                        try {
-                            var response = instance.currentUser.get().getAuthResponse(true);
-                            console.log('GoogleLogin.readAccessToken.success', response);
-                            storage.set('google', response);
-                            promise.resolve({
-                                code: response.access_token,
-                            });
-                        } catch (error) {
-                            console.log('GoogleLogin.readAccessToken.error', error);
-                            storage.delete('google');
-                            promise.reject(error);
-                        }
-                    }
+					function readAccessToken() {
+						console.log('GoogleLogin.readAccessToken');
+						try {
+							var response = instance.currentUser.get().getAuthResponse(true);
+							console.log('GoogleLogin.readAccessToken.success', response);
+							storage.set('google', response);
+							promise.resolve({
+								code: response.access_token,
+							});
+						} catch (error) {
+							console.log('GoogleLogin.readAccessToken.error', error);
+							storage.delete('google');
+							promise.reject(error);
+						}
+					}
 
-                    function onStatus(signed) {
-                        console.log('GoogleLogin.onStatus', signed);
-                        if (signed) {
-                            readAccessToken();
-                        }
-                    }
-                }, function(error) {
-                    console.log('GoogleLogin.error', error);
-                    // promise.reject(error);
+					function onStatus(signed) {
+						console.log('GoogleLogin.onStatus', signed);
+						if (signed) {
+							readAccessToken();
+						}
+					}
+				}, function (error) {
+					console.log('GoogleLogin.error', error);
+					// promise.reject(error);
 
-                });
-            });
-        }
+				});
+			});
+		}
 
-        function GoogleLogout() {
-            return $promise(function(promise) {
+		function GoogleLogout() {
+			return $promise(function (promise) {
 
-                Auth2Instance().then(function() {
-                    if (instance.isSignedIn && instance.isSignedIn.get()) {
-                        instance.signOut().then(function(signed) {
-                            promise.resolve();
+				Auth2Instance().then(function () {
+					if (instance.isSignedIn && instance.isSignedIn.get()) {
+						instance.signOut().then(function (signed) {
+							promise.resolve();
 
-                        }, function(error) {
-                            console.log('GoogleService.signOut.error', error);
-                            promise.reject(error);
+						}, function (error) {
+							console.log('GoogleService.signOut.error', error);
+							promise.reject(error);
 
-                        });
-                    } else {
-                        promise.resolve();
-                    }
+						});
+					} else {
+						promise.resolve();
+					}
 
-                }, function(error) {
-                    console.log('GoogleService.signOut.error', error);
-                    promise.reject(error);
+				}, function (error) {
+					console.log('GoogleService.signOut.error', error);
+					promise.reject(error);
 
-                });
-            });
-        }
+				});
+			});
+		}
 
     }]);
 

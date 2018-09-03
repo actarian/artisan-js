@@ -11,7 +11,7 @@
 
 		var service = {
 			TIMEOUT: TIMEOUT,
-			delete: CookieDelete,
+			'delete': CookieDelete,
 			exist: CookieExists,
 			get: CookieGet,
 			on: CookieOn,
@@ -114,7 +114,7 @@
 
 		var service = {
 			TIMEOUT: TIMEOUT,
-			delete: LocalDelete,
+			'delete': LocalDelete,
 			exist: LocalExists,
 			get: LocalGet,
 			on: LocalOn,
@@ -218,15 +218,15 @@
 
     }]);
 
-	app.factory('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
+	app.service('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
-			delete: LocalDelete,
-			exist: LocalExists,
-			get: LocalGet,
-			on: LocalOn,
-			set: LocalSet,
+			'delete': SessionDelete,
+			exist: SessionExists,
+			get: SessionGet,
+			on: SessionOn,
+			set: SessionSet,
 		};
 
 		var supported = SessionSupported();

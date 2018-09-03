@@ -86,6 +86,7 @@
 			setMonth: setMonth,
 			setWeek: setWeek,
 			setDay: setDay,
+			setKey: setKey,
 
 			prev: prev,
 			next: next,
@@ -103,6 +104,7 @@
 			isCurrent: isCurrent,
 			isBefore: isBefore,
 			isAfter: isAfter,
+			equals: equals,
 
 			eachDay: eachDay,
 			totalDays: totalDays,
@@ -293,6 +295,10 @@
 			return range;
 		}
 
+		function setKey(key, diff, size, step) {
+			return this.setDay(DateTime.keyToDate(key), diff, size, step);
+		}
+
 		function prev() {
 			return this.setDiff(-1);
 		}
@@ -346,6 +352,11 @@
 				flag = filters.dateFrom.getTime() == range.from.getTime() && filters.dateTo.getTime() == range.to.getTime();
 			}
 			return flag;
+		}
+
+		function equals(r) {
+			var range = this;
+			return r && DateTime.dateToKey(r.from) === DateTime.dateToKey(range.from) && DateTime.dateToKey(r.to) === DateTime.dateToKey(range.to);
 		}
 
 		function eachDay(callback) {
