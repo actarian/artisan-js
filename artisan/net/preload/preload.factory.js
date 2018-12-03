@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Preload', ['$promise', function ($promise) {
+	app.factory('Preload', ['$promise', function($promise) {
 
 		function Preload(path) {
 			var preload = this;
@@ -32,8 +32,8 @@
 		// statics methods
 
 		function PreloadAll(paths, callback) {
-			return $promise(function (promise) {
-				var preloads = paths.map(function (path) {
+			return $promise(function(promise) {
+				var preloads = paths.map(function(path) {
 					return new Preload(path);
 				});
 				var progress = {
@@ -44,15 +44,15 @@
 				};
 				var i = setInterval(update, 1000 / 10);
 				$promise.all(
-					preloads.map(function (preload) {
+					preloads.map(function(preload) {
 						return preload.start();
 					})
-				).then(function () {
+				).then(function() {
 					clearInterval(i);
 					update();
 					promise.resolve(preloads.slice());
 					// destroy();
-				}, function (error) {
+				}, function(error) {
 					promise.reject(error);
 					// destroy();
 				});
@@ -60,7 +60,7 @@
 				function update() {
 					progress.loaded = 0;
 					progress.total = 0;
-					angular.forEach(preloads, function (preload) {
+					angular.forEach(preloads, function(preload) {
 						progress.loaded += preload.loaded;
 						progress.total += preload.total;
 					});
@@ -74,7 +74,7 @@
 				}
 
 				function destroy() {
-					angular.forEach(preloads, function (preload) {
+					angular.forEach(preloads, function(preload) {
 						preload.buffer = null;
 						preload.xhr = null;
 					});
@@ -86,31 +86,31 @@
 
 		function PreloadStart() {
 			var preload = this;
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var xhr = new XMLHttpRequest();
 				xhr.open("GET", preload.path, true);
 				xhr.responseType = "arraybuffer"; // should be after open for ie11
-				xhr.onloadstart = function (e) {
+				xhr.onloadstart = function(e) {
 					/*
 					preload.loaded = 0;
 					preload.total = 1;
 					preload.progress = 0;
 					*/
 				};
-				xhr.onprogress = function (e) {
+				xhr.onprogress = function(e) {
 					preload.loaded = e.loaded;
 					preload.total = e.total;
 					preload.progress = e.total ? e.loaded / e.total : 0;
 				};
-				xhr.onloadend = function (e) {
+				xhr.onloadend = function(e) {
 					preload.loaded = preload.total;
 					preload.progress = 1;
 				};
-				xhr.onload = function () {
+				xhr.onload = function() {
 					preload.buffer = xhr.response;
 					promise.resolve(preload);
 				};
-				xhr.onerror = function (error) {
+				xhr.onerror = function(error) {
 					console.log('Preload.xhr.onerror', error);
 					preload.loaded = preload.total;
 					preload.progress = 1;

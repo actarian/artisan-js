@@ -1,29 +1,29 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('controlMessages', [function () {
+	app.directive('controlMessages', [function() {
 		return {
 			restrict: 'E',
 			templateUrl: 'artisan/components/forms/partial/messages',
 			transclude: {
 				'message': '?messageItems',
 			},
-			link: function (scope, element, attributes, model) {}
+			link: function(scope, element, attributes, model) {}
 		};
     }]);
 
-	app.directive('control', ['$parse', function ($parse) {
+	app.directive('control', ['$parse', function($parse) {
 		function formatLabel(string, prepend, expression) {
 			string = string || '';
 			prepend = prepend || '';
 			var splitted = string.split(',');
 			if (splitted.length > 1) {
 				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
+				angular.forEach(splitted, function(value, index) {
 					if (expression) {
 						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
 					} else {
@@ -42,7 +42,7 @@
 		var uniqueId = 0;
 		return {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				var template = 'artisan/components/forms/partial/text';
 				switch (attributes.control) {
 					case 'select':
@@ -70,7 +70,7 @@
 					if (attributes.control === 'select') {
 						var filter = (attributes.filter ? '| ' + attributes.filter : '');
 						var optionLabel = formatLabel(label, 'item.', true);
-						scope.getOptions = function () {
+						scope.getOptions = function() {
 							return attributes.number ?
 								'item.' + key + ' as ' + optionLabel + ' disable when item.disabled for item in source ' + filter :
 								optionLabel + ' disable when item.disabled for item in source ' + filter + ' track by item.' + key;
@@ -91,13 +91,13 @@
 					scope.options = $parse(attributes.options)(scope) || {};
 					scope.focus = false;
 					scope.visible = false;
-					scope.onChange = function (model) {
+					scope.onChange = function(model) {
 						$parse(attributes.onChange)(scope.$parent);
 					};
-					scope.onFilter = function (model) {
+					scope.onFilter = function(model) {
 						$parse(attributes.onFilter)(scope.$parent);
 					};
-					scope.getType = function () {
+					scope.getType = function() {
 						var type = 'text';
 						switch (attributes.control) {
 							case 'password':
@@ -108,7 +108,7 @@
 						}
 						return type;
 					};
-					scope.getClasses = function () {
+					scope.getClasses = function() {
 						var form = $parse(scope.form)(scope.$parent);
 						var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 						return {
@@ -118,12 +118,12 @@
 							'control-empty': !field.$viewValue
 						};
 					};
-					scope.getMessages = function () {
+					scope.getMessages = function() {
 						var form = $parse(scope.form)(scope.$parent);
 						var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 						return (form.$submitted || field.$touched) && field.$error;
 					};
-					scope.toggleVisibility = function () {
+					scope.toggleVisibility = function() {
 						scope.visible = !scope.visible;
 					};
 				},
@@ -131,14 +131,14 @@
 		};
     }]);
 
-	app.directive('_control', ['$http', '$templateCache', '$compile', '$parse', function ($http, $templateCache, $compile, $parse) {
+	app.directive('_control', ['$http', '$templateCache', '$compile', '$parse', function($http, $templateCache, $compile, $parse) {
 		function formatLabel(string, prepend, expression) {
 			string = string || '';
 			prepend = prepend || '';
 			var splitted = string.split(',');
 			if (splitted.length > 1) {
 				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
+				angular.forEach(splitted, function(value, index) {
 					if (expression) {
 						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
 					} else {
@@ -157,7 +157,7 @@
 		var uniqueId = 0;
 		return {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				var template = 'artisan/components/forms/partial/text';
 				switch (attributes.control) {
 					case 'select':
@@ -178,9 +178,9 @@
 			link: function(scope, element, attributes, model) {
 			},
 			*/
-			compile: function (element, attributes) {
+			compile: function(element, attributes) {
 				return {
-					pre: function (scope, element, attributes) {
+					pre: function(scope, element, attributes) {
 						if (attributes.control === 'select') {
 							var label = (attributes.label ? attributes.label : 'name');
 							var key = (attributes.key ? attributes.key : 'id');
@@ -205,7 +205,7 @@
 						scope.options = $parse(attributes.options)(scope) || {};
 						scope.focus = false;
 						scope.visible = false;
-						scope.getType = function () {
+						scope.getType = function() {
 							var type = 'text';
 							switch (attributes.control) {
 								case 'password':
@@ -219,7 +219,7 @@
 							// console.log('control.getType', type);
 							return type;
 						};
-						scope.getClasses = function () {
+						scope.getClasses = function() {
 							var form = $parse(scope.form)(scope.$parent);
 							var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 							return {
@@ -229,7 +229,7 @@
 								'control-empty': !field.$viewValue
 							};
 						};
-						scope.getMessages = function () {
+						scope.getMessages = function() {
 							var form = $parse(scope.form)(scope.$parent);
 							var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 							return (form.$submitted || field.$touched) && field.$error;
@@ -240,7 +240,7 @@
 			}
 			/*
 			compile: function(element, attributes) {
-			    element.removeAttr('my-dir'); 
+			    element.removeAttr('my-dir');
 			    element.attr('ng-hide', 'true');
 			    return function(scope) {
 			        $compile(element)(scope);
@@ -250,7 +250,7 @@
 		};
     }]);
 
-	app.directive('numberPicker', ['$parse', '$timeout', function ($parse, $timeout) {
+	app.directive('numberPicker', ['$parse', '$timeout', function($parse, $timeout) {
 		return {
 			restrict: 'A',
 			template: '<div class="input-group">' +
@@ -260,7 +260,7 @@
 				'</div>',
 			replace: true,
 			transclude: true,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 				var node = element[0];
 				var nodeRemove = node.querySelectorAll('.input-group-btn > .btn')[0];
 				var nodeAdd = node.querySelectorAll('.input-group-btn > .btn')[1];
@@ -269,7 +269,7 @@
 					var min = $parse(attributes.min)(scope);
 					var getter = $parse(attributes.numberPicker);
 					var setter = getter.assign;
-					$timeout(function () {
+					$timeout(function() {
 						setter(scope, Math.max(min, getter(scope) - 1));
 					});
 					// console.log('numberPicker.onRemove', min);
@@ -279,7 +279,7 @@
 					var max = $parse(attributes.max)(scope);
 					var getter = $parse(attributes.numberPicker);
 					var setter = getter.assign;
-					$timeout(function () {
+					$timeout(function() {
 						setter(scope, Math.min(max, getter(scope) + 1));
 					});
 					// console.log('numberPicker.onAdd', max);
@@ -294,7 +294,7 @@
 					angular.element(nodeRemove).off('touchstart mousedown', onRemove);
 					angular.element(nodeAdd).off('touchstart mousedown', onAdd);
 				}
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					removeListeners();
 				});
 				addListeners();

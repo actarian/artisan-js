@@ -1,11 +1,11 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
+	app.service('Silent', ['$rootScope', '$location', function($rootScope, $location) {
 
 		var service = this;
 
@@ -32,7 +32,7 @@
 
 		function SilentUnlink() {
 			var listeners = $rootScope.$$listeners.$locationChangeSuccess;
-			angular.forEach(listeners, function (value, name) {
+			angular.forEach(listeners, function(value, name) {
 				if (value === listener) {
 					return;
 				}

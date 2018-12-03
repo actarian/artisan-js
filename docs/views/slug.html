@@ -3,21 +3,21 @@
 <json-formatter json="view"></json-formatter>
 
 <div ng-repeat="range in ranges track by $index">
-    <div class="btn-group" style="width: 100%;">
-        <button type="button" class="btn btn-outline-primary" ng-click="range.prev()"><span ng-bind="range.getDiff(-1).getShortName()">-</span></button>
-        <button type="button" class="btn btn-outline-primary"><span ng-bind="range.getName()"></span></span>
-        <button type="button" class="btn btn-outline-primary" ng-click="range.next()"><span ng-bind="range.getDiff(1).getShortName()">-</span></button>
-    </div>
+	<div class="btn-group" style="width: 100%;">
+		<button type="button" class="btn btn-outline-primary" ng-click="range.prev()"><span ng-bind="range.getDiff(-1).getShortName()">-</span></button>
+		<button type="button" class="btn btn-outline-primary"><span ng-bind="range.getName()"></span></button>
+		<button type="button" class="btn btn-outline-primary" ng-click="range.next()"><span ng-bind="range.getDiff(1).getShortName()">-</span></button>
+	</div>
 </div>
 
 <div class="flex-bar">
-    <div class="btn-group">
-        <button type="button" class="btn btn-outline-primary" ng-click="getFacebookMe()"><span>FB</span></button>
-        <button type="button" class="btn btn-outline-primary" ng-click="getGoogleMe()"><span>G+</span></button>
-        <button type="button" class="btn btn-outline-primary" ng-click="scrollable.prev()"><span>prev</span></button>
-        <button type="button" class="btn btn-outline-primary" ng-click="scrollable.next()"><span>next</span></button>
-        <button type="button" class="btn btn-outline-primary"><span ng-bind="scrollable.getIndex() + '-' + items.length"></span></button>
-    </div>
+	<div class="btn-group">
+		<button type="button" class="btn btn-outline-primary" ng-click="getFacebookMe()"><span>FB</span></button>
+		<button type="button" class="btn btn-outline-primary" ng-click="getGoogleMe()"><span>G+</span></button>
+		<button type="button" class="btn btn-outline-primary" ng-click="scrollable.prev()"><span>prev</span></button>
+		<button type="button" class="btn btn-outline-primary" ng-click="scrollable.next()"><span>next</span></button>
+		<button type="button" class="btn btn-outline-primary"><span ng-bind="scrollable.getIndex() + '-' + items.length"></span></button>
+	</div>
 </div>
 
 <!--
@@ -37,33 +37,33 @@
 -->
 
 <div class="card-items" scrollable-x="scrollable" scrollable-item=".card-column">
-    <div class="card-column" safe-click="openBlog(item)" ng-repeat="item in items track by $index">
-        <div class="inner" scrollable-y scrollable-item=".card-item">
-            <div class="card-item" ng-click="" ng-repeat="card in item.items track by $index">
-                <div class="title" ng-bind="item.id + '.' + card.id"></div>
-            </div>
-        </div>
-    </div>
+	<div class="card-column" safe-click="openBlog(item)" ng-repeat="item in items track by $index">
+		<div class="inner" scrollable-y scrollable-item=".card-item">
+			<div class="card-item" ng-click="" ng-repeat="card in item.items track by $index">
+				<div class="title" ng-bind="item.id + '.' + card.id"></div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <section class="video-player" video-source="'http://eatalyworld.wslabs.it/media/files/attachments/56_enrico-bartolini.mp4'" video-image="'http://eatalyworld.wslabs.it/media/immagini/163_z_thumb_3.jpg?width=1920'">
-    <!-- video -->
+	<!-- video -->
 </section>
 
 <section ng-repeat="section in view.doc.sections track by $index">
-    <div class="background" ng-style="{ 'background-image': cssUrl(section.image.url) }" alt="{{section.image.caption}}" ng-if="section.image"></div>
-    <!--
+	<div class="background" ng-style="{ 'background-image': cssUrl(section.image.url) }" alt="{{section.image.caption}}" ng-if="section.image"></div>
+	<!--
     <svg class="svg-picture" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" alt="{{section.image.caption}}" ng-if="section.image">
         <image xlink:href="#" ng-attr-xlink:href="{{trustResource(section.image.url)}}" x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMinYMin slice"></image>
     </svg>
     -->
-    <div class="inner">
-        <h2><span ng-bind="section.title"></span></h2>
-        <div ng-bind="section.abstract"></div>
-        <div class="btn-group" ng-if="section.ctas.length">
-            <a class="btn" href="#" ng-href="{{cta.url}}" title="{{cta.caption}}" ng-repeat="cta in section.ctas track by $index">
-                <span ng-bind="cta.caption"></span>
-            </a>
-        </div>
-    </div>
+	<div class="inner">
+		<h2><span ng-bind="section.title"></span></h2>
+		<div ng-bind="section.abstract"></div>
+		<div class="btn-group" ng-if="section.ctas.length">
+			<a class="btn" href="#" ng-href="{{cta.url}}" title="{{cta.caption}}" ng-repeat="cta in section.ctas track by $index">
+				<span ng-bind="cta.caption"></span>
+			</a>
+		</div>
+	</div>
 </section>

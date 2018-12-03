@@ -1,11 +1,11 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('modalView', ['$parse', '$templateRequest', '$compile', '$controller', 'Dom', function ($parse, $templateRequest, $compile, $controller, Dom) {
+	app.directive('modalView', ['$parse', '$templateRequest', '$compile', '$controller', 'Dom', function($parse, $templateRequest, $compile, $controller, Dom) {
 
 		function compileController(scope, element, html, data) {
 			// console.log('modalView.compileController', element);
@@ -30,11 +30,11 @@
 		return {
 			restrict: 'A',
 			priority: -400,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 				var modal = $parse(attributes.modalView);
 				modal = modal(scope);
 				modal.templateUrl = modal.templateUrl || 'artisan/components/modals/partial/modal';
-				$templateRequest(modal.templateUrl).then(function (html) {
+				$templateRequest(modal.templateUrl).then(function(html) {
 					compileController(scope, element, html, modal);
 				});
 				/*

@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Trust', ['$sce', function ($sce) {
+	app.service('Trust', ['$sce', function($sce) {
 
 		var service = this;
 
@@ -46,19 +46,19 @@
 		}
 
 		function TrustHtml(value) {
-			return TrustGetOrSet(value, function () {
+			return TrustGetOrSet(value, function() {
 				return $sce.trustAsHtml(value);
 			});
 		}
 
 		function TrustResource(value) {
-			return TrustGetOrSet(value, function () {
+			return TrustGetOrSet(value, function() {
 				return $sce.trustAsResourceUrl(value);
 			});
 		}
 
 		function TrustUrl(value) {
-			return TrustGetOrSet(value, function () {
+			return TrustGetOrSet(value, function() {
 				return 'url(\'' + value + '\')';
 			});
 		}

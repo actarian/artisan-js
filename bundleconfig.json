@@ -1,12 +1,12 @@
 [{
 	"inputFiles": [
-        "bower_components/angular/angular.js",
-        "bower_components/angular-messages/angular-messages.js",
-        "bower_components/angular-route/angular-route.js",
-        "bower_components/angular-sanitize/angular-sanitize.js",
-        "bower_components/json-formatter/dist/json-formatter.js",
-        "bower_components/dynamics.js/lib/dynamics.js",
-        "bower_components/gmaps-marker-clusterer/src/markerclusterer.js"
+        "node_modules/angular/angular.js",
+        "node_modules/angular-messages/angular-messages.js",
+        "node_modules/angular-route/angular-route.js",
+        "node_modules/angular-sanitize/angular-sanitize.js",
+        "node_modules/jsonformatter/dist/json-formatter.js",
+        "node_modules/dynamics.js/lib/dynamics.js",
+        "node_modules/gmaps-marker-clusterer/src/markerclusterer.js"
     ],
 	"outputFileName": "docs/js/vendors.js",
 	"minify": {
@@ -14,7 +14,7 @@
 	}
 }, {
 	"inputFiles": [
-        "bower_components/angular-i18n/angular-locale_en.js"
+        "node_modules/angular-i18n/angular-locale_en.js"
     ],
 	"outputFileName": "docs/js/locale/en.js",
 	"minify": {
@@ -110,9 +110,8 @@
 	}
 }, {
 	"inputFiles": [
-        "bower_components/animate.css/animate.css",
-        "bower_components/json-formatter/dist/json-formatter.css",
-        "bower_components/dat.gui/build/dat.gui.css"
+        "node_modules/animate.css/animate.css",
+        "node_modules/jsonformatter/dist/json-formatter.css"
     ],
 	"outputFileName": "docs/css/vendors.css",
 	"minify": {

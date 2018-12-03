@@ -1,21 +1,20 @@
-﻿
-@import "./bower_components/bootstrap/scss/mixins";
-@import "./bower_components/bootstrap/scss/variables";
+﻿@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/variables";
 @import "mixins";
 
 .ng-enter {
-    @include opacity(0);
-    @include transition();
+	@include opacity(0);
+	@include transition();
 }
 
 .ng-enter.ng-enter-active {
-    @include opacity(1);
+	@include opacity(1);
 }
 
 .ng-leave {
-    display: none;
+	display: none;
 }
 
 .ng-leave.ng-leave-active {
-    display: none;
+	display: none;
 }

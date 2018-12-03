@@ -1,11 +1,11 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('ContactUsCtrl', ['$scope', 'State', 'View', 'Api', function ($scope, State, View, Api) {
+	app.controller('ContactUsCtrl', ['$scope', 'State', 'View', 'Api', function($scope, State, View, Api) {
 
 		var state = new State();
 		var state2 = new State();
@@ -21,16 +21,16 @@
 
 		angular.extend($scope, publics); // todo
 
-		View.current().then(function (view) {
+		View.current().then(function(view) {
 			$scope.view = view;
 			state.ready();
 
-		}, function (error) {
+		}, function(error) {
 			state.error(error);
 
 		});
 
-		Api.maps.markers().then(function (items) {
+		Api.maps.markers().then(function(items) {
 			googlemaps.setMarkers(items);
 			mapbox.setMarkers(items);
 		});

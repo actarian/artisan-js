@@ -1,13 +1,13 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
 	var TIMEOUT = 5 * 60 * 1000; // five minutes
 
-	app.service('Cookie', ['$promise', function ($promise) {
+	app.service('Cookie', ['$promise', function($promise) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -51,7 +51,7 @@
 		}
 
 		function CookieOn(name) {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var i, interval = 1000,
 					elapsed = 0,
 					timeout = Cookie.TIMEOUT;
@@ -76,7 +76,7 @@
 		function CookieSet(name, value, days) {
 			try {
 				var cache = [];
-				var json = JSON.stringify(value, function (key, value) {
+				var json = JSON.stringify(value, function(key, value) {
 					if (key === 'pool') {
 						return;
 					}
@@ -110,7 +110,7 @@
 
     }]);
 
-	app.service('LocalStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
+	app.service('LocalStorage', ['$promise', 'Cookie', function($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -166,7 +166,7 @@
 		function LocalSet(name, value) {
 			try {
 				var cache = [];
-				var json = JSON.stringify(value, function (key, value) {
+				var json = JSON.stringify(value, function(key, value) {
 					if (key === 'pool') {
 						return;
 					}
@@ -191,7 +191,7 @@
 		}
 
 		function LocalOn(name) {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var i, timeout = Cookie.TIMEOUT;
 
 				function storageEvent(e) {
@@ -210,7 +210,7 @@
 					}
 				}
 				angular.element(window).on('storage', storageEvent);
-				i = setTimeout(function () {
+				i = setTimeout(function() {
 					promise.reject('timeout');
 				}, timeout);
 			});
@@ -218,7 +218,7 @@
 
     }]);
 
-	app.service('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
+	app.service('SessionStorage', ['$promise', 'Cookie', function($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -274,7 +274,7 @@
 		function SessionSet(name, value) {
 			try {
 				var cache = [];
-				var json = JSON.stringify(value, function (key, value) {
+				var json = JSON.stringify(value, function(key, value) {
 					if (key === 'pool') {
 						return;
 					}
@@ -299,7 +299,7 @@
 		}
 
 		function SessionOn(name) {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var i, timeout = Cookie.TIMEOUT;
 
 				function storageEvent(e) {
@@ -318,7 +318,7 @@
 					}
 				}
 				angular.element(window).on('storage', storageEvent);
-				i = setTimeout(function () {
+				i = setTimeout(function() {
 					promise.reject('timeout');
 				}, timeout);
 			});

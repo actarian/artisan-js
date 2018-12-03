@@ -1,21 +1,21 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function ($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
+	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
 
 		var nav = new Nav({
 			onPath: onPath,
 			onNav: onNav,
 		});
 
-		Api.navs.main().then(function (items) {
+		Api.navs.main().then(function(items) {
 			nav.setItems(items);
 
-		}, function (error) {
+		}, function(error) {
 			console.log('RootCtrl.error', error);
 
 		});
@@ -34,9 +34,9 @@
 
 		function onNavPromise(item) {
 			$scope.selected = item;
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				// console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.path);
-				$timeout(function () {
+				$timeout(function() {
 					if (item.items) {
 						item.$nav.addItems({
 							name: "Item",
@@ -51,15 +51,15 @@
 
 		////////////
 
-		var items = new Array(20).fill(null).map(function (value, index) {
+		var items = new Array(20).fill(null).map(function(value, index) {
 			return {
 				id: index + 1,
 				name: 'Item',
-				items: new Array(3).fill(null).map(function (value, index) {
+				items: new Array(3).fill(null).map(function(value, index) {
 					return {
 						id: index + 1,
 						name: 'Item',
-						items: new Array(2).fill(null).map(function (value, index) {
+						items: new Array(2).fill(null).map(function(value, index) {
 							return {
 								id: index + 1,
 								name: 'Item',
@@ -79,17 +79,17 @@
 		//////////////
 
 		function getFacebookMe() {
-			FacebookService.getMe().then(function (user) {
+			FacebookService.getMe().then(function(user) {
 				console.log('FacebookService.getMe', user);
-			}, function (error) {
+			}, function(error) {
 				console.log('FacebookService.getMe.error', error);
 			});
 		}
 
 		function getGoogleMe() {
-			GoogleService.getMe().then(function (user) {
+			GoogleService.getMe().then(function(user) {
 				console.log('GoogleService.getMe', user);
-			}, function (error) {
+			}, function(error) {
 				console.log('GoogleService.getMe.error', error);
 			});
 		}

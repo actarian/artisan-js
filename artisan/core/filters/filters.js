@@ -1,14 +1,14 @@
 ﻿/* global angular, app, Autolinker */
-(function () {
+(function() {
 
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.filter('notIn', ['$filter', function ($filter) {
-		return function (array, filters, element) {
+	app.filter('notIn', ['$filter', function($filter) {
+		return function(array, filters, element) {
 			if (filters) {
-				return $filter("filter")(array, function (item) {
+				return $filter("filter")(array, function(item) {
 					for (var i = 0; i < filters.length; i++) {
 						if (filters[i][element] === item[element]) return false;
 					}
@@ -18,21 +18,21 @@
 		};
     }]);
 
-	app.filter('autolink', [function () {
-		return function (value) {
+	app.filter('autolink', [function() {
+		return function(value) {
 			return Autolinker.link(value, {
 				className: "a-link"
 			});
 		};
     }]);
 
-	app.filter('shortName', ['$filter', function ($filter) {
+	app.filter('shortName', ['$filter', function($filter) {
 		function toTitleCase(str) {
-			return str.replace(/\w\S*/g, function (txt) {
+			return str.replace(/\w\S*/g, function(txt) {
 				return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 			});
 		}
-		return function (value) {
+		return function(value) {
 			if (!value) {
 				return '';
 			}
@@ -58,15 +58,15 @@
 		};
     }]);
 
-	app.filter('customCurrency', ['$filter', function ($filter) {
+	app.filter('customCurrency', ['$filter', function($filter) {
 		var legacyFilter = $filter('currency');
-		return function (cost, currency) {
+		return function(cost, currency) {
 			return legacyFilter(cost * currency.ratio, currency.formatting);
 		};
     }]);
 
-	app.filter('customSize', ['APP', function (APP) {
-		return function (inches) {
+	app.filter('customSize', ['APP', function(APP) {
+		return function(inches) {
 			if (APP.unit === APP.units.IMPERIAL) {
 				var feet = Math.floor(inches / 12);
 				inches = inches % 12;
@@ -81,8 +81,8 @@
 		};
     }]);
 
-	app.filter('customWeight', ['APP', function (APP) {
-		return function (pounds) {
+	app.filter('customWeight', ['APP', function(APP) {
+		return function(pounds) {
 			if (APP.unit === APP.units.IMPERIAL) {
 				if (pounds < 1) {
 					var oz = pounds * 16;
@@ -101,8 +101,8 @@
 		};
     }]);
 
-	app.filter('customNumber', ['$filter', function ($filter) {
-		return function (value, precision, unit) {
+	app.filter('customNumber', ['$filter', function($filter) {
+		return function(value, precision, unit) {
 			unit = unit || '';
 			// return ((value || value === 0) ? $filter('number')(value, precision) + unit : '-');
 			if (value !== undefined) {
@@ -117,8 +117,8 @@
 		};
     }]);
 
-	app.filter('reportNumber', ['$filter', function ($filter) {
-		return function (value, precision, unit) {
+	app.filter('reportNumber', ['$filter', function($filter) {
+		return function(value, precision, unit) {
 			unit = unit || '';
 			if (value !== undefined) {
 				value = $filter('number')(value, precision) + unit;
@@ -129,8 +129,8 @@
 		};
     }]);
 
-	app.filter('customHours', [function () {
-		return function (value) {
+	app.filter('customHours', [function() {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value);
 				var minutes = Math.floor((value - hours) * 60);
@@ -143,11 +143,11 @@
 		};
     }]);
 
-	app.filter('customTimer', [function () {
+	app.filter('customTimer', [function() {
 		var second = 1000;
 		var minute = second * 60;
 		var hour = minute * 60;
-		return function (value) {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
@@ -162,11 +162,11 @@
 		};
     }]);
 
-	app.filter('customDigitalTimer', [function () {
+	app.filter('customDigitalTimer', [function() {
 		var second = 1000;
 		var minute = second * 60;
 		var hour = minute * 60;
-		return function (value) {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
@@ -179,11 +179,11 @@
 		};
     }]);
 
-	app.filter('customDigitalTime', [function () {
+	app.filter('customDigitalTime', [function() {
 		var second = 1000;
 		var minute = second * 60;
 		var hour = minute * 60;
-		return function (value) {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
@@ -195,15 +195,15 @@
 		};
     }]);
 
-	app.filter('customDate', ['$filter', function ($filter) {
+	app.filter('customDate', ['$filter', function($filter) {
 		var filter = $filter('date');
-		return function (value, format, timezone) {
+		return function(value, format, timezone) {
 			return value ? filter(value, format, timezone) : '-';
 		};
     }]);
 
-	app.filter('customTime', ['$filter', function ($filter) {
-		return function (value, placeholder) {
+	app.filter('customTime', ['$filter', function($filter) {
+		return function(value, placeholder) {
 			if (value) {
 				return Utils.parseTime(value);
 			} else {
@@ -212,8 +212,8 @@
 		};
     }]);
 
-	app.filter('customDigital', ['$filter', function ($filter) {
-		return function (value, placeholder) {
+	app.filter('customDigital', ['$filter', function($filter) {
+		return function(value, placeholder) {
 			if (value) {
 				return Utils.parseHour(value);
 			} else {
@@ -222,24 +222,24 @@
 		};
     }]);
 
-	app.filter('customString', ['$filter', function ($filter) {
-		return function (value, placeholder) {
+	app.filter('customString', ['$filter', function($filter) {
+		return function(value, placeholder) {
 			return value ? value : (placeholder ? placeholder : '-');
 		};
     }]);
 
-	app.filter('customEnum', function () {
-		return function (val) {
+	app.filter('customEnum', function() {
+		return function(val) {
 			val = val + 1;
 			return val < 10 ? '0' + val : val;
 		};
 	});
 
-	app.filter('groupBy', ['$parse', 'filterWatcher', function ($parse, filterWatcher) {
+	app.filter('groupBy', ['$parse', 'filterWatcher', function($parse, filterWatcher) {
 		function _groupBy(collection, getter) {
 			var dict = {};
 			var key;
-			angular.forEach(collection, function (item) {
+			angular.forEach(collection, function(item) {
 				key = getter(item);
 				if (!dict[key]) {
 					dict[key] = [];
@@ -248,7 +248,7 @@
 			});
 			return dict;
 		}
-		return function (collection, property) {
+		return function(collection, property) {
 			if (!angular.isObject(collection) || angular.isUndefined(property)) {
 				return collection;
 			}
@@ -256,7 +256,7 @@
 		};
     }]);
 
-	app.filter('htmlToPlaintext', function () {
+	app.filter('htmlToPlaintext', function() {
 		function getStyle(n, p) {
 			return n.currentStyle ? n.currentStyle[p] : window.getComputedStyle(n, null).getPropertyValue(p);
 		}
@@ -279,7 +279,7 @@
 			}
 			return result;
 		}
-		return function (html) {
+		return function(html) {
 			console.log(html);
 			var div = document.createElement('div');
 			div.innerHTML = html;

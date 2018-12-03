@@ -1,11 +1,11 @@
 /* global angular, firebase */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Color', [function () {
+	app.factory('Color', [function() {
 		function Color(r, g, b, a) {
 			if (arguments.length > 1) {
 				this.r = (r || r === 0) ? r : 0;
@@ -28,11 +28,11 @@
 				}
 			}
 		}
-		Color.componentToHex = function (c) {
+		Color.componentToHex = function(c) {
 			var hex = c.toString(16);
 			return hex.length == 1 ? '0' + hex : hex;
 		};
-		Color.luma = function (color) {
+		Color.luma = function(color) {
 			// var luma = color.dot({ r: 54.213, g: 182.376, b: 18.411 });
 			var luma = color.dot({
 				r: 95,
@@ -41,7 +41,7 @@
 			});
 			return luma;
 		};
-		Color.contrast = function (color) {
+		Color.contrast = function(color) {
 			var luma = Color.luma(color);
 			if (luma > 0.6) {
 				return new Color('0x000000');
@@ -49,14 +49,14 @@
 				return new Color('0xffffff');
 			}
 		};
-		Color.darker = function (color, pow, min) {
+		Color.darker = function(color, pow, min) {
 			min = min || 0;
 			var r = Math.max(Math.floor(color.r * min), Math.floor(color.r - 255 * pow));
 			var g = Math.max(Math.floor(color.g * min), Math.floor(color.g - 255 * pow));
 			var b = Math.max(Math.floor(color.b * min), Math.floor(color.b - 255 * pow));
 			return new Color(r, g, b, color.a);
 		};
-		Color.lighter = function (color, pow, max) {
+		Color.lighter = function(color, pow, max) {
 			max = max || 1;
 			var r = Math.min(color.r + Math.floor((255 - color.r) * max), Math.floor(color.r + 255 * pow));
 			var g = Math.min(color.g + Math.floor((255 - color.g) * max), Math.floor(color.g + 255 * pow));
@@ -73,25 +73,25 @@
 		}
 		*/
 		Color.prototype = {
-			toUint: function () {
+			toUint: function() {
 				return (this.r << 24) + (this.g << 16) + (this.b << 8) + (this.a);
 			},
-			toHex: function () {
+			toHex: function() {
 				return '#' + Color.componentToHex(this.r) + Color.componentToHex(this.g) + Color.componentToHex(this.b) + Color.componentToHex(this.a);
 			},
-			toRgba: function () {
+			toRgba: function() {
 				return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(3) + ')';
 			},
-			dot: function (color) {
+			dot: function(color) {
 				return ((this.r / 255) * (color.r / 255) + (this.g / 255) * (color.g / 255) + (this.b / 255) * (color.b / 255));
 			},
-			alpha: function (pow, min, max) {
+			alpha: function(pow, min, max) {
 				min = min || 0;
 				max = max || 1;
 				this.a = Math.floor((min + (pow * (max - min))) * 255);
 				return this;
 			},
-			makeSet: function () {
+			makeSet: function() {
 				this.foreground = Color.contrast(this);
 				this.border = Color.darker(this, 0.3);
 				this.light = Color.lighter(this, 0.3);
@@ -101,14 +101,14 @@
 		return Color;
     }]);
 
-	app.factory('Shape', [function () {
+	app.factory('Shape', [function() {
 		function Shape() {}
-		Shape.shapeCircle = function (p, cx, cy, r, sa, ea) {
+		Shape.shapeCircle = function(p, cx, cy, r, sa, ea) {
 			sa = sa || 0;
 			ea = ea || 2 * Math.PI;
 			p.ctx.arc(cx, cy, r, sa, ea, false);
 		};
-		Shape.shapeStar = function (p, cx, cy, or, ir, steps) {
+		Shape.shapeStar = function(p, cx, cy, or, ir, steps) {
 			var x, y;
 			var angle = Math.PI / 2 * 3;
 			var step = Math.PI / steps;
@@ -126,7 +126,7 @@
 			}
 			ctx.lineTo(cx, cy - or);
 		};
-		Shape.shapeRoundRect = function (p, rect, r) {
+		Shape.shapeRoundRect = function(p, rect, r) {
 			var ctx = p.ctx,
 				x = rect.x,
 				y = rect.y,
@@ -163,21 +163,21 @@
 			ctx.lineTo(x, y + r.tl);
 			ctx.quadraticCurveTo(x, y, x + r.tl, y);
 		};
-		Shape.circle = function () {
+		Shape.circle = function() {
 			var params = Array.prototype.slice.call(arguments);
 			var ctx = params[0].ctx;
 			ctx.beginPath();
 			Shape.shapeCircle.apply(this, params);
 			ctx.closePath();
 		};
-		Shape.star = function () {
+		Shape.star = function() {
 			var params = Array.prototype.slice.call(arguments);
 			var ctx = params[0].ctx;
 			ctx.beginPath();
 			Shape.shapeStar.apply(this, params);
 			ctx.closePath();
 		};
-		Shape.roundRect = function () {
+		Shape.roundRect = function() {
 			var params = Array.prototype.slice.call(arguments);
 			var ctx = params[0].ctx;
 			ctx.beginPath();
@@ -211,7 +211,7 @@
 		map: '0x24292e',
 	});
 
-	app.factory('Palette', ['$q', 'Painter', 'Rect', function ($q, Painter, Rect) {
+	app.factory('Palette', ['$q', 'Painter', 'Rect', function($q, Painter, Rect) {
 		function Palette() {
 			this.painter = new Painter().setSize(0, 0);
 			this.buffer = new Painter().setSize(0, 0);
@@ -223,7 +223,7 @@
 			this.rows = {};
 		}
 		Palette.prototype = {
-			getRect: function (w, h) {
+			getRect: function(w, h) {
 				var p = this.painter,
 					size = this.size,
 					rows = this.rows,
@@ -256,18 +256,18 @@
 				rows[h] = row;
 				return r;
 			},
-			add: function (key, path) {
+			add: function(key, path) {
 				var palette = this;
 				if (angular.isString(path)) {
 					var deferred = $q.defer();
 					var img = new Image();
-					img.onload = function () {
-						palette.addShape(key, img.width, img.height, function (p, rect) {
+					img.onload = function() {
+						palette.addShape(key, img.width, img.height, function(p, rect) {
 							p.ctx.drawImage(img, 0, 0);
 						});
 						deferred.resolve(img);
 					};
-					img.onerror = function () {
+					img.onerror = function() {
 						deferred.reject('connot load ' + path);
 					};
 					img.src = path;
@@ -277,7 +277,7 @@
 					return palette.addShape.apply(palette, params);
 				}
 			},
-			addShape: function (key, w, h, callback) {
+			addShape: function(key, w, h, callback) {
 				var p = this.painter,
 					r = this.getRect(w, h);
 				p.ctx.save();
@@ -290,7 +290,7 @@
 				this.pool[key] = r;
 				// console.log('Painter.add', r);
 			},
-			draw: function (target, key, x, y, pre) {
+			draw: function(target, key, x, y, pre) {
 				var r = this.pool[key];
 				if (r) {
 					// var ctx = target.ctx;
@@ -305,7 +305,7 @@
 					// ctx.restore();
 				}
 			},
-			tint: function (target, key, x, y, color, pre) {
+			tint: function(target, key, x, y, color, pre) {
 				var r = this.pool[key];
 				if (r) {
 					var p = this.painter,
@@ -323,7 +323,7 @@
 					}, pre);
 				}
 			},
-			pattern: function (target, key, x, y, w, h, color) {
+			pattern: function(target, key, x, y, w, h, color) {
 				function drawPattern(pattern) {
 					var ctx = target.ctx;
 					ctx.save();
@@ -355,7 +355,7 @@
 							b.ctx.drawImage(this.painter.canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
 						}
 						img = new Image();
-						img.onload = function () {
+						img.onload = function() {
 							r.img = img;
 							pattern = target.ctx.createPattern(img, "repeat");
 							drawPattern(pattern);
@@ -371,7 +371,7 @@
 		return Palette;
     }]);
 
-	app.factory('Painter', ['Shape', 'Rect', 'Color', 'PainterColors', function (Shape, Rect, Color, PainterColors) {
+	app.factory('Painter', ['Shape', 'Rect', 'Color', 'PainterColors', function(Shape, Rect, Color, PainterColors) {
 		function Painter(canvas) {
 			canvas = canvas || document.createElement('canvas');
 			this.rect = new Rect();
@@ -380,19 +380,19 @@
 			this.setCanvas(canvas);
 		}
 		Painter.colors = {};
-		angular.forEach(PainterColors, function (value, key) {
+		angular.forEach(PainterColors, function(value, key) {
 			Painter.colors[key] = new Color(value).makeSet();
 		});
 		var colors = Painter.colors;
 		Painter.prototype = {
 			colors: Painter.colors,
-			setColors: function () {
+			setColors: function() {
 				var colors = this.colors;
-				angular.forEach(PainterColors, function (value, key) {
+				angular.forEach(PainterColors, function(value, key) {
 					colors[key] = new Color(value).makeSet();
 				});
 			},
-			setCanvas: function (canvas) {
+			setCanvas: function(canvas) {
 				this.canvas = canvas;
 				this.setSize(canvas.offsetWidth, canvas.offsetHeight);
 				var ctx = canvas.getContext('2d');
@@ -400,27 +400,27 @@
 				this.ctx = ctx;
 				return this;
 			},
-			setSize: function (w, h) {
+			setSize: function(w, h) {
 				this.canvas.width = w;
 				this.canvas.height = h;
 				this.rect.w = w;
 				this.rect.h = h;
 				return this;
 			},
-			copy: function (canvas) {
+			copy: function(canvas) {
 				this.ctx.drawImage(canvas, 0, 0);
 				return this;
 			},
-			clear: function () {
+			clear: function() {
 				this.resize();
 				// this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 				return this;
 			},
-			resize: function () {
+			resize: function() {
 				this.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
 				return this;
 			},
-			setText: function (font, align, verticalAlign, color) {
+			setText: function(font, align, verticalAlign, color) {
 				font = font || '11px monospace';
 				align = align || 'center';
 				verticalAlign = verticalAlign || 'middle';
@@ -432,7 +432,7 @@
 				ctx.fillStyle = color.toRgba();
 				return this;
 			},
-			setFill: function (color) {
+			setFill: function(color) {
 				color = color || this.colors.black;
 				var ctx = this.ctx;
 				/*
@@ -444,7 +444,7 @@
 				ctx.fillStyle = color.toRgba();
 				return this;
 			},
-			setStroke: function (color, size) {
+			setStroke: function(color, size) {
 				color = color || this.colors.black;
 				var ctx = this.ctx;
 				size = size || 1;
@@ -467,7 +467,7 @@
 			    return this;
 			},
 			*/
-			fillText: function (text, point, width, post, maxLength) {
+			fillText: function(text, point, width, post, maxLength) {
 				if (width) {
 					post = post || '';
 					maxLength = maxLength || Math.floor(width / 8);
@@ -478,7 +478,7 @@
 				this.ctx.fillText(text, point.x, point.y);
 				return this;
 			},
-			fillRect: function (rect) {
+			fillRect: function(rect) {
 				rect = rect || this.rect;
 				var ctx = this.ctx,
 					x = rect.x,
@@ -488,7 +488,7 @@
 				ctx.fillRect(x, y, w, h);
 				return this;
 			},
-			strokeRect: function (rect) {
+			strokeRect: function(rect) {
 				rect = rect || this.rect;
 				var ctx = this.ctx,
 					x = rect.x,
@@ -498,40 +498,40 @@
 				ctx.strokeRect(x, y, w, h);
 				return this;
 			},
-			fill: function () {
+			fill: function() {
 				this.ctx.fill();
 				return this;
 			},
-			stroke: function () {
+			stroke: function() {
 				this.ctx.stroke();
 				return this;
 			},
-			begin: function () {
+			begin: function() {
 				this.ctx.beginPath();
 				return this;
 			},
-			close: function () {
+			close: function() {
 				this.ctx.closePath();
 				return this;
 			},
-			save: function () {
+			save: function() {
 				this.ctx.save();
 				return this;
 			},
-			restore: function () {
+			restore: function() {
 				this.ctx.restore();
 				return this;
 			},
-			rotate: function (angle) {
+			rotate: function(angle) {
 				this.ctx.rotate(angle * Math.PI / 180);
 			},
-			translate: function (xy) {
+			translate: function(xy) {
 				this.ctx.translate(xy.x, xy.y);
 			},
-			toDataURL: function () {
+			toDataURL: function() {
 				return this.canvas.toDataURL();
 			},
-			draw: function (image, t, pre) {
+			draw: function(image, t, pre) {
 				if (image) {
 					t.w = t.w || image.width;
 					t.h = t.h || image.height;
@@ -552,7 +552,7 @@
 				}
 				return this;
 			},
-			drawRect: function (image, s, t, pre) {
+			drawRect: function(image, s, t, pre) {
 				if (image) {
 					s.w = s.w || image.width;
 					s.h = s.h || image.height;
@@ -575,7 +575,7 @@
 				}
 				return this;
 			},
-			flip: function (scale) {
+			flip: function(scale) {
 				scale = scale || {
 					x: 1,
 					y: -1

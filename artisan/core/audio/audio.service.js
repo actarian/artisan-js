@@ -1,6 +1,6 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -14,7 +14,7 @@
 		}
 	};
 
-	app.factory('AudioSound', ['$q', function ($q) {
+	app.factory('AudioSound', ['$q', function($q) {
 
 		window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -38,14 +38,14 @@
 
 		AudioSound.prototype = {
 			nodes: {},
-			addGainNode: function () {
+			addGainNode: function() {
 				var sound = this;
 				var node = ctx.createGain ? ctx.createGain() : ctx.createGainNode();
 				node.connect(ctx.destination);
 				node.gain.value = sound.options.volume;
 				sound.nodes.gain = node;
 			},
-			addAnalyserNode: function () {
+			addAnalyserNode: function() {
 				var sound = this;
 				if (sound.options.analyser) {
 					var node = ctx.createAnalyser();
@@ -54,7 +54,7 @@
 					sound.nodes.analyser = node;
 				}
 			},
-			connectNodes: function () {
+			connectNodes: function() {
 				var sound = this;
 				var source = sound.source;
 				for (var p in sound.nodes) {
@@ -66,7 +66,7 @@
 				}
 				// console.log('connectNodes', sound.nodes);
 			},
-			disconnect: function () {
+			disconnect: function() {
 				var sound = this;
 				var source = sound.source;
 				if (source) {
@@ -82,11 +82,11 @@
 					sound.source = null;
 				}
 			},
-			updateBuffer: function () {
+			updateBuffer: function() {
 				var deferred = $q.defer();
 				var sound = this;
 				var source = sound.source;
-				sound.getBuffer().then(function (buffer) {
+				sound.getBuffer().then(function(buffer) {
 					if (source) {
 						source.buffer = buffer;
 					} else {
@@ -96,12 +96,12 @@
 						sound.connectNodes();
 					}
 					deferred.resolve(source);
-				}, function (error) {
+				}, function(error) {
 					deferred.reject(error);
 				});
 				return deferred.promise;
 			},
-			getBuffer: function () {
+			getBuffer: function() {
 				// console.log('AudioSound.getBuffer');
 				var deferred = $q.defer();
 				var sound = this;
@@ -110,17 +110,17 @@
 				if (buffer) {
 					deferred.resolve(buffer);
 				} else {
-					AudioSound.load(path).then(function (buffer) {
+					AudioSound.load(path).then(function(buffer) {
 						if (sound.path === path) {
 							deferred.resolve(buffer);
 						}
-					}, function (error) {
+					}, function(error) {
 						deferred.reject(error);
 					});
 				}
 				return deferred.promise;
 			},
-			getSource: function () {
+			getSource: function() {
 				var deferred = $q.defer();
 				var sound = this;
 				var source = sound.source;
@@ -128,7 +128,7 @@
 				if (source) {
 					deferred.resolve(source);
 				} else {
-					sound.getBuffer().then(function (buffer) {
+					sound.getBuffer().then(function(buffer) {
 						var source = null;
 						if (sound.playing) {
 							source = sound.source;
@@ -146,17 +146,17 @@
 						sound.source = source;
 						sound.connectNodes();
 						deferred.resolve(source);
-					}, function (error) {
+					}, function(error) {
 						deferred.reject(error);
 					});
 				}
 				return deferred.promise;
 			},
-			play: function () {
+			play: function() {
 				var sound = this;
 				if (!sound.playing) {
 					var options = sound.options;
-					sound.getSource().then(function (source) {
+					sound.getSource().then(function(source) {
 						// sound.stop();
 						sound.startTime = ctx.currentTime;
 						source.loop = options.loop;
@@ -171,7 +171,7 @@
 				// ctx.resume(); ???
 				// console.log('AudioSound.play');
 			},
-			stop: function () {
+			stop: function() {
 				var sound = this;
 				if (sound.playing) {
 					var source = sound.source;
@@ -190,13 +190,13 @@
 					}
 				}
 			},
-			update: function () {
+			update: function() {
 				var sound = this;
 				if (sound.nodes.analyser) {
 					sound.nodes.analyser.getByteFrequencyData(sound.data);
 				}
 			},
-			setPath: function (path) {
+			setPath: function(path) {
 				var sound = this;
 				if (path && sound.path !== path) {
 					sound.stop();
@@ -205,7 +205,7 @@
 					console.log('AudioSound.setPath', path);
 				}
 			},
-			setVolume: function (volume) {
+			setVolume: function(volume) {
 				var sound = this;
 				if (volume !== sound.options.volume) {
 					sound.options.volume = volume;
@@ -225,8 +225,8 @@
 			var xhr = new XMLHttpRequest();
 			xhr.open("GET", path, true);
 			xhr.responseType = "arraybuffer"; // should be after open for ie11
-			xhr.onload = function () {
-				ctx.decodeAudioData(xhr.response, function (buffer) {
+			xhr.onload = function() {
+				ctx.decodeAudioData(xhr.response, function(buffer) {
 					if (!buffer) {
 						console.log('AudioSound.load.decodeAudioData.error', path);
 						deferred.reject('AudioSound.load.decodeAudioData.error');
@@ -237,12 +237,12 @@
 					deferred.resolve(buffer);
 				});
 			};
-			xhr.onerror = function (error) {
+			xhr.onerror = function(error) {
 				console.log('AudioManager.xhr.onerror', error);
 				deferred.reject(error);
 			};
 			if (onprogress) {
-				xhr.onprogress = function (e) {
+				xhr.onprogress = function(e) {
 					progress.loaded = e.loaded;
 					progress.total = e.total;
 					progress.progress = e.loaded / e.total;
@@ -271,7 +271,7 @@
 		return AudioSound;
     }]);
 
-	app.service('AudioService', ['$rootScope', '$timeout', '$q', '$http', 'AudioSound', function ($rootScope, $timeout, $q, $http, AudioSound) {
+	app.service('AudioService', ['$rootScope', '$timeout', '$q', '$http', 'AudioSound', function($rootScope, $timeout, $q, $http, AudioSound) {
 
 		var service = this;
 
@@ -373,7 +373,7 @@
 			function _onprogress(progress) {
 				paths[progress.path] = progress;
 				var p = 0;
-				angular.forEach(paths, function (item) {
+				angular.forEach(paths, function(item) {
 					progress.loaded += item.loaded;
 					progress.total += item.total;
 				});
@@ -381,22 +381,22 @@
 				onprogress(progress);
 			}
 			$q.all(
-				items.map(function (path) {
+				items.map(function(path) {
 					return AudioSound.load(path, _onprogress);
 				})
-			).then(function () {
+			).then(function() {
 				progress.loaded = progress.total;
 				progress.progress = 1;
 				onprogress(progress);
 				deferred.resolve();
-			}, function (error) {
+			}, function(error) {
 				console.log('AudioSound.preload.error', error);
 				deferred.reject(error);
 			});
 			return deferred.promise;
 		}
 
-		$rootScope.$on('onOptionsChanged', function ($scope) {
+		$rootScope.$on('onOptionsChanged', function($scope) {
 			sound.setVolume(options.audio.volume);
 		});
 

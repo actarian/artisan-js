@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('popuppable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
+	app.directive('popuppable', ['$parse', 'State', 'Dom', function($parse, State, Dom) {
 
 		var directive = {
 			restrict: 'A',
@@ -54,7 +54,7 @@
 
 			function getTextStyle(style) {
 				var text = '';
-				angular.forEach(style, function (value, key) {
+				angular.forEach(style, function(value, key) {
 					text += key + ': ' + value + '; ';
 				});
 				return text;
@@ -66,14 +66,14 @@
 
 			function add() {
 				targetElement.addClass('popuppable-opening');
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.addClass('popuppable-parent');
 				});
 			}
 
 			function remove() {
 				targetElement.removeClass('popuppable-opening');
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.removeClass('popuppable-parent');
 				});
 			}
@@ -186,7 +186,7 @@
 					.off('resize', onResize);
 			}
 
-			scope.$on('$destroy', function () {
+			scope.$on('$destroy', function() {
 				removeListeners();
 			});
 
@@ -203,7 +203,7 @@
 					frequency: 200,
 					friction: 270,
 					duration: 800,
-					complete: function () {
+					complete: function() {
 						opened = true;
 						state.idle();
 					},
@@ -218,7 +218,7 @@
 					type: dynamics.easeInOut,
 					duration: 300,
 					friction: 100,
-					complete: function () {
+					complete: function() {
 						opened = false;
 						remove();
 						state.idle();

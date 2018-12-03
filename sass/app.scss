@@ -2,6 +2,7 @@
 @import "colors";
 @import "components/typography";
 @import "views/cards";
+
 html,
 body {
 	width: 100%;
@@ -34,9 +35,11 @@ section {
 	border-radius: 10px;
 	overflow: hidden;
 	border: 1px solid $blue;
+
 	.svg-picture {
 		position: absolute;
 	}
+
 	.inner {
 		display: flex;
 		position: relative;
@@ -54,6 +57,7 @@ section+section {
 
 footer {
 	margin: 20px 0;
+
 	section {
 		height: 200px;
 	}
@@ -80,6 +84,7 @@ footer {
 		font-size: 12px;
 		font-weight: 600;
 	}
+
 	&>.btn:not(:first-child):not(:last-child) {
 		flex-grow: 1;
 		flex-basis: 80%;
@@ -108,6 +113,7 @@ footer {
 
 .controls {
 	position: relative;
+
 	.input-group {
 		position: absolute;
 		top: 15px;
@@ -117,6 +123,7 @@ footer {
 		max-width: 960px;
 		margin: 0 auto;
 	}
+
 	.dropdown-menu {
 		position: absolute;
 		top: 60px;
@@ -125,6 +132,7 @@ footer {
 		max-width: 960px;
 		margin: 0 auto;
 	}
+
 	.btn-group {
 		position: absolute;
 		bottom: 6px;

@@ -1,6 +1,6 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -9,10 +9,10 @@
 
 	/*
 	usage
-    
+
 	in controller A
 
-	add storage 
+	add storage
 	var auth = {
 	    access_token: $routeParams.bearerId,
 	    token_type: "bearer",
@@ -32,10 +32,10 @@
 	in controller B
 	var token = new Token({ key: 'Garmin' });
 	token.set({ mytokenobj... });
-	                            
+
 	*/
 
-	app.factory('Token', ['$q', 'LocalStorage', function ($q, LocalStorage) {
+	app.factory('Token', ['$q', 'LocalStorage', function($q, LocalStorage) {
 
 		function Token() {
 			var token = this;
@@ -103,7 +103,7 @@
 			var scope = this;
 			try {
 				var await = this.storage.get(this.await);
-				if (!await && window.document.domain.indexOf('localhost') === -1) {
+				if (!await &&window.document.domain.indexOf('localhost') === -1) {
 					var queryString = window.location.href.split('?')[1];
 					window.location.href = this.protocol + '://localhost:' + this.port + '?' + queryString;
 				} else {

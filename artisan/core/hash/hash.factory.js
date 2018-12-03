@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Hash', [function () {
+	app.factory('Hash', [function() {
 		var pools = {};
 
 		function Hash(key, pool) {
@@ -179,7 +179,7 @@
 		function forward(key, reverse) {
 			var hash = this,
 				key = (key || this.key);
-			hash.sort(function (c, d) {
+			hash.sort(function(c, d) {
 				var a = reverse ? d : c;
 				var b = reverse ? c : d;
 				return a[key] - b[key];
@@ -210,10 +210,10 @@
 			var hash = this,
 				pool = this.pool,
 				key = this.key;
-			Object.keys(pool).forEach(function (key) {
+			Object.keys(pool).forEach(function(key) {
 				delete pool[key];
 			});
-			angular.forEach(hash, function (item) {
+			angular.forEach(hash, function(item) {
 				pool[item[key]] = item;
 			});
 		}

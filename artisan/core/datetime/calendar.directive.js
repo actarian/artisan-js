@@ -1,19 +1,19 @@
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+	app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
 		return {
 			restrict: 'A',
-			template: function (element, attributes) {
+			template: function(element, attributes) {
 				return '<div calendar-popup="options"></div>';
 			},
 			require: 'ngModel',
 			scope: {
 				user: '=calendarUser',
 			},
-			link: function (scope, element, attributes, model, transclude) {
+			link: function(scope, element, attributes, model, transclude) {
 
 				var user = scope.user;
 
@@ -56,12 +56,12 @@
 				function onMonthDidChange(date, month, calendar) {
 					var deferred = $q.defer();
 					// console.log('calendarPopupRecords.onMonthDidChange', month.toString());
-					GetMonthRecords(month).then(function () {
+					GetMonthRecords(month).then(function() {
 						setAbsencesAndOvertimes();
 						updateCalendar(date, month, calendar);
 						deferred.resolve(getFirstWorkingDate(date, month, calendar));
 
-					}, function () {
+					}, function() {
 						deferred.reject();
 
 					});
@@ -77,7 +77,7 @@
 						}),
                         Api.gantt.calendar(monthExpanded.getParams()).then(function success(response) {
 							var unworkings = {};
-							angular.forEach(response, function (item) {
+							angular.forEach(response, function(item) {
 								unworkings[item.key] = item;
 							});
 							sources.unworkings = unworkings;
@@ -91,19 +91,19 @@
                             });
                         }),
                         */
-                        Api.gantt.records(user.id, monthExpanded.getParams()).then(function (rows) {
-							sources.monthRecords = rows.map(function (row) {
+                        Api.gantt.records(user.id, monthExpanded.getParams()).then(function(rows) {
+							sources.monthRecords = rows.map(function(row) {
 								row.state = new State();
 								row.record.date = new Date(row.record.date);
 								return row;
 							});
 						}),
 
-                    ]).then(function (response) {
+                    ]).then(function(response) {
 						// state.success();
 						deferred.resolve();
 
-					}, function (error) {
+					}, function(error) {
 						// state.error(error);
 						deferred.reject();
 
@@ -124,7 +124,7 @@
 					}
 					// console.log('calendarPopupRecords.onDayDidSelect', day, day.working, day.date);
 					if (day && day.working) {
-						$timeout(function () {
+						$timeout(function() {
 							model.$setViewValue(day.date);
 						});
 						return true;
@@ -137,7 +137,7 @@
 					if (!monthRecords) {
 						return;
 					}
-					calendar.days.each(function (day) {
+					calendar.days.each(function(day) {
 						var availableHours = 0;
 						if (day.working) {
 							availableHours += resource.baseHours;
@@ -157,13 +157,13 @@
 						day.wasWorkable = day.working && day.past && has;
 						day.workable = day.working && !day.past && has;
 					});
-					angular.forEach(monthRecords, function (row) {
+					angular.forEach(monthRecords, function(row) {
 						var day = calendar.days.get(row.record.key);
 						if (day) {
 							day.recordedHours += row.record.hours;
 						}
 					});
-					calendar.days.each(function (day) {
+					calendar.days.each(function(day) {
 						day.green = day.working && !currentDay.isBefore(day.date) && day.recordedHours >= 8;
 						day.orange = day.working && !currentDay.isBefore(day.date) && day.recordedHours < 8;
 						// day.full = day.workable && day.hours >= day.availableHours;
@@ -173,7 +173,7 @@
 
 				function setResources(resources) {
 					sources.resources = resources;
-					angular.forEach(resources, function (resource) {
+					angular.forEach(resources, function(resource) {
 						resource.absencesAndOvertimes = {};
 						if (resource.id === user.id) {
 							sources.resource = resource;
@@ -188,7 +188,7 @@
 					}
 					// assegno assenze e straordinari alla risorsa
 					resource.absencesAndOvertimes = {};
-					angular.forEach(sources.absencesAndOvertimes, function (item) {
+					angular.forEach(sources.absencesAndOvertimes, function(item) {
 						if (resource.id === item.resourceId) {
 							resource.absencesAndOvertimes[item.key] = item;
 						}
@@ -201,7 +201,7 @@
 
 					function setFirstDay() {
 						calendar.days.forward();
-						calendar.days.each(function (day) {
+						calendar.days.each(function(day) {
 							if (!firstWorkingDate && !month.isOutside(day.date) && day.working && !day.vacation) {
 								// console.log('check', day.working, day.vacation, day.date);
 								firstWorkingDate = day.date;
@@ -228,7 +228,7 @@
 		};
     }]);
 
-	app.directive('calendarPopup', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+	app.directive('calendarPopup', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
 
 		return {
 			priority: 1002,
@@ -256,9 +256,9 @@
 			var calendar = new CalendarFactory();
 
 			var options = scope.options || {
-				onMonthDidChange: function () {},
-				onWeekDidSelect: function () {},
-				onDayDidSelect: function () {},
+				onMonthDidChange: function() {},
+				onWeekDidSelect: function() {},
+				onDayDidSelect: function() {},
 			};
 
 			var month = Range.Month();
@@ -296,7 +296,7 @@
 
 			function onMonthChange(date) {
 				var calendarMonth = calendar.getMonthByDate(month.getDate());
-				calendarMonth.days.each(function (day) {
+				calendarMonth.days.each(function(day) {
 					var d = day.date.getDay();
 					day.dirty = true;
 					day.hours = 0;
@@ -344,7 +344,7 @@
 
 			function updateSelections() {
 				var calendarMonth = sources.calendarMonth;
-				calendarMonth.days.each(function (day) {
+				calendarMonth.days.each(function(day) {
 					day.selected = sources.day.isCurrent(day.date);
 				});
 			}
@@ -388,7 +388,7 @@
 
     var app = angular.module('app');
 
-    
+
     app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
         return {
             restrict: 'A',
@@ -602,7 +602,7 @@
                 });
             }
 
-            function updateCalendar(date, month, calendar) {                
+            function updateCalendar(date, month, calendar) {
                 calendar.days.each(function (day) {
                     setWorkableDay(day);
                 });
@@ -822,7 +822,7 @@
                 day.vacation = day.working && !has;
                 day.wasVacation = day.vacation && day.past;
                 day.workable = day.working && !day.past && has;
-                day.wasWorkable = day.working && day.past && has;                
+                day.wasWorkable = day.working && day.past && has;
             }
 
             function updateCalendar(date, month, calendar) {
@@ -929,7 +929,7 @@
                 options.onMonthDidChange(date, Range.currentMonth().setDate(date), calendarMonth).then(function () {
                     date ? month.setDate(date) : null;
                     sources.calendarMonth = calendarMonth;
-                    scope.$emit('onMonthDidChange', options);                    
+                    scope.$emit('onMonthDidChange', options);
                 });
             }
 

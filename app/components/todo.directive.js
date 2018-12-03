@@ -1,13 +1,13 @@
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.directive('todoItem', ['$templateCache', '$parse', '$timeout', '$filter', 'Animate', 'DateTime', 'LocalStorage', function ($templateCache, $parse, $timeout, $filter, Animate, DateTime, storage) {
+	app.directive('todoItem', ['$templateCache', '$parse', '$timeout', '$filter', 'Animate', 'DateTime', 'LocalStorage', function($templateCache, $parse, $timeout, $filter, Animate, DateTime, storage) {
 		return {
 			priority: 1001,
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				var url = attributes.template;
 				if (!url) {
 					url = 'partials/todolist';
@@ -17,7 +17,7 @@
 				}
 				return url;
 			},
-			link: function (scope, element, attributes, model, transclude) {
+			link: function(scope, element, attributes, model, transclude) {
 				// console.log('todoItem.link');
 
 				var SPEED = 1;
@@ -38,7 +38,7 @@
 				var player;
 
 				function play() {
-					$timeout(function () {
+					$timeout(function() {
 						StoragePlay();
 					});
 				}
@@ -48,7 +48,7 @@
 						return;
 					}
 					if (player.playing) {
-						$timeout(function () {
+						$timeout(function() {
 							StoragePause();
 						});
 					}
@@ -87,7 +87,7 @@
 					angular.element(target).off('click', onClick);
 				}
 				scope.$on('onTodoPlayer', onTodoPlayer);
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					removeListeners();
 				});
 				addListeners();

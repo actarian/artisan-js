@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Event', ['EventsService', 'Dom', 'Point', 'Rect', function (EventsService, Dom, Point, Rect) {
+	app.factory('Event', ['EventsService', 'Dom', 'Point', 'Rect', function(EventsService, Dom, Point, Rect) {
 
 		function Event(event, element) {
 			try {
@@ -64,7 +64,7 @@
 
 	}]);
 
-	app.factory('Events', ['EventsService', 'Event', 'Dom', function (EventsService, Event, Dom) {
+	app.factory('Events', ['EventsService', 'Event', 'Dom', function(EventsService, Event, Dom) {
 
 		function Events(element) {
 			var events = this;
@@ -234,7 +234,7 @@
 			var element = this.element,
 				windowElement = angular.element(window);
 
-			angular.forEach(listeners, function (callback, key) {
+			angular.forEach(listeners, function(callback, key) {
 				if (events.listeners[key]) {
 					var listener = {};
 					listener[key] = events.listeners[key];
@@ -260,7 +260,7 @@
 			});
 
 			if (scope) {
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					events.remove(listeners);
 				});
 			}
@@ -276,7 +276,7 @@
 				scroll = this.scrollEvents;
 			var element = this.element,
 				windowElement = angular.element(window);
-			angular.forEach(listeners, function (callback, key) {
+			angular.forEach(listeners, function(callback, key) {
 				if (standard[key]) {
 					if (key === 'resize') {
 						windowElement.off(standard[key].key, standard[key].callback);
@@ -366,7 +366,7 @@
 
     }]);
 
-	app.service('EventsService', ['Dom', function (Dom) {
+	app.service('EventsService', ['Dom', function(Dom) {
 
 		var service = this;
 
@@ -388,7 +388,7 @@
 			if (window.addEventListener) {
 				try {
 					var options = Object.defineProperty({}, 'passive', {
-						get: function () {
+						get: function() {
 							supported = true;
 						},
 					});
@@ -446,10 +446,10 @@
 					return;
 				}
 				if (
-					(e.deltaX < 0 && (Dom.getParents(e.target).filter(function (node) {
+					(e.deltaX < 0 && (Dom.getParents(e.target).filter(function(node) {
 						return node.scrollLeft > 0;
 					}).length === 0)) ||
-					(e.deltaX > 0 && (Dom.getParents(e.target).filter(function (node) {
+					(e.deltaX > 0 && (Dom.getParents(e.target).filter(function(node) {
 						return node.scrollWidth - node.scrollLeft > node.clientWidth;
 					}).length === 0))
 				) {

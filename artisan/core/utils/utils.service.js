@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
+	app.service('Utils', ['$compile', '$controller', 'Vector', function($compile, $controller, Vector) {
 
 		var service = this;
 
@@ -26,7 +26,7 @@
 
 		angular.extend(service, statics);
 
-		var getNow = Date.now || function () {
+		var getNow = Date.now || function() {
 			return new Date().getTime();
 		};
 
@@ -60,7 +60,7 @@
 			var splitted = string.split(',');
 			if (splitted.length > 1) {
 				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
+				angular.forEach(splitted, function(value, index) {
 					if (expression) {
 						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
 					} else {
@@ -144,7 +144,7 @@
 		}
 
 		function reverseSortOn(key) {
-			return function (a, b) {
+			return function(a, b) {
 				if (a[key] < b[key]) {
 					return 1;
 				}
@@ -166,13 +166,13 @@
 			var timeout = null;
 			var previous = 0;
 			if (!options) options = {};
-			var later = function () {
+			var later = function() {
 				previous = options.leading === false ? 0 : getNow();
 				timeout = null;
 				result = func.apply(context, args);
 				if (!timeout) context = args = null;
 			};
-			return function () {
+			return function() {
 				var now = getNow();
 				if (!previous && options.leading === false) previous = now;
 				var remaining = wait - (now - previous);
@@ -200,9 +200,9 @@
 		function where(array, query) {
 			var found = null;
 			if (array) {
-				angular.forEach(array, function (item) {
+				angular.forEach(array, function(item) {
 					var has = true;
-					angular.forEach(query, function (value, key) {
+					angular.forEach(query, function(value, key) {
 						has = has && item[key] === value;
 					});
 					if (has) {
@@ -215,14 +215,14 @@
 
     }]);
 
-	(function () {
+	(function() {
 		// POLYFILL Array.prototype.reduce
 		// Production steps of ECMA-262, Edition 5, 15.4.4.21
 		// Reference: http://es5.github.io/#x15.4.4.21
 		// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
 		if (typeof Array.prototype.reduce !== 'function') {
 			Object.defineProperty(Array.prototype, 'reduce', {
-				value: function (callback) { // , initialvalue
+				value: function(callback) { // , initialvalue
 					if (this === null) {
 						throw new TypeError('Array.prototype.reduce called on null or undefined');
 					}
@@ -256,11 +256,11 @@
 		}
 	}());
 
-	(function () {
+	(function() {
 		// POLYFILL Object.values
 		if (typeof Object.values !== 'function') {
 			Object.defineProperty(Object, 'values', {
-				value: function (obj) {
+				value: function(obj) {
 					var vals = [];
 					for (var key in obj) {
 						if (has(obj, key) && isEnumerable(obj, key)) {

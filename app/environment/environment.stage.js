@@ -1,15 +1,15 @@
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.config(['environmentProvider', function(environmentProvider) {
+	app.config(['environmentProvider', function(environmentProvider) {
 
-        environmentProvider.add('stage', {
-            //
-        });
+		environmentProvider.add('stage', {
+			//
+		});
 
     }]);
 

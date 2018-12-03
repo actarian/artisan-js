@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Calendar', ['DateTime', 'Hash', function (DateTime, Hash) {
+	app.service('Calendar', ['DateTime', 'Hash', function(DateTime, Hash) {
 
 		var service = this;
 
@@ -35,7 +35,7 @@
 		}
 
 		function clearMonth(month) {
-			month.days.each(function (day) {
+			month.days.each(function(day) {
 				if (day) {
 					day.hours = 0;
 					day.tasks = new Hash('id');
@@ -64,8 +64,8 @@
 					fromDay: fromDay,
 					days: new Hash('key'),
 				};
-				month.weeks = new Array(weeks).fill().map(function (o, r) {
-					var days = new Array(7).fill().map(function (o, c) {
+				month.weeks = new Array(weeks).fill().map(function(o, r) {
+					var days = new Array(7).fill().map(function(o, c) {
 						var item = null;
 						var d = r * 7 + c - fromDay;
 						if (d >= 0 && d < monthDays) {
@@ -92,7 +92,7 @@
 						days: days,
 					};
 				});
-				month.getMonth = function (diff) {
+				month.getMonth = function(diff) {
 					diff = diff || 0;
 					return new Date(yyyy, MM + diff, 1);
 				};
@@ -139,7 +139,7 @@
 
     }]);
 
-	app.factory('CalendarFactory', ['DateTime', 'Hash', function (DateTime, Hash) {
+	app.factory('CalendarFactory', ['DateTime', 'Hash', function(DateTime, Hash) {
 
 		function Calendar() {
 			this.days = new Hash('key');
@@ -167,7 +167,7 @@
 		// statics
 
 		function clearMonth(month) {
-			month.days.each(function (day) {
+			month.days.each(function(day) {
 				if (day) {
 					day.hours = 0;
 					day.tasks = new Hash('id');
@@ -245,8 +245,8 @@
 					fromDay: fromDay,
 					days: new Hash('key'),
 				};
-				month.weeks = new Array(weeks).fill().map(function (o, r) {
-					var days = new Array(7).fill().map(function (o, c) {
+				month.weeks = new Array(weeks).fill().map(function(o, r) {
+					var days = new Array(7).fill().map(function(o, c) {
 						var item = null;
 						var d = r * 7 + c - fromDay;
 						if (d >= 0 && d < monthDays) {
@@ -273,7 +273,7 @@
 						days: days,
 					};
 				});
-				month.getMonth = function (diff) {
+				month.getMonth = function(diff) {
 					diff = diff || 0;
 					return new Date(yyyy, MM + diff, 1);
 				};

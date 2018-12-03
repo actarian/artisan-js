@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Bearer', ['$http', '$promise', 'SessionStorage', 'LocalStorage', 'environment', function ($http, $promise, SessionStorage, LocalStorage, environment) {
+	app.service('Bearer', ['$http', '$promise', 'SessionStorage', 'LocalStorage', 'environment', function($http, $promise, SessionStorage, LocalStorage, environment) {
 
 		var service = this;
 

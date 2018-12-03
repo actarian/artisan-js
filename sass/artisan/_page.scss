@@ -1,48 +1,53 @@
-@import "../../bower_components/bootstrap/scss/mixins";
-@import "../colors";
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
+@import "../variables";
+
 page {
-    display: block;
-    position: relative;
-    width: 100vw;
-    min-height: 100vh;
+	display: block;
+	position: relative;
+	width: 100vw;
+	min-height: 100vh;
 }
 
 page-transition {
-    display: flex;
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
-    left: 0;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    opacity: 0;
-    transition: opacity ease-in-out 350ms;
-    pointer-events: none;
-    background: white;
-    &.loading {
-        transition: none;
-        opacity: 1;
-    }
+	display: flex;
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	justify-content: center;
+	align-items: center;
+	z-index: 10000;
+	opacity: 0;
+	transition: opacity ease-in-out 350ms;
+	pointer-events: none;
+	background: white;
+
+	&.loading {
+		transition: none;
+		opacity: 1;
+	}
 }
 
 spinner {
-    display: block;
-    width: 40px;
-    height: 40px;
-    background: $blue;
-    animation: rotating 750ms ease-in-out infinite;
+	display: block;
+	width: 40px;
+	height: 40px;
+	background: $blue;
+	animation: rotating 750ms ease-in-out infinite;
 }
 
 @keyframes rotating {
-    0% {
-        transform: rotate(0deg);
-    }
-    60% {
-        transform: rotate(-90deg);
-    }
-    100% {
-        transform: rotate(-90deg);
-    }
+	0% {
+		transform: rotate(0deg);
+	}
+
+	60% {
+		transform: rotate(-90deg);
+	}
+
+	100% {
+		transform: rotate(-90deg);
+	}
 }

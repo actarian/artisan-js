@@ -1,8 +1,8 @@
 ﻿/* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app', ['ngSanitize', 'artisan', 'jsonFormatter']);
+	var app = angular.module('app', ['ngSanitize', 'artisan', 'jsonFormatter']);
 
 }());

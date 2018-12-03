@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function ($promise, $location, $route, $routeParams, Router) {
+	app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function($promise, $location, $route, $routeParams, Router) {
 
 		function Route(current) {
 

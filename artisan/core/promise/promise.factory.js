@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('$promise', ['$q', function ($q) {
+	app.factory('$promise', ['$q', function($q) {
 
 		function $promise(callback) {
 			if (typeof callback !== 'function') {

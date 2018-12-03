@@ -1,166 +1,185 @@
-@import "../../bower_components/bootstrap/scss/mixins";
-@import "../colors";
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
+@import "../variables";
+
 a,
 a:hover,
 a:active,
 a:visited,
 a:focus {
-    color: inherit;
-    text-decoration: none;
-    cursor: pointer;
-    outline: none;
-    transition: all ease-in-out 350ms;
+	color: inherit;
+	text-decoration: none;
+	cursor: pointer;
+	outline: none;
+	transition: all ease-in-out 350ms;
 }
 
 [ng-click] {
-    cursor: pointer;
-    outline: none;
+	cursor: pointer;
+	outline: none;
 }
 
 [nav] {
-    max-width: 800px;
-    margin: auto;
+	max-width: 800px;
+	margin: auto;
 }
 
 .nav {
-    &>.nav-item {
-        &>.nav {
-            transition: all ease-in-out 500ms;
-        }
-        &.immediate {
-            &>.nav {
-                transition: none;
-            }
-        }
-    }
-    @include media-breakpoint-down(sm) {
-        flex-direction: column;
-        &>.nav-item {
-            &>.nav {
-                overflow: hidden;
-                max-height: 0;
-            }
-            /*
+	&>.nav-item {
+		&>.nav {
+			transition: all ease-in-out 500ms;
+		}
+
+		&.immediate {
+			&>.nav {
+				transition: none;
+			}
+		}
+	}
+
+	@include media-breakpoint-down(sm) {
+		flex-direction: column;
+
+		&>.nav-item {
+			&>.nav {
+				overflow: hidden;
+				max-height: 0;
+			}
+
+			/*
             &.closing,
             &.closed {
                 &>.nav {
-                    // 
+                    //
                 }
             }
             */
-            &.opening,
-            &.opened {
-                &>.nav {
-                    max-height: 600px;
-                }
-            }
-            &.opened {
-                &>.nav {
-                    max-height: 600px;
-                    overflow: visible;
-                }
-            }
-        }
-    }
-    @include media-breakpoint-up(md) {
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        .nav {
-            position: absolute;
-        }
-        &>.nav-item {
-            &>.nav {
-                visibility: hidden;
-                pointer-events: none;
-            }
-            &.closing,
-            &.closed {
-                &>.nav {
-                    opacity: 0;
-                }
-            }
-            &.opening,
-            &.opened {
-                &>.nav {
-                    visibility: visible;
-                    pointer-events: all;
-                    opacity: 1;
-                    transform: translateY(10px);
-                }
-            }
-        }
-    }
+			&.opening,
+			&.opened {
+				&>.nav {
+					max-height: 600px;
+				}
+			}
+
+			&.opened {
+				&>.nav {
+					max-height: 600px;
+					overflow: visible;
+				}
+			}
+		}
+	}
+
+	@include media-breakpoint-up(md) {
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 20px;
+
+		.nav {
+			position: absolute;
+		}
+
+		&>.nav-item {
+			&>.nav {
+				visibility: hidden;
+				pointer-events: none;
+			}
+
+			&.closing,
+			&.closed {
+				&>.nav {
+					opacity: 0;
+				}
+			}
+
+			&.opening,
+			&.opened {
+				&>.nav {
+					visibility: visible;
+					pointer-events: all;
+					opacity: 1;
+					transform: translateY(10px);
+				}
+			}
+		}
+	}
 }
 
 .nav-link {
-    display: block;
-    padding: 8px 20px;
-    text-align: center;
-    white-space: nowrap;
+	display: block;
+	padding: 8px 20px;
+	text-align: center;
+	white-space: nowrap;
 }
 
 .nav-0 {
-    border: 1px solid $primary;
-    border-radius: 6px;
-    .nav-link {
-        font-weight: 900;
-        background: transparent;
-        color: $primary;
-    }
-    .nav-link:hover,
-    .nav-link:active,
-    .active>.nav-link {
-        background: $primary;
-        color: #ffffff;
-    }
-    @include media-breakpoint-down(sm) {
-        &>.nav-item+.nav-item {
-            border-top: 1px solid #aaaaff;
-        }
-    }
+	border: 1px solid $primary;
+	border-radius: 6px;
+
+	.nav-link {
+		font-weight: 900;
+		background: transparent;
+		color: $primary;
+	}
+
+	.nav-link:hover,
+	.nav-link:active,
+	.active>.nav-link {
+		background: $primary;
+		color: #ffffff;
+	}
+
+	@include media-breakpoint-down(sm) {
+		&>.nav-item+.nav-item {
+			border-top: 1px solid #aaaaff;
+		}
+	}
 }
 
 .nav-1 {
-    .nav-link {
-        font-weight: 600;
-        font-size: 0.9rem;
-        background: #eeeeff;
-        color: $primary;
-    }
-    .nav-link:hover,
-    .nav-link:active,
-    .active>.nav-link {
-        background: #eeeeff;
-        color: $primary;
-    }
-    @include media-breakpoint-up(md) {
-        border: 1px solid $primary;
-        // border-radius: 6px;
-        box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-        margin-top: 1px;
-    }
+	.nav-link {
+		font-weight: 600;
+		font-size: 0.9rem;
+		background: #eeeeff;
+		color: $primary;
+	}
+
+	.nav-link:hover,
+	.nav-link:active,
+	.active>.nav-link {
+		background: #eeeeff;
+		color: $primary;
+	}
+
+	@include media-breakpoint-up(md) {
+		border: 1px solid $primary;
+		// border-radius: 6px;
+		box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+		margin-top: 1px;
+	}
 }
 
 .nav-2 {
-    .nav-link {
-        font-weight: 200;
-        font-size: 0.9rem;
-        background: transparent;
-        color: $primary;
-    }
-    .nav-link:hover,
-    .nav-link:active,
-    .active>.nav-link {
-        background: $primary;
-        color: #ffffff;
-    }
-    @include media-breakpoint-up(md) {
-        border: 1px solid $primary;
-        // border-radius: 6px;
-        box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-        margin-top: 1px;
-    }
+	.nav-link {
+		font-weight: 200;
+		font-size: 0.9rem;
+		background: transparent;
+		color: $primary;
+	}
+
+	.nav-link:hover,
+	.nav-link:active,
+	.active>.nav-link {
+		background: $primary;
+		color: #ffffff;
+	}
+
+	@include media-breakpoint-up(md) {
+		border: 1px solid $primary;
+		// border-radius: 6px;
+		box-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+		margin-top: 1px;
+	}
 }
 
 

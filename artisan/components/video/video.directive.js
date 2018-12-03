@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('videoSource', ['$timeout', '$promise', function ($timeout, $promise) {
+	app.directive('videoSource', ['$timeout', '$promise', function($timeout, $promise) {
 
 		var directive = {
 			restrict: 'A',
@@ -13,7 +13,7 @@
 				source: '=videoSource',
 				image: '=videoImage',
 			},
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				return attributes.template || 'artisan/components/video/partial/video-player';
 			},
 			link: VideoSourceLink
@@ -38,7 +38,7 @@
 			// loop><source src="{{source}}" type="video/mp4"
 
 			function canplay() {
-				return $promise(function (promise) {
+				return $promise(function(promise) {
 
 					function _onCanPlay(e) {
 						scope.canplay = true;
@@ -63,7 +63,7 @@
 					if (scope.playing) {
 						video.pause();
 					} else {
-						canplay().then(function () {
+						canplay().then(function() {
 							video.play();
 						});
 					}
@@ -73,7 +73,7 @@
 			function play() {
 				if (!scope.busy) {
 					scope.busy = true;
-					canplay().then(function () {
+					canplay().then(function() {
 						video.play();
 					});
 				}
@@ -87,41 +87,41 @@
 			}
 
 			function onCanPlay(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.canplay = true;
 				});
 			}
 
 			function onPlaying(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.playing = true;
 					scope.busy = false;
 				});
 			}
 
 			function onPause(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.playing = false;
 					scope.busy = false;
 				});
 			}
 
 			function onEnded(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.playing = false;
 					scope.busy = false;
 				});
 			}
 
 			function onProgress(e) {
-				$timeout(function () {
+				$timeout(function() {
 					infos.buffered = video.buffered; // todo: TimeRanges
 					// console.log('onProgress', infos);
 				});
 			}
 
 			function onTimeUpdate(e) {
-				$timeout(function () {
+				$timeout(function() {
 					infos.duration = video.duration;
 					infos.currentTime = video.currentTime;
 					infos.progressTime = infos.currentTime / infos.duration;
@@ -150,7 +150,7 @@
 			}
 
 			addListeners();
-			scope.$on('destroy', function () {
+			scope.$on('destroy', function() {
 				removeListeners();
 			});
 

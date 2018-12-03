@@ -1,4 +1,6 @@
-@import '../variables';
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
+@import "../variables";
 @import '../mixins';
 
 $background: #75787b; // #90939b;
@@ -53,7 +55,9 @@ $hover: #03a9f4;
 				box-sizing: border-box;
 				text-align: right;
 				flex: 0 0 14.28%; // border: 1px solid $idle;
-				@each $property, $col in $statusColors {
+
+				@each $property,
+				$col in $statusColors {
 					&.status-#{$property} {
 						background: $col;
 						color: white;
@@ -111,6 +115,7 @@ $hover: #03a9f4;
 				}
 			}
 		}
+
 		/*
 			& > .num {
 				display: block;
@@ -156,33 +161,35 @@ $hover: #03a9f4;
 			height: 4px;
 			margin: 0 2px 3px 0;
 			border-radius: 2px;
+
 			/*
 				width: 6px;
 				height: 6px;
 				border-radius: 3px;
-				left: 3px; 
+				left: 3px;
 				top: 3px;
 				*/
 			&.working {
-				background: map-get($colors, success);
+				background: map-get($mainColors, success);
 			}
 		}
 	}
 }
 
 .calendar-slider {
+
 	/*
 			overflow: hidden;
 			margin-left: -15px;
 			margin-right: -15px;
 			margin-top: -15px;
 			margin-bottom: 15px;
-	
+
 			.inner {
 				display: flex;
 				justify-content: flex-start;
 				align-items: baseline;
-	
+
 				& > section {
 					width: 400px;
 				}
@@ -210,15 +217,15 @@ $hover: #03a9f4;
 		}
 
 		&.working {
-			background: mix($brand-primary, white, 50%);
+			background: mix($primary, white, 50%);
 		}
 
 		&.available:hover {
-			background: $brand-primary;
+			background: $primary;
 		}
 
 		&.full {
-			background: mix(map-get($colors, danger), white, 30%);
+			background: mix(map-get($mainColors, danger), white, 30%);
 		}
 	}
 }
@@ -259,7 +266,7 @@ $hover: #03a9f4;
 		}
 
 		&.vacation {
-			background: mix(map-get($colors, success), white, 50%);
+			background: mix(map-get($mainColors, success), white, 50%);
 		}
 
 		&.working {
@@ -268,11 +275,12 @@ $hover: #03a9f4;
 		}
 
 		&.unworkable {
-			background: mix(map-get($colors, success), white, 30%);
+			background: mix(map-get($mainColors, success), white, 30%);
 		}
+
 		/*
 			&.full {
-				background: mix(map-get($colors, danger), white, 30%);
+				background: mix(map-get($mainColors, danger), white, 30%);
 			}
 			*/
 		&.selected {
@@ -281,7 +289,7 @@ $hover: #03a9f4;
 
 		&:hover {
 			transition: background ease-in-out 250ms;
-			background: mix(map-get($colors, primary), white, 15%);
+			background: mix(map-get($mainColors, primary), white, 15%);
 		}
 
 		&.weekNum {
@@ -327,7 +335,7 @@ $hover: #03a9f4;
 			text-align: right;
 
 			&.working {
-				background: map-get($colors, success);
+				background: map-get($mainColors, success);
 			}
 		}
 	}
@@ -402,7 +410,7 @@ $hover: #03a9f4;
 		}
 
 		&.vacation {
-			background: mix(map-get($colors, success), white, 50%);
+			background: mix(map-get($mainColors, success), white, 50%);
 		}
 
 		&.working {
@@ -411,7 +419,7 @@ $hover: #03a9f4;
 		}
 
 		&.unworkable {
-			background: mix(map-get($colors, success), white, 30%);
+			background: mix(map-get($mainColors, success), white, 30%);
 		}
 
 		&.selected {
@@ -420,10 +428,11 @@ $hover: #03a9f4;
 
 		&:hover {
 			// transition: background ease-in-out 250ms;
-			// background: mix(map-get($colors, primary), white, 15%);
+			// background: mix(map-get($mainColors, primary), white, 15%);
 			box-shadow: 0 0 0 1px #75787b inset;
 		}
 	}
+
 	/*
 		.records {
 			display: block;

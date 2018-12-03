@@ -1,6 +1,6 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -41,7 +41,7 @@
 		over_a_year_from_now: 'over a year from now'
 	});
 
-	app.filter('dateRelative', ['$rootScope', '$interval', '$injector', '$formats', function ($rootScope, $interval, $injector, $formats) {
+	app.filter('dateRelative', ['$rootScope', '$interval', '$injector', '$formats', function($rootScope, $interval, $injector, $formats) {
 
 		var minute = 60;
 		var hour = minute * 60;
@@ -57,7 +57,7 @@
 				return $injector.get('$format');
 			} else {
 				return {
-					instant: function (id, params) {
+					instant: function(id, params) {
 						return $formats[id].replace('{{num}}', params.num);
 					}
 				};
@@ -73,7 +73,7 @@
             console.log($rootScope.$now);
         }, 3 * 1000);
 		*/
-		return function (date) {
+		return function(date) {
 			if (!(date instanceof Date)) {
 				date = new Date(date);
 			}
@@ -145,11 +145,11 @@
 		};
     }]);
 
-	app.directive('dateRelative', ['$parse', '$filter', '$interval', function ($parse, $filter, $interval) {
+	app.directive('dateRelative', ['$parse', '$filter', '$interval', function($parse, $filter, $interval) {
 		return {
 			priority: 1001,
 			restrict: 'A',
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 
 				function setDate() {
 					var date = $parse(attributes.dateRelative)(scope);
@@ -162,7 +162,7 @@
 
 				var i = setInterval(setDate, 60 * 1000);
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					cancelInterval(i);
 				});
 

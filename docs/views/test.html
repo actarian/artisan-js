@@ -1,9 +1,9 @@
 <json-formatter json="sources"></json-formatter>
 
 <div popuppable="[calendar-popup]">
-    <button class="btn popuppable-trigger" type="button">popup</button>
-    <div calendar-popup></div>
-    <!--
+	<button class="btn popuppable-trigger" type="button">popup</button>
+	<div calendar-popup></div>
+	<!--
     <div class="popup">
         popup
     </div>
@@ -26,11 +26,11 @@
 -->
 
 <div ng-repeat="item in sources.todos track by $index">
-    <div todo-item="item" target=".player-item" template="partials/todo/item">-</div>
+	<div todo-item="item" target=".player-item" template="partials/todo/item">-</div>
 </div>
 
 <style>
-    .popuppable-target .calendar-popup {
+	.popuppable-target .calendar-popup {
         position: relative;
     }
 
@@ -88,7 +88,7 @@
 
 <!-- WEEK TODO ITEM -->
 <script type="text/ng-template" id="partials/todo/item">
-    <div class="flex-row">
+	<div class="flex-row">
         <div>
             <span ng-bind="item.key"></span>
         </div>
@@ -118,7 +118,7 @@
             <span ng-bind="item.hours | customNumber : 2 : ' H'"></span>
         </div>
     </div>
-    <!-- 
+    <!--
     <div class="infos">
         <div class="task" link-to="links.task(item.task.id)" ng-if="item.task"><span class="id" ng-bind="item.task.id"></span> <b class="name" ng-bind="item.task.name"></b></div>
         <div class="activity" link-to="links.activity(item.activity.id)"><span class="id" ng-bind="item.activity.id"></span> <b class="name" ng-bind="item.activity.name"></b></div>
@@ -129,7 +129,7 @@
         <ul class="list-group">
             <li class="list-group-item justify-content-between">
                 Ore lavorate in week <span ng-bind="item.days[0].date | isoWeek : 1">-</span>
-                <span class="tag tag-pill pull-xs-right"> 
+                <span class="tag tag-pill pull-xs-right">
                     <span ng-bind="item.recordedHours | customNumber : 2 : ' H'">-</span> / <span ng-bind="item.hours | customNumber : 2 : ' H'">-</span>
                 </span>
             </li>
@@ -150,7 +150,7 @@
 
 <!-- MODAL EDIT ROW -->
 <script type="text/ng-template" id="partials/modals/todo-record">
-    <div class="modal-header">
+	<div class="modal-header">
         <button type="button" class="btn close" data-dismiss="modal" aria-label="Chiudi" ng-click="modal.reject()">
             <i class="icon-close" aria-hidden="true"></i>
         </button>
@@ -225,7 +225,7 @@
 
 <!-- CALENDAR POPUP -->
 <script type="text/ng-template" id="partials/calendar/popup">
-    <div class="calendar-popup-container">
+	<div class="calendar-popup-container">
         <div class="calendar calendar-popup">
             <div class="month">
                 <h6 class="flex-row">
@@ -274,7 +274,7 @@
 
 <!-- CALENDAR POPUP WORKABLES -->
 <script type="text/ng-template" id="partials/calendar/popup/workables">
-    <div class="calendar-popup-container">
+	<div class="calendar-popup-container">
         <div class="calendar calendar-popup">
             <div class="month">
                 <h6 class="flex-row">
@@ -315,7 +315,7 @@
 
 <!-- TODO CALENDAR -->
 <script type="text/ng-template" id="partials/todo/calendar">
-    <section class="container-fluid shadow section-bordered">
+	<section class="container-fluid shadow section-bordered">
         <div class="calendar calendar-planner">
             <div class="month">
                 <h6 class="flex-row">

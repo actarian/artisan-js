@@ -1,31 +1,30 @@
-﻿
-@import "./bower_components/bootstrap/scss/mixins";
-@import "./bower_components/bootstrap/scss/variables";
+﻿@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/variables";
 @import "mixins";
 
 .popover {
-    padding: 0;
-    border: none;
+	padding: 0;
+	border: none;
 
-    .card {
-        margin: 0;
-    }
+	.card {
+		margin: 0;
+	}
 }
 
 
 .tooltip-arrow {
-    .top & {
-        border-style: solid;
-        border-width: 10px 10px 0 10px;
-        border-color: #000000 transparent transparent transparent;
-        bottom: -10px;
-        left: 50%;
-        margin-left: -10px;    
-    }
+	.top & {
+		border-style: solid;
+		border-width: 10px 10px 0 10px;
+		border-color: #000000 transparent transparent transparent;
+		bottom: -10px;
+		left: 50%;
+		margin-left: -10px;
+	}
 }
 
 /*
-[pop] {    
+[pop] {
     &:after {
         content: '';
         display: table;
@@ -35,13 +34,13 @@
 */
 
 [pop] {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 .pop {
-    position: absolute;
-    // top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10000;
+	position: absolute;
+	// top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 10000;
 }

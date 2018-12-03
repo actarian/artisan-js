@@ -1,19 +1,20 @@
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan', ['ng', 'ngRoute', 'ngMessages']);
+	var app = angular.module('artisan', ['ng', 'ngRoute', 'ngMessages']);
 
 }());
+
 /* global angular, firebase */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Color', [function () {
+	app.factory('Color', [function() {
 		function Color(r, g, b, a) {
 			if (arguments.length > 1) {
 				this.r = (r || r === 0) ? r : 0;
@@ -36,11 +37,11 @@
 				}
 			}
 		}
-		Color.componentToHex = function (c) {
+		Color.componentToHex = function(c) {
 			var hex = c.toString(16);
 			return hex.length == 1 ? '0' + hex : hex;
 		};
-		Color.luma = function (color) {
+		Color.luma = function(color) {
 			// var luma = color.dot({ r: 54.213, g: 182.376, b: 18.411 });
 			var luma = color.dot({
 				r: 95,
@@ -49,7 +50,7 @@
 			});
 			return luma;
 		};
-		Color.contrast = function (color) {
+		Color.contrast = function(color) {
 			var luma = Color.luma(color);
 			if (luma > 0.6) {
 				return new Color('0x000000');
@@ -57,14 +58,14 @@
 				return new Color('0xffffff');
 			}
 		};
-		Color.darker = function (color, pow, min) {
+		Color.darker = function(color, pow, min) {
 			min = min || 0;
 			var r = Math.max(Math.floor(color.r * min), Math.floor(color.r - 255 * pow));
 			var g = Math.max(Math.floor(color.g * min), Math.floor(color.g - 255 * pow));
 			var b = Math.max(Math.floor(color.b * min), Math.floor(color.b - 255 * pow));
 			return new Color(r, g, b, color.a);
 		};
-		Color.lighter = function (color, pow, max) {
+		Color.lighter = function(color, pow, max) {
 			max = max || 1;
 			var r = Math.min(color.r + Math.floor((255 - color.r) * max), Math.floor(color.r + 255 * pow));
 			var g = Math.min(color.g + Math.floor((255 - color.g) * max), Math.floor(color.g + 255 * pow));
@@ -81,25 +82,25 @@
 		}
 		*/
 		Color.prototype = {
-			toUint: function () {
+			toUint: function() {
 				return (this.r << 24) + (this.g << 16) + (this.b << 8) + (this.a);
 			},
-			toHex: function () {
+			toHex: function() {
 				return '#' + Color.componentToHex(this.r) + Color.componentToHex(this.g) + Color.componentToHex(this.b) + Color.componentToHex(this.a);
 			},
-			toRgba: function () {
+			toRgba: function() {
 				return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(3) + ')';
 			},
-			dot: function (color) {
+			dot: function(color) {
 				return ((this.r / 255) * (color.r / 255) + (this.g / 255) * (color.g / 255) + (this.b / 255) * (color.b / 255));
 			},
-			alpha: function (pow, min, max) {
+			alpha: function(pow, min, max) {
 				min = min || 0;
 				max = max || 1;
 				this.a = Math.floor((min + (pow * (max - min))) * 255);
 				return this;
 			},
-			makeSet: function () {
+			makeSet: function() {
 				this.foreground = Color.contrast(this);
 				this.border = Color.darker(this, 0.3);
 				this.light = Color.lighter(this, 0.3);
@@ -109,14 +110,14 @@
 		return Color;
     }]);
 
-	app.factory('Shape', [function () {
+	app.factory('Shape', [function() {
 		function Shape() {}
-		Shape.shapeCircle = function (p, cx, cy, r, sa, ea) {
+		Shape.shapeCircle = function(p, cx, cy, r, sa, ea) {
 			sa = sa || 0;
 			ea = ea || 2 * Math.PI;
 			p.ctx.arc(cx, cy, r, sa, ea, false);
 		};
-		Shape.shapeStar = function (p, cx, cy, or, ir, steps) {
+		Shape.shapeStar = function(p, cx, cy, or, ir, steps) {
 			var x, y;
 			var angle = Math.PI / 2 * 3;
 			var step = Math.PI / steps;
@@ -134,7 +135,7 @@
 			}
 			ctx.lineTo(cx, cy - or);
 		};
-		Shape.shapeRoundRect = function (p, rect, r) {
+		Shape.shapeRoundRect = function(p, rect, r) {
 			var ctx = p.ctx,
 				x = rect.x,
 				y = rect.y,
@@ -171,21 +172,21 @@
 			ctx.lineTo(x, y + r.tl);
 			ctx.quadraticCurveTo(x, y, x + r.tl, y);
 		};
-		Shape.circle = function () {
+		Shape.circle = function() {
 			var params = Array.prototype.slice.call(arguments);
 			var ctx = params[0].ctx;
 			ctx.beginPath();
 			Shape.shapeCircle.apply(this, params);
 			ctx.closePath();
 		};
-		Shape.star = function () {
+		Shape.star = function() {
 			var params = Array.prototype.slice.call(arguments);
 			var ctx = params[0].ctx;
 			ctx.beginPath();
 			Shape.shapeStar.apply(this, params);
 			ctx.closePath();
 		};
-		Shape.roundRect = function () {
+		Shape.roundRect = function() {
 			var params = Array.prototype.slice.call(arguments);
 			var ctx = params[0].ctx;
 			ctx.beginPath();
@@ -219,7 +220,7 @@
 		map: '0x24292e',
 	});
 
-	app.factory('Palette', ['$q', 'Painter', 'Rect', function ($q, Painter, Rect) {
+	app.factory('Palette', ['$q', 'Painter', 'Rect', function($q, Painter, Rect) {
 		function Palette() {
 			this.painter = new Painter().setSize(0, 0);
 			this.buffer = new Painter().setSize(0, 0);
@@ -231,7 +232,7 @@
 			this.rows = {};
 		}
 		Palette.prototype = {
-			getRect: function (w, h) {
+			getRect: function(w, h) {
 				var p = this.painter,
 					size = this.size,
 					rows = this.rows,
@@ -264,18 +265,18 @@
 				rows[h] = row;
 				return r;
 			},
-			add: function (key, path) {
+			add: function(key, path) {
 				var palette = this;
 				if (angular.isString(path)) {
 					var deferred = $q.defer();
 					var img = new Image();
-					img.onload = function () {
-						palette.addShape(key, img.width, img.height, function (p, rect) {
+					img.onload = function() {
+						palette.addShape(key, img.width, img.height, function(p, rect) {
 							p.ctx.drawImage(img, 0, 0);
 						});
 						deferred.resolve(img);
 					};
-					img.onerror = function () {
+					img.onerror = function() {
 						deferred.reject('connot load ' + path);
 					};
 					img.src = path;
@@ -285,7 +286,7 @@
 					return palette.addShape.apply(palette, params);
 				}
 			},
-			addShape: function (key, w, h, callback) {
+			addShape: function(key, w, h, callback) {
 				var p = this.painter,
 					r = this.getRect(w, h);
 				p.ctx.save();
@@ -298,7 +299,7 @@
 				this.pool[key] = r;
 				// console.log('Painter.add', r);
 			},
-			draw: function (target, key, x, y, pre) {
+			draw: function(target, key, x, y, pre) {
 				var r = this.pool[key];
 				if (r) {
 					// var ctx = target.ctx;
@@ -313,7 +314,7 @@
 					// ctx.restore();
 				}
 			},
-			tint: function (target, key, x, y, color, pre) {
+			tint: function(target, key, x, y, color, pre) {
 				var r = this.pool[key];
 				if (r) {
 					var p = this.painter,
@@ -331,7 +332,7 @@
 					}, pre);
 				}
 			},
-			pattern: function (target, key, x, y, w, h, color) {
+			pattern: function(target, key, x, y, w, h, color) {
 				function drawPattern(pattern) {
 					var ctx = target.ctx;
 					ctx.save();
@@ -363,7 +364,7 @@
 							b.ctx.drawImage(this.painter.canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
 						}
 						img = new Image();
-						img.onload = function () {
+						img.onload = function() {
 							r.img = img;
 							pattern = target.ctx.createPattern(img, "repeat");
 							drawPattern(pattern);
@@ -379,7 +380,7 @@
 		return Palette;
     }]);
 
-	app.factory('Painter', ['Shape', 'Rect', 'Color', 'PainterColors', function (Shape, Rect, Color, PainterColors) {
+	app.factory('Painter', ['Shape', 'Rect', 'Color', 'PainterColors', function(Shape, Rect, Color, PainterColors) {
 		function Painter(canvas) {
 			canvas = canvas || document.createElement('canvas');
 			this.rect = new Rect();
@@ -388,19 +389,19 @@
 			this.setCanvas(canvas);
 		}
 		Painter.colors = {};
-		angular.forEach(PainterColors, function (value, key) {
+		angular.forEach(PainterColors, function(value, key) {
 			Painter.colors[key] = new Color(value).makeSet();
 		});
 		var colors = Painter.colors;
 		Painter.prototype = {
 			colors: Painter.colors,
-			setColors: function () {
+			setColors: function() {
 				var colors = this.colors;
-				angular.forEach(PainterColors, function (value, key) {
+				angular.forEach(PainterColors, function(value, key) {
 					colors[key] = new Color(value).makeSet();
 				});
 			},
-			setCanvas: function (canvas) {
+			setCanvas: function(canvas) {
 				this.canvas = canvas;
 				this.setSize(canvas.offsetWidth, canvas.offsetHeight);
 				var ctx = canvas.getContext('2d');
@@ -408,27 +409,27 @@
 				this.ctx = ctx;
 				return this;
 			},
-			setSize: function (w, h) {
+			setSize: function(w, h) {
 				this.canvas.width = w;
 				this.canvas.height = h;
 				this.rect.w = w;
 				this.rect.h = h;
 				return this;
 			},
-			copy: function (canvas) {
+			copy: function(canvas) {
 				this.ctx.drawImage(canvas, 0, 0);
 				return this;
 			},
-			clear: function () {
+			clear: function() {
 				this.resize();
 				// this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 				return this;
 			},
-			resize: function () {
+			resize: function() {
 				this.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
 				return this;
 			},
-			setText: function (font, align, verticalAlign, color) {
+			setText: function(font, align, verticalAlign, color) {
 				font = font || '11px monospace';
 				align = align || 'center';
 				verticalAlign = verticalAlign || 'middle';
@@ -440,7 +441,7 @@
 				ctx.fillStyle = color.toRgba();
 				return this;
 			},
-			setFill: function (color) {
+			setFill: function(color) {
 				color = color || this.colors.black;
 				var ctx = this.ctx;
 				/*
@@ -452,7 +453,7 @@
 				ctx.fillStyle = color.toRgba();
 				return this;
 			},
-			setStroke: function (color, size) {
+			setStroke: function(color, size) {
 				color = color || this.colors.black;
 				var ctx = this.ctx;
 				size = size || 1;
@@ -475,7 +476,7 @@
 			    return this;
 			},
 			*/
-			fillText: function (text, point, width, post, maxLength) {
+			fillText: function(text, point, width, post, maxLength) {
 				if (width) {
 					post = post || '';
 					maxLength = maxLength || Math.floor(width / 8);
@@ -486,7 +487,7 @@
 				this.ctx.fillText(text, point.x, point.y);
 				return this;
 			},
-			fillRect: function (rect) {
+			fillRect: function(rect) {
 				rect = rect || this.rect;
 				var ctx = this.ctx,
 					x = rect.x,
@@ -496,7 +497,7 @@
 				ctx.fillRect(x, y, w, h);
 				return this;
 			},
-			strokeRect: function (rect) {
+			strokeRect: function(rect) {
 				rect = rect || this.rect;
 				var ctx = this.ctx,
 					x = rect.x,
@@ -506,40 +507,40 @@
 				ctx.strokeRect(x, y, w, h);
 				return this;
 			},
-			fill: function () {
+			fill: function() {
 				this.ctx.fill();
 				return this;
 			},
-			stroke: function () {
+			stroke: function() {
 				this.ctx.stroke();
 				return this;
 			},
-			begin: function () {
+			begin: function() {
 				this.ctx.beginPath();
 				return this;
 			},
-			close: function () {
+			close: function() {
 				this.ctx.closePath();
 				return this;
 			},
-			save: function () {
+			save: function() {
 				this.ctx.save();
 				return this;
 			},
-			restore: function () {
+			restore: function() {
 				this.ctx.restore();
 				return this;
 			},
-			rotate: function (angle) {
+			rotate: function(angle) {
 				this.ctx.rotate(angle * Math.PI / 180);
 			},
-			translate: function (xy) {
+			translate: function(xy) {
 				this.ctx.translate(xy.x, xy.y);
 			},
-			toDataURL: function () {
+			toDataURL: function() {
 				return this.canvas.toDataURL();
 			},
-			draw: function (image, t, pre) {
+			draw: function(image, t, pre) {
 				if (image) {
 					t.w = t.w || image.width;
 					t.h = t.h || image.height;
@@ -560,7 +561,7 @@
 				}
 				return this;
 			},
-			drawRect: function (image, s, t, pre) {
+			drawRect: function(image, s, t, pre) {
 				if (image) {
 					s.w = s.w || image.width;
 					s.h = s.h || image.height;
@@ -583,7 +584,7 @@
 				}
 				return this;
 			},
-			flip: function (scale) {
+			flip: function(scale) {
 				scale = scale || {
 					x: 1,
 					y: -1
@@ -601,12 +602,12 @@
 
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('expandable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
+	app.directive('expandable', ['$parse', 'State', 'Dom', function($parse, State, Dom) {
 
 		var directive = {
 			restrict: 'A',
@@ -667,7 +668,7 @@
 
 			function getTextStyle(style) {
 				var text = '';
-				angular.forEach(style, function (value, key) {
+				angular.forEach(style, function(value, key) {
 					text += key + ': ' + value + '; ';
 				});
 				return text;
@@ -683,7 +684,7 @@
 				target.parentNode.insertBefore(placeholder, target);
 				originalCssText = target.style.cssText;
 				targetElement.addClass('expandable-expanding');
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.addClass('expandable-parent');
 				});
 			}
@@ -692,7 +693,7 @@
 				target.style.cssText = originalCssText;
 				targetElement.removeClass('expandable-expanding');
 				placeholder.parentNode.removeChild(placeholder);
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.removeClass('expandable-parent');
 				});
 			}
@@ -744,11 +745,11 @@
 					}, {
 						type: dynamics.easeInOut,
 						duration: 350,
-						complete: function () {
+						complete: function() {
 							expanded = true;
 							state.idle();
 						},
-						change: function () {
+						change: function() {
 							update();
 						}
 					});
@@ -764,12 +765,12 @@
 					}, {
 						type: dynamics.easeInOut,
 						duration: 350,
-						complete: function () {
+						complete: function() {
 							expanded = false;
 							remove();
 							state.idle();
 						},
-						change: function () {
+						change: function() {
 							update();
 						}
 					});
@@ -867,7 +868,7 @@
 					.off('resize', onResize);
 			}
 
-			scope.$on('$destroy', function () {
+			scope.$on('$destroy', function() {
 				removeListeners();
 			});
 
@@ -878,32 +879,33 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('controlMessages', [function () {
+	app.directive('controlMessages', [function() {
 		return {
 			restrict: 'E',
 			templateUrl: 'artisan/components/forms/partial/messages',
 			transclude: {
 				'message': '?messageItems',
 			},
-			link: function (scope, element, attributes, model) {}
+			link: function(scope, element, attributes, model) {}
 		};
     }]);
 
-	app.directive('control', ['$parse', function ($parse) {
+	app.directive('control', ['$parse', function($parse) {
 		function formatLabel(string, prepend, expression) {
 			string = string || '';
 			prepend = prepend || '';
 			var splitted = string.split(',');
 			if (splitted.length > 1) {
 				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
+				angular.forEach(splitted, function(value, index) {
 					if (expression) {
 						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
 					} else {
@@ -922,7 +924,7 @@
 		var uniqueId = 0;
 		return {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				var template = 'artisan/components/forms/partial/text';
 				switch (attributes.control) {
 					case 'select':
@@ -950,7 +952,7 @@
 					if (attributes.control === 'select') {
 						var filter = (attributes.filter ? '| ' + attributes.filter : '');
 						var optionLabel = formatLabel(label, 'item.', true);
-						scope.getOptions = function () {
+						scope.getOptions = function() {
 							return attributes.number ?
 								'item.' + key + ' as ' + optionLabel + ' disable when item.disabled for item in source ' + filter :
 								optionLabel + ' disable when item.disabled for item in source ' + filter + ' track by item.' + key;
@@ -971,13 +973,13 @@
 					scope.options = $parse(attributes.options)(scope) || {};
 					scope.focus = false;
 					scope.visible = false;
-					scope.onChange = function (model) {
+					scope.onChange = function(model) {
 						$parse(attributes.onChange)(scope.$parent);
 					};
-					scope.onFilter = function (model) {
+					scope.onFilter = function(model) {
 						$parse(attributes.onFilter)(scope.$parent);
 					};
-					scope.getType = function () {
+					scope.getType = function() {
 						var type = 'text';
 						switch (attributes.control) {
 							case 'password':
@@ -988,7 +990,7 @@
 						}
 						return type;
 					};
-					scope.getClasses = function () {
+					scope.getClasses = function() {
 						var form = $parse(scope.form)(scope.$parent);
 						var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 						return {
@@ -998,12 +1000,12 @@
 							'control-empty': !field.$viewValue
 						};
 					};
-					scope.getMessages = function () {
+					scope.getMessages = function() {
 						var form = $parse(scope.form)(scope.$parent);
 						var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 						return (form.$submitted || field.$touched) && field.$error;
 					};
-					scope.toggleVisibility = function () {
+					scope.toggleVisibility = function() {
 						scope.visible = !scope.visible;
 					};
 				},
@@ -1011,14 +1013,14 @@
 		};
     }]);
 
-	app.directive('_control', ['$http', '$templateCache', '$compile', '$parse', function ($http, $templateCache, $compile, $parse) {
+	app.directive('_control', ['$http', '$templateCache', '$compile', '$parse', function($http, $templateCache, $compile, $parse) {
 		function formatLabel(string, prepend, expression) {
 			string = string || '';
 			prepend = prepend || '';
 			var splitted = string.split(',');
 			if (splitted.length > 1) {
 				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
+				angular.forEach(splitted, function(value, index) {
 					if (expression) {
 						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
 					} else {
@@ -1037,7 +1039,7 @@
 		var uniqueId = 0;
 		return {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				var template = 'artisan/components/forms/partial/text';
 				switch (attributes.control) {
 					case 'select':
@@ -1058,9 +1060,9 @@
 			link: function(scope, element, attributes, model) {
 			},
 			*/
-			compile: function (element, attributes) {
+			compile: function(element, attributes) {
 				return {
-					pre: function (scope, element, attributes) {
+					pre: function(scope, element, attributes) {
 						if (attributes.control === 'select') {
 							var label = (attributes.label ? attributes.label : 'name');
 							var key = (attributes.key ? attributes.key : 'id');
@@ -1085,7 +1087,7 @@
 						scope.options = $parse(attributes.options)(scope) || {};
 						scope.focus = false;
 						scope.visible = false;
-						scope.getType = function () {
+						scope.getType = function() {
 							var type = 'text';
 							switch (attributes.control) {
 								case 'password':
@@ -1099,7 +1101,7 @@
 							// console.log('control.getType', type);
 							return type;
 						};
-						scope.getClasses = function () {
+						scope.getClasses = function() {
 							var form = $parse(scope.form)(scope.$parent);
 							var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 							return {
@@ -1109,7 +1111,7 @@
 								'control-empty': !field.$viewValue
 							};
 						};
-						scope.getMessages = function () {
+						scope.getMessages = function() {
 							var form = $parse(scope.form)(scope.$parent);
 							var field = $parse(scope.form + '.' + scope.field)(scope.$parent);
 							return (form.$submitted || field.$touched) && field.$error;
@@ -1120,7 +1122,7 @@
 			}
 			/*
 			compile: function(element, attributes) {
-			    element.removeAttr('my-dir'); 
+			    element.removeAttr('my-dir');
 			    element.attr('ng-hide', 'true');
 			    return function(scope) {
 			        $compile(element)(scope);
@@ -1130,7 +1132,7 @@
 		};
     }]);
 
-	app.directive('numberPicker', ['$parse', '$timeout', function ($parse, $timeout) {
+	app.directive('numberPicker', ['$parse', '$timeout', function($parse, $timeout) {
 		return {
 			restrict: 'A',
 			template: '<div class="input-group">' +
@@ -1140,7 +1142,7 @@
 				'</div>',
 			replace: true,
 			transclude: true,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 				var node = element[0];
 				var nodeRemove = node.querySelectorAll('.input-group-btn > .btn')[0];
 				var nodeAdd = node.querySelectorAll('.input-group-btn > .btn')[1];
@@ -1149,7 +1151,7 @@
 					var min = $parse(attributes.min)(scope);
 					var getter = $parse(attributes.numberPicker);
 					var setter = getter.assign;
-					$timeout(function () {
+					$timeout(function() {
 						setter(scope, Math.max(min, getter(scope) - 1));
 					});
 					// console.log('numberPicker.onRemove', min);
@@ -1159,7 +1161,7 @@
 					var max = $parse(attributes.max)(scope);
 					var getter = $parse(attributes.numberPicker);
 					var setter = getter.assign;
-					$timeout(function () {
+					$timeout(function() {
 						setter(scope, Math.min(max, getter(scope) + 1));
 					});
 					// console.log('numberPicker.onAdd', max);
@@ -1174,7 +1176,7 @@
 					angular.element(nodeRemove).off('touchstart mousedown', onRemove);
 					angular.element(nodeAdd).off('touchstart mousedown', onAdd);
 				}
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					removeListeners();
 				});
 				addListeners();
@@ -1183,160 +1185,162 @@
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('validate', ['$filter', function($filter) {
-        return {
-            require: 'ngModel',
-            link: function(scope, element, attributes, model) {
-                var type = attributes.validate;
-                var format = attributes.format || '';
-                var precision = attributes.precision || 2;
-                var focus = false;
-                // console.log('validate', type);
-                switch (type) {
-                    case 'date':
-                    case 'datetime':
-                    case 'datetime-local':
-                        model.$formatters.push(function(value) {
-                            if (value) {
-                                return $filter('date')(value, format);
-                            } else {
-                                return null;
-                            }
-                        });
-                        break;
-                    case 'number':
-                        model.$parsers.unshift(function(value) {
-                            var valid = false;
-                            if (value !== undefined && value !== "") {
-                                valid = String(value).indexOf(Number(value).toString()) !== -1; // isFinite(value); // 
-                                value = Number(value);
-                                model.$setValidity('number', valid);
-                                if (valid) {
-                                    model.$setValidity('positive', value >= 0.01);
-                                    if (attributes.min !== undefined) {
-                                        model.$setValidity('range', value >= Number(attributes.min));
-                                    }
-                                    if (attributes.max !== undefined) {
-                                        model.$setValidity('range', value <= Number(attributes.max));
-                                    }
-                                }
-                            } else {
-                                valid = true;
-                                value = Number(value);
-                                model.$setValidity('number', true);
-                                model.$setValidity('positive', true);
-                                if (attributes.min !== undefined) {
-                                    model.$setValidity('range', true);
-                                }
-                                if (attributes.max !== undefined) {
-                                    model.$setValidity('range', true);
-                                }
-                            }
-                            return value;
-                        });
-                        model.$formatters.push(function(value) {
-                            if (value) {
-                                return $filter('number')(value, precision) + ' ' + format;
-                            } else {
-                                return null;
-                            }
-                        });
-                        break;
-                    case 'anynumber':
-                        model.$parsers.unshift(function(value) {
-                            var valid = false;
-                            if (value !== undefined && value !== "") {
-                                valid = String(value).indexOf(Number(value).toString()) !== -1; // isFinite(value); // 
-                                value = Number(value);
-                                model.$setValidity('number', valid);
-                                if (valid) {
-                                    if (attributes.min !== undefined) {
-                                        model.$setValidity('range', value >= Number(attributes.min));
-                                    }
-                                    if (attributes.max !== undefined) {
-                                        model.$setValidity('range', value <= Number(attributes.max));
-                                    }
-                                }
-                            } else {
-                                valid = true;
-                                value = Number(value);
-                                model.$setValidity('number', true);
-                                if (attributes.min !== undefined) {
-                                    model.$setValidity('range', true);
-                                }
-                                if (attributes.max !== undefined) {
-                                    model.$setValidity('range', true);
-                                }
-                            }
-                            return value;
-                        });
-                        model.$formatters.push(function(value) {
-                            if (value || value === 0) {
-                                return $filter('number')(value, precision) + ' ' + format;
-                            } else {
-                                return null;
-                            }
-                        });
-                        break;
-                }
+	app.directive('validate', ['$filter', function($filter) {
+		return {
+			require: 'ngModel',
+			link: function(scope, element, attributes, model) {
+				var type = attributes.validate;
+				var format = attributes.format || '';
+				var precision = attributes.precision || 2;
+				var focus = false;
+				// console.log('validate', type);
+				switch (type) {
+					case 'date':
+					case 'datetime':
+					case 'datetime-local':
+						model.$formatters.push(function(value) {
+							if (value) {
+								return $filter('date')(value, format);
+							} else {
+								return null;
+							}
+						});
+						break;
+					case 'number':
+						model.$parsers.unshift(function(value) {
+							var valid = false;
+							if (value !== undefined && value !== "") {
+								valid = String(value).indexOf(Number(value).toString()) !== -1; // isFinite(value); //
+								value = Number(value);
+								model.$setValidity('number', valid);
+								if (valid) {
+									model.$setValidity('positive', value >= 0.01);
+									if (attributes.min !== undefined) {
+										model.$setValidity('range', value >= Number(attributes.min));
+									}
+									if (attributes.max !== undefined) {
+										model.$setValidity('range', value <= Number(attributes.max));
+									}
+								}
+							} else {
+								valid = true;
+								value = Number(value);
+								model.$setValidity('number', true);
+								model.$setValidity('positive', true);
+								if (attributes.min !== undefined) {
+									model.$setValidity('range', true);
+								}
+								if (attributes.max !== undefined) {
+									model.$setValidity('range', true);
+								}
+							}
+							return value;
+						});
+						model.$formatters.push(function(value) {
+							if (value) {
+								return $filter('number')(value, precision) + ' ' + format;
+							} else {
+								return null;
+							}
+						});
+						break;
+					case 'anynumber':
+						model.$parsers.unshift(function(value) {
+							var valid = false;
+							if (value !== undefined && value !== "") {
+								valid = String(value).indexOf(Number(value).toString()) !== -1; // isFinite(value); //
+								value = Number(value);
+								model.$setValidity('number', valid);
+								if (valid) {
+									if (attributes.min !== undefined) {
+										model.$setValidity('range', value >= Number(attributes.min));
+									}
+									if (attributes.max !== undefined) {
+										model.$setValidity('range', value <= Number(attributes.max));
+									}
+								}
+							} else {
+								valid = true;
+								value = Number(value);
+								model.$setValidity('number', true);
+								if (attributes.min !== undefined) {
+									model.$setValidity('range', true);
+								}
+								if (attributes.max !== undefined) {
+									model.$setValidity('range', true);
+								}
+							}
+							return value;
+						});
+						model.$formatters.push(function(value) {
+							if (value || value === 0) {
+								return $filter('number')(value, precision) + ' ' + format;
+							} else {
+								return null;
+							}
+						});
+						break;
+				}
 
-                function onFocus() {
-                    focus = true;
-                    if (format) {
-                        element[0].value = model.$modelValue || null;
-                        if (!model.$modelValue) {
-                            model.$setViewValue(null);
-                        }
-                    }
-                }
+				function onFocus() {
+					focus = true;
+					if (format) {
+						element[0].value = model.$modelValue || null;
+						if (!model.$modelValue) {
+							model.$setViewValue(null);
+						}
+					}
+				}
 
-                function doBlur() {
-                    if (format && !model.$invalid) {
-                        switch (type) {
-                            case 'date':
-                            case 'datetime':
-                            case 'datetime-local':
-                                element[0].value = model.$modelValue ? $filter('date')(model.$modelValue, format) : ' ';
-                                break;
-                            default:
-                                element[0].value = model.$modelValue ? $filter('number')(model.$modelValue, precision) + ' ' + format : ' ';
-                                break;
-                        }
-                    }
-                }
+				function doBlur() {
+					if (format && !model.$invalid) {
+						switch (type) {
+							case 'date':
+							case 'datetime':
+							case 'datetime-local':
+								element[0].value = model.$modelValue ? $filter('date')(model.$modelValue, format) : ' ';
+								break;
+							default:
+								element[0].value = model.$modelValue ? $filter('number')(model.$modelValue, precision) + ' ' + format : ' ';
+								break;
+						}
+					}
+				}
 
-                function onBlur() {
-                    focus = false;
-                    doBlur();
-                }
+				function onBlur() {
+					focus = false;
+					doBlur();
+				}
 
-                function addListeners() {
-                    element.on('focus', onFocus);
-                    element.on('blur', onBlur);
-                }
+				function addListeners() {
+					element.on('focus', onFocus);
+					element.on('blur', onBlur);
+				}
 
-                function removeListeners() {
-                    element.off('focus', onFocus);
-                    element.off('blur', onBlur);
-                }
-                scope.$on('$destroy', function() {
-                    removeListeners();
-                });
-                addListeners();
-            }
-        };
+				function removeListeners() {
+					element.off('focus', onFocus);
+					element.off('blur', onBlur);
+				}
+				scope.$on('$destroy', function() {
+					removeListeners();
+				});
+				addListeners();
+			}
+		};
     }]);
 
 }());
+
 /* global angular */
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -1370,9 +1374,9 @@
 				// node.style.animationPlayState = "paused";
 				node.style.left = e.relative.x + 'px';
 				node.style.top = e.relative.y + 'px';
-				setTimeout(function () {
+				setTimeout(function() {
 					element.addClass('interaction-animate');
-					setTimeout(function () {
+					setTimeout(function() {
 						element.removeClass('interaction-animate');
 					}, 1000);
 				}, 10);
@@ -1389,14 +1393,15 @@
 	app.directive('ngClick', ['Events', tap]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('modalView', ['$parse', '$templateRequest', '$compile', '$controller', 'Dom', function ($parse, $templateRequest, $compile, $controller, Dom) {
+	app.directive('modalView', ['$parse', '$templateRequest', '$compile', '$controller', 'Dom', function($parse, $templateRequest, $compile, $controller, Dom) {
 
 		function compileController(scope, element, html, data) {
 			// console.log('modalView.compileController', element);
@@ -1421,11 +1426,11 @@
 		return {
 			restrict: 'A',
 			priority: -400,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 				var modal = $parse(attributes.modalView);
 				modal = modal(scope);
 				modal.templateUrl = modal.templateUrl || 'artisan/components/modals/partial/modal';
-				$templateRequest(modal.templateUrl).then(function (html) {
+				$templateRequest(modal.templateUrl).then(function(html) {
 					compileController(scope, element, html, modal);
 				});
 				/*
@@ -1455,9 +1460,10 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -1479,15 +1485,15 @@
 		this.$get = ['$q', '$timeout', function modalFactory($q, $timeout) {
 
 			function popModal(modal) {
-				// console.log('modalProvider.popModal', modal);                
+				// console.log('modalProvider.popModal', modal);
 				var index = -1;
-				angular.forEach(modals, function (m, i) {
+				angular.forEach(modals, function(m, i) {
 					if (m === modal) {
 						index = i;
 					}
 				});
 				if (index !== -1) {
-					$timeout(function () {
+					$timeout(function() {
 						modal.active = false;
 						modals.splice(index, 1);
 						if (modals.length) {
@@ -1498,16 +1504,16 @@
 			}
 
 			function closeModal(modal) {
-				// console.log('modalProvider.closeModal', modal);                
+				// console.log('modalProvider.closeModal', modal);
 				var index = -1;
-				angular.forEach(modals, function (m, i) {
+				angular.forEach(modals, function(m, i) {
 					if (m === modal) {
 						index = i;
 					}
 				});
 				if (index !== -1) {
 					modal.active = false;
-					$timeout(function () {
+					$timeout(function() {
 						while (modals.length) {
 							modals.splice(modals.length - 1, 1);
 						}
@@ -1530,26 +1536,26 @@
 					angular.extend(modal, current);
 				}
 				modal.deferred = deferred;
-				modal.back = function (data) {
+				modal.back = function(data) {
 					popModal(this);
 					modal.deferred.resolve(data, modal);
 				}
-				modal.resolve = function (data) {
+				modal.resolve = function(data) {
 					closeModal(this);
 					modal.deferred.resolve(data, modal);
 				}
-				modal.reject = function () {
+				modal.reject = function() {
 					closeModal(this);
 					modal.deferred.reject(modal);
 				}
 				modals.push(modal);
-				angular.forEach(modals, function (m, i) {
+				angular.forEach(modals, function(m, i) {
 					m.active = false;
 				});
 				if (modals.length) {
 					modal.active = true;
 				} else {
-					$timeout(function () {
+					$timeout(function() {
 						modal.active = true;
 						// window.scrollTo(0, 0);
 					}, 500);
@@ -1566,18 +1572,19 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('nav', ['$parse', 'Nav', function ($parse, Nav) {
+	app.directive('nav', ['$parse', 'Nav', function($parse, Nav) {
 
 		var directive = {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				return attributes.template || 'artisan/components/nav/partial/nav';
 			},
 			scope: {
@@ -1589,7 +1596,7 @@
 		return directive;
 
 		function NavLink(scope, element, attributes, model) {
-			scope.$watch('items', function (value) {
+			scope.$watch('items', function(value) {
 				// console.log(value instanceof Nav, value);
 				if (value) {
 					if (angular.isArray(value)) {
@@ -1611,11 +1618,11 @@
 
     }]);
 
-	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
+	app.directive('navItem', ['$timeout', 'Events', function($timeout, Events) {
 
 		var directive = {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				return attributes.template || 'artisan/components/nav/partial/nav-item';
 			},
 			scope: {
@@ -1634,11 +1641,11 @@
 			function itemOpen(item, immediate) {
 				var state = item.$nav.state;
 				state.active = true;
-				$timeout(function () {
+				$timeout(function() {
 					state.immediate = immediate;
 					state.closed = state.closing = false;
 					state.opening = true;
-					$timeout(function () {
+					$timeout(function() {
 						state.opening = false;
 						state.opened = true;
 					});
@@ -1648,17 +1655,17 @@
 			function itemClose(item, immediate) {
 				var state = item.$nav.state;
 				state.active = false;
-				$timeout(function () {
+				$timeout(function() {
 					state.immediate = immediate;
 					state.opened = state.opening = false;
 					state.closing = true;
-					$timeout(function () {
+					$timeout(function() {
 						state.closing = false;
 						state.closed = true;
 					});
 				});
 				if (item.items) {
-					angular.forEach(item.items, function (o) {
+					angular.forEach(item.items, function(o) {
 						itemClose(o, true);
 					});
 				}
@@ -1670,7 +1677,7 @@
 				state.active = item.items ? !state.active : true;
 				if (state.active) {
 					if (item.$nav.parent) {
-						angular.forEach(item.$nav.parent.items, function (o) {
+						angular.forEach(item.$nav.parent.items, function(o) {
 							if (o !== item) {
 								itemClose(o, true);
 							}
@@ -1693,10 +1700,10 @@
 				} else if (item.$nav.onNav) {
 					var promise = item.$nav.onNav(item, item.$nav);
 					if (promise && typeof promise.then === 'function') {
-						promise.then(function (resolved) {
+						promise.then(function(resolved) {
 							// go on
 							trigger();
-						}, function (rejected) {
+						}, function(rejected) {
 							// do nothing
 						});
 						output = false;
@@ -1707,7 +1714,7 @@
 				}
 
 				function trigger() {
-					$timeout(function () {
+					$timeout(function() {
 						itemToggle(item);
 					});
 				}
@@ -1736,7 +1743,7 @@
 
     }]);
 
-	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
+	app.directive('navTo', ['$parse', '$timeout', 'Events', function($parse, $timeout, Events) {
 
 		var directive = {
 			restrict: 'A',
@@ -1748,7 +1755,7 @@
 		function NavToLink(scope, element, attributes) {
 			function onDown(e) {
 				console.log('navTo.onDown', attributes.navTo);
-				$timeout(function () {
+				$timeout(function() {
 					var callback = $parse(attributes.navTo);
 					callback(scope);
 				});
@@ -1763,142 +1770,144 @@
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.factory('Nav', ['Silent', function(Silent) {
-
-        function Nav(options) {
-            var nav = this;
-            var defaults = {
-                items: [],
-            }
-            angular.extend(nav, defaults);
-            if (options) {
-                angular.extend(nav, options);
-            }
-            nav.setNav(nav, null);
-        }
-
-        var statics = {
-            silent: NavSilent,
-            path: NavPath,
-        };
-
-        var publics = {
-            addItem: addItem,
-            addItems: addItems,
-            getPath: getPath,
-            setItems: setItems,
-            setNav: setNav,
-            setNavs: setNavs,
-        };
-
-        angular.extend(Nav, statics);
-        angular.extend(Nav.prototype, publics);
-
-        return Nav;
-
-        // static methods
-
-        function NavSilent(path) {
-            Silent.silent(path);
-        }
-
-        function NavPath(path) {
-            Silent.path(path);
-        }
-
-        // prototype methods
-
-        function setItems(items) {
-            var nav = this;
-            nav.path = Silent.path();
-            nav.items = items;
-            nav.setNavs(items, nav);
-        }
-
-        function setNavs(items, parent) {
-            var nav = this;
-            if (items) {
-                angular.forEach(items, function(item) {
-                    nav.setNav(item, parent);
-                    nav.setNavs(item.items, item);
-                });
-            }
-        }
-
-        function setNav(item, parent) {
-            var nav = this;
-            var $nav = {
-                parent: parent || null,
-                level: parent ? parent.$nav.level + 1 : 0,
-                state: {},
-                addItems: function(x) {
-                    nav.addItems(x, item);
-                },
-                onNav: nav.onNav,
-            };
-            item.$nav = $nav;
-            $nav.path = nav.getPath(item);
-            if ($nav.path === nav.path) {
-                $nav.state.active = true;
-                $nav.state.opened = true;
-                while ($nav.parent) {
-                    $nav = $nav.parent.$nav;
-                    $nav.state.active = true;
-                    $nav.state.opened = true;
-                }
-            }
-        }
-
-        function addItems(itemOrItems, parent) {
-            var nav = this;
-            if (angular.isArray(itemOrItems)) {
-                angular.forEach(itemOrItems, function(item) {
-                    nav.addItem(item, parent);
-                });
-            } else {
-                nav.addItem(itemOrItems, parent);
-            }
-        }
-
-        function addItem(item, parent) {
-            var nav = this,
-                onPath = nav.onPath,
-                onNav = nav.onNav;
-            nav.setNav(item, parent);
-            if (parent) {
-                parent.items = parent.items || [];
-                parent.items.push(item);
-            }
-        }
-
-        function getPath(item) {
-            var path = null;
-            if (this.onPath) {
-                path = this.onPath(item, item.$nav);
-            } else {
-                path = item.path;
-            }
-            return path;
-        }
-
-    }]);
-
-}());
-/* global angular */
-
-(function () {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('popuppable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
+	app.factory('Nav', ['Silent', function(Silent) {
+
+		function Nav(options) {
+			var nav = this;
+			var defaults = {
+				items: [],
+			}
+			angular.extend(nav, defaults);
+			if (options) {
+				angular.extend(nav, options);
+			}
+			nav.setNav(nav, null);
+		}
+
+		var statics = {
+			silent: NavSilent,
+			path: NavPath,
+		};
+
+		var publics = {
+			addItem: addItem,
+			addItems: addItems,
+			getPath: getPath,
+			setItems: setItems,
+			setNav: setNav,
+			setNavs: setNavs,
+		};
+
+		angular.extend(Nav, statics);
+		angular.extend(Nav.prototype, publics);
+
+		return Nav;
+
+		// static methods
+
+		function NavSilent(path) {
+			Silent.silent(path);
+		}
+
+		function NavPath(path) {
+			Silent.path(path);
+		}
+
+		// prototype methods
+
+		function setItems(items) {
+			var nav = this;
+			nav.path = Silent.path();
+			nav.items = items;
+			nav.setNavs(items, nav);
+		}
+
+		function setNavs(items, parent) {
+			var nav = this;
+			if (items) {
+				angular.forEach(items, function(item) {
+					nav.setNav(item, parent);
+					nav.setNavs(item.items, item);
+				});
+			}
+		}
+
+		function setNav(item, parent) {
+			var nav = this;
+			var $nav = {
+				parent: parent || null,
+				level: parent ? parent.$nav.level + 1 : 0,
+				state: {},
+				addItems: function(x) {
+					nav.addItems(x, item);
+				},
+				onNav: nav.onNav,
+			};
+			item.$nav = $nav;
+			$nav.path = nav.getPath(item);
+			if ($nav.path === nav.path) {
+				$nav.state.active = true;
+				$nav.state.opened = true;
+				while ($nav.parent) {
+					$nav = $nav.parent.$nav;
+					$nav.state.active = true;
+					$nav.state.opened = true;
+				}
+			}
+		}
+
+		function addItems(itemOrItems, parent) {
+			var nav = this;
+			if (angular.isArray(itemOrItems)) {
+				angular.forEach(itemOrItems, function(item) {
+					nav.addItem(item, parent);
+				});
+			} else {
+				nav.addItem(itemOrItems, parent);
+			}
+		}
+
+		function addItem(item, parent) {
+			var nav = this,
+				onPath = nav.onPath,
+				onNav = nav.onNav;
+			nav.setNav(item, parent);
+			if (parent) {
+				parent.items = parent.items || [];
+				parent.items.push(item);
+			}
+		}
+
+		function getPath(item) {
+			var path = null;
+			if (this.onPath) {
+				path = this.onPath(item, item.$nav);
+			} else {
+				path = item.path;
+			}
+			return path;
+		}
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.directive('popuppable', ['$parse', 'State', 'Dom', function($parse, State, Dom) {
 
 		var directive = {
 			restrict: 'A',
@@ -1947,7 +1956,7 @@
 
 			function getTextStyle(style) {
 				var text = '';
-				angular.forEach(style, function (value, key) {
+				angular.forEach(style, function(value, key) {
 					text += key + ': ' + value + '; ';
 				});
 				return text;
@@ -1959,14 +1968,14 @@
 
 			function add() {
 				targetElement.addClass('popuppable-opening');
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.addClass('popuppable-parent');
 				});
 			}
 
 			function remove() {
 				targetElement.removeClass('popuppable-opening');
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.removeClass('popuppable-parent');
 				});
 			}
@@ -2079,7 +2088,7 @@
 					.off('resize', onResize);
 			}
 
-			scope.$on('$destroy', function () {
+			scope.$on('$destroy', function() {
 				removeListeners();
 			});
 
@@ -2096,7 +2105,7 @@
 					frequency: 200,
 					friction: 270,
 					duration: 800,
-					complete: function () {
+					complete: function() {
 						opened = true;
 						state.idle();
 					},
@@ -2111,7 +2120,7 @@
 					type: dynamics.easeInOut,
 					duration: 300,
 					friction: 100,
-					complete: function () {
+					complete: function() {
 						opened = false;
 						remove();
 						state.idle();
@@ -2124,23 +2133,24 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
-	window.ondragstart = function () {
+	window.ondragstart = function() {
 		return false;
 	};
 
 	var app = angular.module('artisan');
 
-	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
 		return {
 			restrict: 'A',
 			template: '<div class="scrollable-content" ng-transclude></div>',
 			transclude: true,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 
 				var onLeft, onRight, showIndicatorFor, scrollableWhen;
 				if (attributes.onLeft) {
@@ -2171,21 +2181,21 @@
 
 				function link(scrollable) {
 					scrollable.link({
-						getItems: function () {
+						getItems: function() {
 							if (attributes.scrollableItem) {
 								var items = containerNode.querySelectorAll(attributes.scrollableItem);
 								return items;
 							}
 						},
-						prev: function () {
+						prev: function() {
 							scrollable.scrollPrev();
 							animate.play();
 						},
-						next: function () {
+						next: function() {
 							scrollable.scrollNext();
 							animate.play();
 						},
-						reset: function () {
+						reset: function() {
 							scrollable.doReset();
 							animate.play();
 						},
@@ -2317,9 +2327,9 @@
 					render();
 				}
 
-				scope.$watch(function () {
+				scope.$watch(function() {
 					return contentNode.offsetWidth;
-				}, function (newValue, oldValue) {
+				}, function(newValue, oldValue) {
 					onResize();
 				});
 
@@ -2346,7 +2356,7 @@
 					});
 				}
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					animate.pause();
 				});
 
@@ -2354,12 +2364,12 @@
 		};
     }]);
 
-	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
 		return {
 			restrict: 'A',
 			template: '<div class="scrollable-content" ng-transclude></div>',
 			transclude: true,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 
 				var onTop, onBottom, showIndicatorFor, scrollableWhen;
 				if (attributes.onTop) {
@@ -2389,21 +2399,21 @@
 
 				function link(scrollable) {
 					scrollable.link({
-						getItems: function () {
+						getItems: function() {
 							if (attributes.scrollableItem) {
 								var items = containerNode.querySelectorAll(attributes.scrollableItem);
 								return items;
 							}
 						},
-						prev: function () {
+						prev: function() {
 							scrollable.scrollPrev();
 							animate.play();
 						},
-						next: function () {
+						next: function() {
 							scrollable.scrollNext();
 							animate.play();
 						},
-						reset: function () {
+						reset: function() {
 							scrollable.doReset();
 							animate.play();
 						},
@@ -2494,9 +2504,9 @@
 					render();
 				}
 
-				scope.$watch(function () {
+				scope.$watch(function() {
 					return contentNode.offsetHeight;
-				}, function (newValue, oldValue) {
+				}, function(newValue, oldValue) {
 					onResize();
 				});
 
@@ -2523,7 +2533,7 @@
 					});
 				}
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					animate.pause();
 				});
 
@@ -2532,505 +2542,507 @@
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.factory('Scrollable', ['Utils', 'Point', 'Rect', function(Utils, Point, Rect) {
-
-        function Scrollable() {
-
-            var padding = 150;
-            var enabled, snappable, busy, dragging, wheeling, down, move, prev;
-            var currentIndex = 0;
-
-            snappable = true;
-
-            var start = new Point(),
-                end = new Point(),
-                current = new Point(),
-                drag = new Point(),
-                indicator = new Point(),
-                offset = new Point(),
-                speed = new Point(),
-                container = new Rect(),
-                content = new Rect(),
-                overflow = new Rect();
-
-            var scrollable = {
-                // properties
-                start: start,
-                end: end,
-                current: current,
-                indicator: indicator,
-                speed: speed,
-                overflow: overflow,
-                container: container,
-                content: content,
-                // methods
-                setContainer: setContainer,
-                setContent: setContent,
-                setEnabled: setEnabled,
-                getCurrent: getCurrent,
-                getDrag: getDrag,
-                getIndicator: getIndicator,
-                getIndex: getIndex,
-                scrollToIndex: scrollToIndex,
-                scrollPrev: scrollPrev,
-                scrollNext: scrollNext,
-                dragStart: dragStart,
-                dragMove: dragMove,
-                dragEnd: dragEnd,
-                doReset: doReset,
-                off: off,
-                // x direction
-                doLeft: doLeft,
-                doRight: doRight,
-                renderX: renderX,
-                scrollToX: scrollToX,
-                wheelX: wheelX,
-                wheelXCheck: wheelXCheck,
-                // y direction
-                doTop: doTop,
-                doBottom: doBottom,
-                renderY: renderY,
-                scrollToY: scrollToY,
-                wheelY: wheelY,
-                wheelYCheck: wheelYCheck,
-            };
-
-            angular.extend(this, scrollable);
-
-            scrollable = this;
-
-            function setContainer(node) {
-                container.width = node.offsetWidth;
-                container.height = node.offsetHeight;
-            }
-
-            function setContent(node) {
-                content.width = node.offsetWidth;
-                content.height = node.offsetHeight;
-            }
-
-            function setEnabled(flag) {
-                enabled = flag;
-            }
-
-            function getCurrent() {
-                return current;
-            }
-
-            function getDrag() {
-                return drag;
-            }
-
-            function getIndicator() {
-                return indicator;
-            }
-
-            function getIndex() {
-                return currentIndex;
-            }
-
-            function scrollToIndex(index) {
-                if (index !== currentIndex) {
-                    currentIndex = index;
-                    var item = getItemAtIndex(index);
-                    if (item) {
-                        offset = new Point(
-                            item.offsetLeft,
-                            item.offsetTop
-                        );
-                        // console.log('scrollToIndex', index, offset);
-                    }
-                    return true;
-                }
-            }
-
-            function dragStart(point) {
-                if (!busy) {
-                    start.x = end.x = current.x;
-                    start.y = end.y = current.y;
-                    speed.x = 0;
-                    speed.y = 0;
-                    down = point;
-                    currentIndex = -1;
-                    wheeling = false;
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-            function dragMove(point) {
-                prev = move;
-                move = point;
-                drag.x = move.x - down.x;
-                drag.y = move.y - down.y;
-                dragging = true;
-            }
-
-            function dragEnd() {
-                if (move && prev) {
-                    speed.x += (move.x - prev.x) * 4;
-                    speed.y += (move.y - prev.y) * 4;
-                }
-                start.x = end.x = current.x;
-                start.y = end.y = current.y;
-                dragging = false;
-                move = null;
-                down = null;
-                prev = null;
-            }
-
-            function getItemAtIndex(index) {
-                var item = null;
-                var items = scrollable.getItems();
-                if (items) {
-                    if (index >= 0 && index < items.length) {
-                        item = items[index];
-                    }
-                }
-                // console.log('getItemAtIndex', index, items.length, item);
-                return item;
-            }
-
-            function scrollPrev() {
-                var index = Math.max(0, currentIndex - 1);
-                console.log('scrollPrev', index);
-                scrollToIndex(index);
-            }
-
-            function scrollNext() {
-                var items = scrollable.getItems();
-                var index = Math.min(items.length - 1, currentIndex + 1);
-                console.log('scrollNext', index);
-                scrollToIndex(index);
-            }
-
-            function doReset() {
-                end.x = current.x = 0;
-            }
-
-            function off() {
-                dragging = false;
-                wheeling = false;
-                move = null;
-                down = null;
-            }
-
-            // x - direction
-
-            function doLeft(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onLeft) {
-                    return;
-                }
-                busy = true;
-                scrollable.onLeft(scope).then().finally(function() {
-                    scrollToX(0);
-                });
-            }
-
-            function doRight(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onRight) {
-                    return;
-                }
-                busy = true;
-                scrollable.onRight(scope).then().finally(function() {
-                    var right = container.width - content.width;
-                    if (right > overflow.width) {
-                        start.x = end.x = overflow.width;
-                    } else {
-                        start.x = end.x = overflow.width + padding;
-                    }
-                    scrollToX(0);
-                });
-            }
-
-            function renderX() {
-                var animating = true;
-                if (enabled) {
-                    overflow.x = 0;
-                    overflow.width = container.width - content.width;
-                    if (dragging) {
-                        end.x = start.x + move.x - down.x;
-                        if (extendX()) {
-                            start.x = end.x;
-                            down.x = move.x;
-                        }
-                    } else if (speed.x) {
-                        end.x += speed.x;
-                        speed.x *= 0.75;
-                        if (wheeling) {
-                            extendX();
-                        }
-                        if (Math.abs(speed.x) < 2.05) {
-                            speed.x = 0;
-                            scrollable.wheeling = wheeling = false;
-                            snapToNearestX();
-                        }
-                    } else if (offset) {
-                        end.x = -offset.x;
-                        offset = null;
-                    }
-                    end.x = Math.round(end.x * 10000) / 10000;
-                    end.x = Math.min(overflow.x, end.x);
-                    end.x = Math.max(overflow.width, end.x);
-                    current.x += (end.x - current.x) / 4;
-                    if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
-                        current.x = end.x;
-                        if (!snapToNearestX()) {
-                            animating = false;
-                        }
-                    }
-                    // console.log('renderX', current.x, end.x, overflow.x);
-                } else {
-                    current.x = end.x = 0;
-                    animating = false;
-                }
-                return animating;
-            }
-
-            function extendX() {
-                var extending = false;
-                overflow.x += padding;
-                overflow.width -= padding;
-                if (end.x > overflow.x) {
-                    extending = true;
-                    doLeft();
-                } else if (end.x < overflow.width) {
-                    extending = true;
-                    doRight();
-                }
-                return extending;
-            }
-
-            function snapToNearestX() {
-                var items = scrollable.getItems();
-                if (items) {
-                    var index = -1;
-                    var min = Number.POSITIVE_INFINITY;
-                    angular.forEach(items, function(item, i) {
-                        var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
-                        if (distance < min) {
-                            min = distance;
-                            index = i;
-                        }
-                    });
-                    if (index !== -1) {
-                        if (snappable) {
-                            return scrollToIndex(index);
-                        } else {
-                            currentIndex = index;
-                        }
-                    }
-                }
-            }
-
-            function wheelXCheck(dir) {
-                // console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
-                if (!busy && enabled) {
-                    if (dir < 0) {
-                        return end.x - overflow.width;
-                    } else {
-                        return end.x - overflow.x;
-                    }
-                } else {
-                    return false;
-                }
-            }
-
-            function wheelX(dir, interval) {
-                end.x += dir * 100 / 1000 * interval;
-                speed.x += dir * 100 / 1000 * interval;
-                wheeling = true;
-            }
-
-            function scrollToX(value) {
-                start.x = end.x = value;
-                setTimeout(function() {
-                    off();
-                    busy = false;
-                }, 500);
-            }
-
-            // y - direction
-
-            function doTop(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onTop) {
-                    return;
-                }
-                busy = true;
-                scrollable.onTop(scope).then().finally(function() {
-                    scrollToY(0);
-                });
-            }
-
-            function doBottom(scope) {
-                if (busy) {
-                    return;
-                }
-                if (!scrollable.onBottom) {
-                    return;
-                }
-                busy = true;
-                scrollable.onBottom(scope).then().finally(function() {
-                    var bottom = container.height - content.height;
-                    if (bottom > overflow.height) {
-                        start.y = end.y = overflow.height;
-                    } else {
-                        start.y = end.y = overflow.height + padding;
-                    }
-                    scrollToY(0);
-                });
-            }
-
-            function renderY() {
-                var animating = true;
-                if (enabled) {
-                    overflow.y = 0;
-                    overflow.height = container.height - content.height;
-                    if (dragging) {
-                        end.y = start.y + move.y - down.y;
-                        if (extendY()) {
-                            start.y = end.y;
-                            down.y = move.y;
-                        }
-                    } else if (speed.y) {
-                        end.y += speed.y;
-                        speed.y *= 0.75;
-                        if (wheeling) {
-                            extendY();
-                        }
-                        if (Math.abs(speed.y) < 2.05) {
-                            speed.y = 0;
-                            scrollable.wheeling = wheeling = false;
-                            snapToNearestY();
-                        }
-                    } else if (offset) {
-                        end.y = -offset.y;
-                        offset = null;
-                    }
-                    end.y = Math.round(end.y * 10000) / 10000;
-                    end.y = Math.min(overflow.y, end.y);
-                    end.y = Math.max(overflow.height, end.y);
-                    current.y += (end.y - current.y) / 4;
-                    if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
-                        current.y = end.y;
-                        if (!snapToNearestY()) {
-                            animating = false;
-                        }
-                    }
-                    // console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
-                    // console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
-                } else {
-                    current.y = end.y = 0;
-                    animating = false;
-                }
-                return animating;
-            }
-
-            function extendY() {
-                var extending = false;
-                overflow.y += padding;
-                overflow.height -= padding;
-                if (end.y > overflow.y) {
-                    extending = true;
-                    doTop();
-                } else if (end.y < overflow.height) {
-                    extending = true;
-                    doBottom();
-                }
-                return extending;
-            }
-
-            function snapToNearestY() {
-                var items = scrollable.getItems();
-                if (items) {
-                    var index = -1;
-                    var min = Number.POSITIVE_INFINITY;
-                    angular.forEach(items, function(item, i) {
-                        var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
-                        if (distance < min) {
-                            min = distance;
-                            index = i;
-                        }
-                    });
-                    // console.log('snapToNearestY', index, min);
-                    if (index !== -1) {
-                        if (snappable) {
-                            return scrollToIndex(index);
-                        } else {
-                            currentIndex = index;
-                        }
-                    }
-                }
-            }
-
-            function wheelYCheck(dir) {
-                // console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
-                if (!busy && enabled) {
-                    if (dir < 0) {
-                        return end.y - overflow.height;
-                    } else {
-                        return end.y - overflow.y;
-                    }
-                } else {
-                    return false;
-                }
-            }
-
-            function wheelY(dir, interval) {
-                end.y += dir * 100 / 1000 * interval;
-                speed.y += dir * 100 / 1000 * interval;
-                wheeling = true;
-            }
-
-            function scrollToY(value) {
-                start.y = end.y = value;
-                setTimeout(function() {
-                    off();
-                    busy = false;
-                }, 500);
-            }
-
-        }
-
-        function link(methods) {
-            angular.extend(this, methods);
-        }
-
-        Scrollable.prototype = {
-            link: link,
-            getItems: function() {
-                return [content];
-            },
-        };
-        return Scrollable;
-    }]);
-
-}());
-/* global angular */
-
-(function () {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('videoSource', ['$timeout', '$promise', function ($timeout, $promise) {
+	app.factory('Scrollable', ['Utils', 'Point', 'Rect', function(Utils, Point, Rect) {
+
+		function Scrollable() {
+
+			var padding = 150;
+			var enabled, snappable, busy, dragging, wheeling, down, move, prev;
+			var currentIndex = 0;
+
+			snappable = true;
+
+			var start = new Point(),
+				end = new Point(),
+				current = new Point(),
+				drag = new Point(),
+				indicator = new Point(),
+				offset = new Point(),
+				speed = new Point(),
+				container = new Rect(),
+				content = new Rect(),
+				overflow = new Rect();
+
+			var scrollable = {
+				// properties
+				start: start,
+				end: end,
+				current: current,
+				indicator: indicator,
+				speed: speed,
+				overflow: overflow,
+				container: container,
+				content: content,
+				// methods
+				setContainer: setContainer,
+				setContent: setContent,
+				setEnabled: setEnabled,
+				getCurrent: getCurrent,
+				getDrag: getDrag,
+				getIndicator: getIndicator,
+				getIndex: getIndex,
+				scrollToIndex: scrollToIndex,
+				scrollPrev: scrollPrev,
+				scrollNext: scrollNext,
+				dragStart: dragStart,
+				dragMove: dragMove,
+				dragEnd: dragEnd,
+				doReset: doReset,
+				off: off,
+				// x direction
+				doLeft: doLeft,
+				doRight: doRight,
+				renderX: renderX,
+				scrollToX: scrollToX,
+				wheelX: wheelX,
+				wheelXCheck: wheelXCheck,
+				// y direction
+				doTop: doTop,
+				doBottom: doBottom,
+				renderY: renderY,
+				scrollToY: scrollToY,
+				wheelY: wheelY,
+				wheelYCheck: wheelYCheck,
+			};
+
+			angular.extend(this, scrollable);
+
+			scrollable = this;
+
+			function setContainer(node) {
+				container.width = node.offsetWidth;
+				container.height = node.offsetHeight;
+			}
+
+			function setContent(node) {
+				content.width = node.offsetWidth;
+				content.height = node.offsetHeight;
+			}
+
+			function setEnabled(flag) {
+				enabled = flag;
+			}
+
+			function getCurrent() {
+				return current;
+			}
+
+			function getDrag() {
+				return drag;
+			}
+
+			function getIndicator() {
+				return indicator;
+			}
+
+			function getIndex() {
+				return currentIndex;
+			}
+
+			function scrollToIndex(index) {
+				if (index !== currentIndex) {
+					currentIndex = index;
+					var item = getItemAtIndex(index);
+					if (item) {
+						offset = new Point(
+							item.offsetLeft,
+							item.offsetTop
+						);
+						// console.log('scrollToIndex', index, offset);
+					}
+					return true;
+				}
+			}
+
+			function dragStart(point) {
+				if (!busy) {
+					start.x = end.x = current.x;
+					start.y = end.y = current.y;
+					speed.x = 0;
+					speed.y = 0;
+					down = point;
+					currentIndex = -1;
+					wheeling = false;
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			function dragMove(point) {
+				prev = move;
+				move = point;
+				drag.x = move.x - down.x;
+				drag.y = move.y - down.y;
+				dragging = true;
+			}
+
+			function dragEnd() {
+				if (move && prev) {
+					speed.x += (move.x - prev.x) * 4;
+					speed.y += (move.y - prev.y) * 4;
+				}
+				start.x = end.x = current.x;
+				start.y = end.y = current.y;
+				dragging = false;
+				move = null;
+				down = null;
+				prev = null;
+			}
+
+			function getItemAtIndex(index) {
+				var item = null;
+				var items = scrollable.getItems();
+				if (items) {
+					if (index >= 0 && index < items.length) {
+						item = items[index];
+					}
+				}
+				// console.log('getItemAtIndex', index, items.length, item);
+				return item;
+			}
+
+			function scrollPrev() {
+				var index = Math.max(0, currentIndex - 1);
+				console.log('scrollPrev', index);
+				scrollToIndex(index);
+			}
+
+			function scrollNext() {
+				var items = scrollable.getItems();
+				var index = Math.min(items.length - 1, currentIndex + 1);
+				console.log('scrollNext', index);
+				scrollToIndex(index);
+			}
+
+			function doReset() {
+				end.x = current.x = 0;
+			}
+
+			function off() {
+				dragging = false;
+				wheeling = false;
+				move = null;
+				down = null;
+			}
+
+			// x - direction
+
+			function doLeft(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onLeft) {
+					return;
+				}
+				busy = true;
+				scrollable.onLeft(scope).then().finally(function() {
+					scrollToX(0);
+				});
+			}
+
+			function doRight(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onRight) {
+					return;
+				}
+				busy = true;
+				scrollable.onRight(scope).then().finally(function() {
+					var right = container.width - content.width;
+					if (right > overflow.width) {
+						start.x = end.x = overflow.width;
+					} else {
+						start.x = end.x = overflow.width + padding;
+					}
+					scrollToX(0);
+				});
+			}
+
+			function renderX() {
+				var animating = true;
+				if (enabled) {
+					overflow.x = 0;
+					overflow.width = container.width - content.width;
+					if (dragging) {
+						end.x = start.x + move.x - down.x;
+						if (extendX()) {
+							start.x = end.x;
+							down.x = move.x;
+						}
+					} else if (speed.x) {
+						end.x += speed.x;
+						speed.x *= 0.75;
+						if (wheeling) {
+							extendX();
+						}
+						if (Math.abs(speed.x) < 2.05) {
+							speed.x = 0;
+							scrollable.wheeling = wheeling = false;
+							snapToNearestX();
+						}
+					} else if (offset) {
+						end.x = -offset.x;
+						offset = null;
+					}
+					end.x = Math.round(end.x * 10000) / 10000;
+					end.x = Math.min(overflow.x, end.x);
+					end.x = Math.max(overflow.width, end.x);
+					current.x += (end.x - current.x) / 4;
+					if (speed.x === 0 && Math.abs(end.x - current.x) < 0.05) {
+						current.x = end.x;
+						if (!snapToNearestX()) {
+							animating = false;
+						}
+					}
+					// console.log('renderX', current.x, end.x, overflow.x);
+				} else {
+					current.x = end.x = 0;
+					animating = false;
+				}
+				return animating;
+			}
+
+			function extendX() {
+				var extending = false;
+				overflow.x += padding;
+				overflow.width -= padding;
+				if (end.x > overflow.x) {
+					extending = true;
+					doLeft();
+				} else if (end.x < overflow.width) {
+					extending = true;
+					doRight();
+				}
+				return extending;
+			}
+
+			function snapToNearestX() {
+				var items = scrollable.getItems();
+				if (items) {
+					var index = -1;
+					var min = Number.POSITIVE_INFINITY;
+					angular.forEach(items, function(item, i) {
+						var distance = Math.abs((end.x + speed.x) - (item.offsetLeft * -1));
+						if (distance < min) {
+							min = distance;
+							index = i;
+						}
+					});
+					if (index !== -1) {
+						if (snappable) {
+							return scrollToIndex(index);
+						} else {
+							currentIndex = index;
+						}
+					}
+				}
+			}
+
+			function wheelXCheck(dir) {
+				// console.log('wheelYCheck', dir < 0 ? (end.x - overflow.width) : (end.x - overflow.x));
+				if (!busy && enabled) {
+					if (dir < 0) {
+						return end.x - overflow.width;
+					} else {
+						return end.x - overflow.x;
+					}
+				} else {
+					return false;
+				}
+			}
+
+			function wheelX(dir, interval) {
+				end.x += dir * 100 / 1000 * interval;
+				speed.x += dir * 100 / 1000 * interval;
+				wheeling = true;
+			}
+
+			function scrollToX(value) {
+				start.x = end.x = value;
+				setTimeout(function() {
+					off();
+					busy = false;
+				}, 500);
+			}
+
+			// y - direction
+
+			function doTop(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onTop) {
+					return;
+				}
+				busy = true;
+				scrollable.onTop(scope).then().finally(function() {
+					scrollToY(0);
+				});
+			}
+
+			function doBottom(scope) {
+				if (busy) {
+					return;
+				}
+				if (!scrollable.onBottom) {
+					return;
+				}
+				busy = true;
+				scrollable.onBottom(scope).then().finally(function() {
+					var bottom = container.height - content.height;
+					if (bottom > overflow.height) {
+						start.y = end.y = overflow.height;
+					} else {
+						start.y = end.y = overflow.height + padding;
+					}
+					scrollToY(0);
+				});
+			}
+
+			function renderY() {
+				var animating = true;
+				if (enabled) {
+					overflow.y = 0;
+					overflow.height = container.height - content.height;
+					if (dragging) {
+						end.y = start.y + move.y - down.y;
+						if (extendY()) {
+							start.y = end.y;
+							down.y = move.y;
+						}
+					} else if (speed.y) {
+						end.y += speed.y;
+						speed.y *= 0.75;
+						if (wheeling) {
+							extendY();
+						}
+						if (Math.abs(speed.y) < 2.05) {
+							speed.y = 0;
+							scrollable.wheeling = wheeling = false;
+							snapToNearestY();
+						}
+					} else if (offset) {
+						end.y = -offset.y;
+						offset = null;
+					}
+					end.y = Math.round(end.y * 10000) / 10000;
+					end.y = Math.min(overflow.y, end.y);
+					end.y = Math.max(overflow.height, end.y);
+					current.y += (end.y - current.y) / 4;
+					if (speed.y === 0 && Math.abs(end.y - current.y) < 0.05) {
+						current.y = end.y;
+						if (!snapToNearestY()) {
+							animating = false;
+						}
+					}
+					// console.log(parseFloat(current.y.toFixed(6)), end.y, overflow.y);
+					// console.log(dragging, wheeling, end.y, speed.y, Math.abs(end.y - current.y));
+				} else {
+					current.y = end.y = 0;
+					animating = false;
+				}
+				return animating;
+			}
+
+			function extendY() {
+				var extending = false;
+				overflow.y += padding;
+				overflow.height -= padding;
+				if (end.y > overflow.y) {
+					extending = true;
+					doTop();
+				} else if (end.y < overflow.height) {
+					extending = true;
+					doBottom();
+				}
+				return extending;
+			}
+
+			function snapToNearestY() {
+				var items = scrollable.getItems();
+				if (items) {
+					var index = -1;
+					var min = Number.POSITIVE_INFINITY;
+					angular.forEach(items, function(item, i) {
+						var distance = Math.abs((end.y + speed.y) - (item.offsetTop * -1));
+						if (distance < min) {
+							min = distance;
+							index = i;
+						}
+					});
+					// console.log('snapToNearestY', index, min);
+					if (index !== -1) {
+						if (snappable) {
+							return scrollToIndex(index);
+						} else {
+							currentIndex = index;
+						}
+					}
+				}
+			}
+
+			function wheelYCheck(dir) {
+				// console.log('wheelYCheck', dir < 0 ? (end.y - overflow.height) : (end.y - overflow.y));
+				if (!busy && enabled) {
+					if (dir < 0) {
+						return end.y - overflow.height;
+					} else {
+						return end.y - overflow.y;
+					}
+				} else {
+					return false;
+				}
+			}
+
+			function wheelY(dir, interval) {
+				end.y += dir * 100 / 1000 * interval;
+				speed.y += dir * 100 / 1000 * interval;
+				wheeling = true;
+			}
+
+			function scrollToY(value) {
+				start.y = end.y = value;
+				setTimeout(function() {
+					off();
+					busy = false;
+				}, 500);
+			}
+
+		}
+
+		function link(methods) {
+			angular.extend(this, methods);
+		}
+
+		Scrollable.prototype = {
+			link: link,
+			getItems: function() {
+				return [content];
+			},
+		};
+		return Scrollable;
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.directive('videoSource', ['$timeout', '$promise', function($timeout, $promise) {
 
 		var directive = {
 			restrict: 'A',
@@ -3038,7 +3050,7 @@
 				source: '=videoSource',
 				image: '=videoImage',
 			},
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				return attributes.template || 'artisan/components/video/partial/video-player';
 			},
 			link: VideoSourceLink
@@ -3063,7 +3075,7 @@
 			// loop><source src="{{source}}" type="video/mp4"
 
 			function canplay() {
-				return $promise(function (promise) {
+				return $promise(function(promise) {
 
 					function _onCanPlay(e) {
 						scope.canplay = true;
@@ -3088,7 +3100,7 @@
 					if (scope.playing) {
 						video.pause();
 					} else {
-						canplay().then(function () {
+						canplay().then(function() {
 							video.play();
 						});
 					}
@@ -3098,7 +3110,7 @@
 			function play() {
 				if (!scope.busy) {
 					scope.busy = true;
-					canplay().then(function () {
+					canplay().then(function() {
 						video.play();
 					});
 				}
@@ -3112,41 +3124,41 @@
 			}
 
 			function onCanPlay(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.canplay = true;
 				});
 			}
 
 			function onPlaying(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.playing = true;
 					scope.busy = false;
 				});
 			}
 
 			function onPause(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.playing = false;
 					scope.busy = false;
 				});
 			}
 
 			function onEnded(e) {
-				$timeout(function () {
+				$timeout(function() {
 					scope.playing = false;
 					scope.busy = false;
 				});
 			}
 
 			function onProgress(e) {
-				$timeout(function () {
+				$timeout(function() {
 					infos.buffered = video.buffered; // todo: TimeRanges
 					// console.log('onProgress', infos);
 				});
 			}
 
 			function onTimeUpdate(e) {
-				$timeout(function () {
+				$timeout(function() {
 					infos.duration = video.duration;
 					infos.currentTime = video.currentTime;
 					infos.progressTime = infos.currentTime / infos.duration;
@@ -3175,7 +3187,7 @@
 			}
 
 			addListeners();
-			scope.$on('destroy', function () {
+			scope.$on('destroy', function() {
 				removeListeners();
 			});
 
@@ -3192,14 +3204,15 @@
 	*/
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Animate', [function () {
+	app.factory('Animate', [function() {
 
 		function Animate(callback) {
 			this.callback = callback;
@@ -3256,7 +3269,7 @@
 
     }]);
 
-	(function () {
+	(function() {
 		var lastTime = 0;
 		var vendors = ['ms', 'moz', 'webkit', 'o'];
 		for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
@@ -3265,10 +3278,10 @@
 				window[vendors[x] + 'CancelRequestAnimationFrame'];
 		}
 		if (!window.requestAnimationFrame) {
-			window.requestAnimationFrame = function (callback, element) {
+			window.requestAnimationFrame = function(callback, element) {
 				var currTime = new Date().getTime();
 				var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-				var id = window.setTimeout(function () {
+				var id = window.setTimeout(function() {
 					callback(currTime + timeToCall);
 				}, timeToCall);
 				lastTime = currTime + timeToCall;
@@ -3276,29 +3289,30 @@
 			};
 		}
 		if (!window.cancelAnimationFrame) {
-			window.cancelAnimationFrame = function (id) {
+			window.cancelAnimationFrame = function(id) {
 				clearTimeout(id);
 			};
 		}
 	}());
 
 }());
-(function () {
+
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+	app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
 		return {
 			restrict: 'A',
-			template: function (element, attributes) {
+			template: function(element, attributes) {
 				return '<div calendar-popup="options"></div>';
 			},
 			require: 'ngModel',
 			scope: {
 				user: '=calendarUser',
 			},
-			link: function (scope, element, attributes, model, transclude) {
+			link: function(scope, element, attributes, model, transclude) {
 
 				var user = scope.user;
 
@@ -3341,12 +3355,12 @@
 				function onMonthDidChange(date, month, calendar) {
 					var deferred = $q.defer();
 					// console.log('calendarPopupRecords.onMonthDidChange', month.toString());
-					GetMonthRecords(month).then(function () {
+					GetMonthRecords(month).then(function() {
 						setAbsencesAndOvertimes();
 						updateCalendar(date, month, calendar);
 						deferred.resolve(getFirstWorkingDate(date, month, calendar));
 
-					}, function () {
+					}, function() {
 						deferred.reject();
 
 					});
@@ -3362,7 +3376,7 @@
 						}),
                         Api.gantt.calendar(monthExpanded.getParams()).then(function success(response) {
 							var unworkings = {};
-							angular.forEach(response, function (item) {
+							angular.forEach(response, function(item) {
 								unworkings[item.key] = item;
 							});
 							sources.unworkings = unworkings;
@@ -3376,19 +3390,19 @@
                             });
                         }),
                         */
-                        Api.gantt.records(user.id, monthExpanded.getParams()).then(function (rows) {
-							sources.monthRecords = rows.map(function (row) {
+                        Api.gantt.records(user.id, monthExpanded.getParams()).then(function(rows) {
+							sources.monthRecords = rows.map(function(row) {
 								row.state = new State();
 								row.record.date = new Date(row.record.date);
 								return row;
 							});
 						}),
 
-                    ]).then(function (response) {
+                    ]).then(function(response) {
 						// state.success();
 						deferred.resolve();
 
-					}, function (error) {
+					}, function(error) {
 						// state.error(error);
 						deferred.reject();
 
@@ -3409,7 +3423,7 @@
 					}
 					// console.log('calendarPopupRecords.onDayDidSelect', day, day.working, day.date);
 					if (day && day.working) {
-						$timeout(function () {
+						$timeout(function() {
 							model.$setViewValue(day.date);
 						});
 						return true;
@@ -3422,7 +3436,7 @@
 					if (!monthRecords) {
 						return;
 					}
-					calendar.days.each(function (day) {
+					calendar.days.each(function(day) {
 						var availableHours = 0;
 						if (day.working) {
 							availableHours += resource.baseHours;
@@ -3442,13 +3456,13 @@
 						day.wasWorkable = day.working && day.past && has;
 						day.workable = day.working && !day.past && has;
 					});
-					angular.forEach(monthRecords, function (row) {
+					angular.forEach(monthRecords, function(row) {
 						var day = calendar.days.get(row.record.key);
 						if (day) {
 							day.recordedHours += row.record.hours;
 						}
 					});
-					calendar.days.each(function (day) {
+					calendar.days.each(function(day) {
 						day.green = day.working && !currentDay.isBefore(day.date) && day.recordedHours >= 8;
 						day.orange = day.working && !currentDay.isBefore(day.date) && day.recordedHours < 8;
 						// day.full = day.workable && day.hours >= day.availableHours;
@@ -3458,7 +3472,7 @@
 
 				function setResources(resources) {
 					sources.resources = resources;
-					angular.forEach(resources, function (resource) {
+					angular.forEach(resources, function(resource) {
 						resource.absencesAndOvertimes = {};
 						if (resource.id === user.id) {
 							sources.resource = resource;
@@ -3473,7 +3487,7 @@
 					}
 					// assegno assenze e straordinari alla risorsa
 					resource.absencesAndOvertimes = {};
-					angular.forEach(sources.absencesAndOvertimes, function (item) {
+					angular.forEach(sources.absencesAndOvertimes, function(item) {
 						if (resource.id === item.resourceId) {
 							resource.absencesAndOvertimes[item.key] = item;
 						}
@@ -3486,7 +3500,7 @@
 
 					function setFirstDay() {
 						calendar.days.forward();
-						calendar.days.each(function (day) {
+						calendar.days.each(function(day) {
 							if (!firstWorkingDate && !month.isOutside(day.date) && day.working && !day.vacation) {
 								// console.log('check', day.working, day.vacation, day.date);
 								firstWorkingDate = day.date;
@@ -3513,7 +3527,7 @@
 		};
     }]);
 
-	app.directive('calendarPopup', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
+	app.directive('calendarPopup', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
 
 		return {
 			priority: 1002,
@@ -3541,9 +3555,9 @@
 			var calendar = new CalendarFactory();
 
 			var options = scope.options || {
-				onMonthDidChange: function () {},
-				onWeekDidSelect: function () {},
-				onDayDidSelect: function () {},
+				onMonthDidChange: function() {},
+				onWeekDidSelect: function() {},
+				onDayDidSelect: function() {},
 			};
 
 			var month = Range.Month();
@@ -3581,7 +3595,7 @@
 
 			function onMonthChange(date) {
 				var calendarMonth = calendar.getMonthByDate(month.getDate());
-				calendarMonth.days.each(function (day) {
+				calendarMonth.days.each(function(day) {
 					var d = day.date.getDay();
 					day.dirty = true;
 					day.hours = 0;
@@ -3629,7 +3643,7 @@
 
 			function updateSelections() {
 				var calendarMonth = sources.calendarMonth;
-				calendarMonth.days.each(function (day) {
+				calendarMonth.days.each(function(day) {
 					day.selected = sources.day.isCurrent(day.date);
 				});
 			}
@@ -3673,7 +3687,7 @@
 
     var app = angular.module('app');
 
-    
+
     app.directive('calendarPopupRecords', ['$templateCache', '$parse', '$q', '$timeout', '$filter', 'Hash', 'DateTime', 'Range', 'CalendarFactory', 'State', 'Api', function ($templateCache, $parse, $q, $timeout, $filter, Hash, DateTime, Range, CalendarFactory, State, Api) {
         return {
             restrict: 'A',
@@ -3887,7 +3901,7 @@
                 });
             }
 
-            function updateCalendar(date, month, calendar) {                
+            function updateCalendar(date, month, calendar) {
                 calendar.days.each(function (day) {
                     setWorkableDay(day);
                 });
@@ -4107,7 +4121,7 @@
                 day.vacation = day.working && !has;
                 day.wasVacation = day.vacation && day.past;
                 day.workable = day.working && !day.past && has;
-                day.wasWorkable = day.working && day.past && has;                
+                day.wasWorkable = day.working && day.past && has;
             }
 
             function updateCalendar(date, month, calendar) {
@@ -4214,7 +4228,7 @@
                 options.onMonthDidChange(date, Range.currentMonth().setDate(date), calendarMonth).then(function () {
                     date ? month.setDate(date) : null;
                     sources.calendarMonth = calendarMonth;
-                    scope.$emit('onMonthDidChange', options);                    
+                    scope.$emit('onMonthDidChange', options);
                 });
             }
 
@@ -4282,14 +4296,15 @@
 }());
 
 */
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Calendar', ['DateTime', 'Hash', function (DateTime, Hash) {
+	app.service('Calendar', ['DateTime', 'Hash', function(DateTime, Hash) {
 
 		var service = this;
 
@@ -4319,7 +4334,7 @@
 		}
 
 		function clearMonth(month) {
-			month.days.each(function (day) {
+			month.days.each(function(day) {
 				if (day) {
 					day.hours = 0;
 					day.tasks = new Hash('id');
@@ -4348,8 +4363,8 @@
 					fromDay: fromDay,
 					days: new Hash('key'),
 				};
-				month.weeks = new Array(weeks).fill().map(function (o, r) {
-					var days = new Array(7).fill().map(function (o, c) {
+				month.weeks = new Array(weeks).fill().map(function(o, r) {
+					var days = new Array(7).fill().map(function(o, c) {
 						var item = null;
 						var d = r * 7 + c - fromDay;
 						if (d >= 0 && d < monthDays) {
@@ -4376,7 +4391,7 @@
 						days: days,
 					};
 				});
-				month.getMonth = function (diff) {
+				month.getMonth = function(diff) {
 					diff = diff || 0;
 					return new Date(yyyy, MM + diff, 1);
 				};
@@ -4423,7 +4438,7 @@
 
     }]);
 
-	app.factory('CalendarFactory', ['DateTime', 'Hash', function (DateTime, Hash) {
+	app.factory('CalendarFactory', ['DateTime', 'Hash', function(DateTime, Hash) {
 
 		function Calendar() {
 			this.days = new Hash('key');
@@ -4451,7 +4466,7 @@
 		// statics
 
 		function clearMonth(month) {
-			month.days.each(function (day) {
+			month.days.each(function(day) {
 				if (day) {
 					day.hours = 0;
 					day.tasks = new Hash('id');
@@ -4529,8 +4544,8 @@
 					fromDay: fromDay,
 					days: new Hash('key'),
 				};
-				month.weeks = new Array(weeks).fill().map(function (o, r) {
-					var days = new Array(7).fill().map(function (o, c) {
+				month.weeks = new Array(weeks).fill().map(function(o, r) {
+					var days = new Array(7).fill().map(function(o, c) {
 						var item = null;
 						var d = r * 7 + c - fromDay;
 						if (d >= 0 && d < monthDays) {
@@ -4557,7 +4572,7 @@
 						days: days,
 					};
 				});
-				month.getMonth = function (diff) {
+				month.getMonth = function(diff) {
 					diff = diff || 0;
 					return new Date(yyyy, MM + diff, 1);
 				};
@@ -4569,14 +4584,15 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('DateTime', [function () {
+	app.service('DateTime', [function() {
 
 		var service = this;
 
@@ -4910,8 +4926,8 @@
 
     }]);
 
-	app.filter('isoWeek', ['DateTime', function (DateTime) {
-		return function (value, offsetDays) {
+	app.filter('isoWeek', ['DateTime', function(DateTime) {
+		return function(value, offsetDays) {
 			if (value) {
 				var week = DateTime.getWeek(value, offsetDays);
 				return week < 10 ? '0' + week : week; // padded
@@ -4922,9 +4938,10 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -4990,7 +5007,7 @@
 		DAY: 17,
 	});
 
-	app.factory('Range', ['$filter', 'DateTime', 'RangeTypes', function ($filter, DateTime, RangeTypes) {
+	app.factory('Range', ['$filter', 'DateTime', 'RangeTypes', function($filter, DateTime, RangeTypes) {
 
 		function Range(options) {
 			var range = this;
@@ -5010,6 +5027,7 @@
 			setMonth: setMonth,
 			setWeek: setWeek,
 			setDay: setDay,
+			setKey: setKey,
 
 			prev: prev,
 			next: next,
@@ -5027,6 +5045,7 @@
 			isCurrent: isCurrent,
 			isBefore: isBefore,
 			isAfter: isAfter,
+			equals: equals,
 
 			eachDay: eachDay,
 			totalDays: totalDays,
@@ -5043,7 +5062,7 @@
 			getMonth: RangeGetMonth,
 			addYear: RangeAddYear,
 			types: RangeTypes,
-			// 
+			//
 			Year: RangeYear,
 			Semester: RangeSemester,
 			Trimester: RangeTrimester,
@@ -5217,6 +5236,10 @@
 			return range;
 		}
 
+		function setKey(key, diff, size, step) {
+			return this.setDay(DateTime.keyToDate(key), diff, size, step);
+		}
+
 		function prev() {
 			return this.setDiff(-1);
 		}
@@ -5272,6 +5295,11 @@
 			return flag;
 		}
 
+		function equals(r) {
+			var range = this;
+			return r && DateTime.dateToKey(r.from) === DateTime.dateToKey(range.from) && DateTime.dateToKey(r.to) === DateTime.dateToKey(range.to);
+		}
+
 		function eachDay(callback) {
 			var range = this;
 			if (typeof callback !== 'function') {
@@ -5313,7 +5341,7 @@
 				'] \'' + range.getName() + '\'';
 		}
 
-		// static methods        
+		// static methods
 		function RangeCopy($range) {
 			var range = new Range($range);
 			range.from = new Date($range.from);
@@ -5391,7 +5419,7 @@
 
 		function RangeFormat(range, format) {
 			var name = format;
-			name = name.replace(/{(.*?)}/g, function (replaced, token) {
+			name = name.replace(/{(.*?)}/g, function(replaced, token) {
 				var a = token.split('|');
 				var p = a.shift();
 				var f = a.join(''),
@@ -5414,11 +5442,11 @@
 
     }]);
 
-	(function () {
+	(function() {
 		// POLYFILL Object.values
 		if (typeof Object.values !== 'function') {
 			Object.defineProperty(Object, 'values', {
-				value: function (obj) {
+				value: function(obj) {
 					var vals = [];
 					for (var key in obj) {
 						if (has(obj, key) && isEnumerable(obj, key)) {
@@ -5432,9 +5460,10 @@
 	}());
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -5475,7 +5504,7 @@
 		over_a_year_from_now: 'over a year from now'
 	});
 
-	app.filter('dateRelative', ['$rootScope', '$interval', '$injector', '$formats', function ($rootScope, $interval, $injector, $formats) {
+	app.filter('dateRelative', ['$rootScope', '$interval', '$injector', '$formats', function($rootScope, $interval, $injector, $formats) {
 
 		var minute = 60;
 		var hour = minute * 60;
@@ -5491,7 +5520,7 @@
 				return $injector.get('$format');
 			} else {
 				return {
-					instant: function (id, params) {
+					instant: function(id, params) {
 						return $formats[id].replace('{{num}}', params.num);
 					}
 				};
@@ -5507,7 +5536,7 @@
             console.log($rootScope.$now);
         }, 3 * 1000);
 		*/
-		return function (date) {
+		return function(date) {
 			if (!(date instanceof Date)) {
 				date = new Date(date);
 			}
@@ -5579,11 +5608,11 @@
 		};
     }]);
 
-	app.directive('dateRelative', ['$parse', '$filter', '$interval', function ($parse, $filter, $interval) {
+	app.directive('dateRelative', ['$parse', '$filter', '$interval', function($parse, $filter, $interval) {
 		return {
 			priority: 1001,
 			restrict: 'A',
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 
 				function setDate() {
 					var date = $parse(attributes.dateRelative)(scope);
@@ -5596,7 +5625,7 @@
 
 				var i = setInterval(setDate, 60 * 1000);
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					cancelInterval(i);
 				});
 
@@ -5623,6 +5652,7 @@
 	*/
 
 }());
+
 /*
 // handle transition on resizing
 var resizingTimeout;
@@ -5637,12 +5667,12 @@ $(window).on('resize', function () {
 
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Dom', ['Point', 'Rect', function (Point, Rect) {
+	app.service('Dom', ['Point', 'Rect', function(Point, Rect) {
 
 		var service = this;
 
@@ -5679,7 +5709,7 @@ $(window).on('resize', function () {
 		// return closest parent node that match a selector
 		function getClosest(node, selector) {
 			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function(fn) {
 				if (typeof document.body[fn] == 'function') {
 					matchesFn = fn;
 					return true;
@@ -5783,8 +5813,8 @@ $(window).on('resize', function () {
 				}
 				parents.push(topParentNode); // push that topParentNode you wanted to stop at
 			}
-			parents.each = function (callback) {
-				this.filter(function (node) {
+			parents.each = function(callback) {
+				this.filter(function(node) {
 					if (callback) {
 						callback(angular.element(node), node);
 					}
@@ -5849,7 +5879,7 @@ $(window).on('resize', function () {
 				mobile: mobile,
 				mac: mac,
 			};
-			angular.forEach(ua, function (value, key) {
+			angular.forEach(ua, function(value, key) {
 				if (value) {
 					angular.element(document.getElementsByTagName('body')).addClass(key);
 				}
@@ -5905,7 +5935,7 @@ $(window).on('resize', function () {
 			});
 			var reader = new window.FileReader();
 			reader.readAsDataURL(blob);
-			reader.onloadend = function () {
+			reader.onloadend = function() {
 				base64 = reader.result;
 				download();
 			};
@@ -5931,14 +5961,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Event', ['EventsService', 'Dom', 'Point', 'Rect', function (EventsService, Dom, Point, Rect) {
+	app.factory('Event', ['EventsService', 'Dom', 'Point', 'Rect', function(EventsService, Dom, Point, Rect) {
 
 		function Event(event, element) {
 			try {
@@ -5997,7 +6028,7 @@ $(window).on('resize', function () {
 
 	}]);
 
-	app.factory('Events', ['EventsService', 'Event', 'Dom', function (EventsService, Event, Dom) {
+	app.factory('Events', ['EventsService', 'Event', 'Dom', function(EventsService, Event, Dom) {
 
 		function Events(element) {
 			var events = this;
@@ -6167,7 +6198,7 @@ $(window).on('resize', function () {
 			var element = this.element,
 				windowElement = angular.element(window);
 
-			angular.forEach(listeners, function (callback, key) {
+			angular.forEach(listeners, function(callback, key) {
 				if (events.listeners[key]) {
 					var listener = {};
 					listener[key] = events.listeners[key];
@@ -6193,7 +6224,7 @@ $(window).on('resize', function () {
 			});
 
 			if (scope) {
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					events.remove(listeners);
 				});
 			}
@@ -6209,7 +6240,7 @@ $(window).on('resize', function () {
 				scroll = this.scrollEvents;
 			var element = this.element,
 				windowElement = angular.element(window);
-			angular.forEach(listeners, function (callback, key) {
+			angular.forEach(listeners, function(callback, key) {
 				if (standard[key]) {
 					if (key === 'resize') {
 						windowElement.off(standard[key].key, standard[key].callback);
@@ -6299,7 +6330,7 @@ $(window).on('resize', function () {
 
     }]);
 
-	app.service('EventsService', ['Dom', function (Dom) {
+	app.service('EventsService', ['Dom', function(Dom) {
 
 		var service = this;
 
@@ -6321,7 +6352,7 @@ $(window).on('resize', function () {
 			if (window.addEventListener) {
 				try {
 					var options = Object.defineProperty({}, 'passive', {
-						get: function () {
+						get: function() {
 							supported = true;
 						},
 					});
@@ -6379,10 +6410,10 @@ $(window).on('resize', function () {
 					return;
 				}
 				if (
-					(e.deltaX < 0 && (Dom.getParents(e.target).filter(function (node) {
+					(e.deltaX < 0 && (Dom.getParents(e.target).filter(function(node) {
 						return node.scrollLeft > 0;
 					}).length === 0)) ||
-					(e.deltaX > 0 && (Dom.getParents(e.target).filter(function (node) {
+					(e.deltaX > 0 && (Dom.getParents(e.target).filter(function(node) {
 						return node.scrollWidth - node.scrollLeft > node.clientWidth;
 					}).length === 0))
 				) {
@@ -6394,17 +6425,18 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular, app, Autolinker */
-(function () {
+(function() {
 
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.filter('notIn', ['$filter', function ($filter) {
-		return function (array, filters, element) {
+	app.filter('notIn', ['$filter', function($filter) {
+		return function(array, filters, element) {
 			if (filters) {
-				return $filter("filter")(array, function (item) {
+				return $filter("filter")(array, function(item) {
 					for (var i = 0; i < filters.length; i++) {
 						if (filters[i][element] === item[element]) return false;
 					}
@@ -6414,21 +6446,21 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('autolink', [function () {
-		return function (value) {
+	app.filter('autolink', [function() {
+		return function(value) {
 			return Autolinker.link(value, {
 				className: "a-link"
 			});
 		};
     }]);
 
-	app.filter('shortName', ['$filter', function ($filter) {
+	app.filter('shortName', ['$filter', function($filter) {
 		function toTitleCase(str) {
-			return str.replace(/\w\S*/g, function (txt) {
+			return str.replace(/\w\S*/g, function(txt) {
 				return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 			});
 		}
-		return function (value) {
+		return function(value) {
 			if (!value) {
 				return '';
 			}
@@ -6454,15 +6486,15 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customCurrency', ['$filter', function ($filter) {
+	app.filter('customCurrency', ['$filter', function($filter) {
 		var legacyFilter = $filter('currency');
-		return function (cost, currency) {
+		return function(cost, currency) {
 			return legacyFilter(cost * currency.ratio, currency.formatting);
 		};
     }]);
 
-	app.filter('customSize', ['APP', function (APP) {
-		return function (inches) {
+	app.filter('customSize', ['APP', function(APP) {
+		return function(inches) {
 			if (APP.unit === APP.units.IMPERIAL) {
 				var feet = Math.floor(inches / 12);
 				inches = inches % 12;
@@ -6477,8 +6509,8 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customWeight', ['APP', function (APP) {
-		return function (pounds) {
+	app.filter('customWeight', ['APP', function(APP) {
+		return function(pounds) {
 			if (APP.unit === APP.units.IMPERIAL) {
 				if (pounds < 1) {
 					var oz = pounds * 16;
@@ -6497,8 +6529,8 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customNumber', ['$filter', function ($filter) {
-		return function (value, precision, unit) {
+	app.filter('customNumber', ['$filter', function($filter) {
+		return function(value, precision, unit) {
 			unit = unit || '';
 			// return ((value || value === 0) ? $filter('number')(value, precision) + unit : '-');
 			if (value !== undefined) {
@@ -6513,8 +6545,8 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('reportNumber', ['$filter', function ($filter) {
-		return function (value, precision, unit) {
+	app.filter('reportNumber', ['$filter', function($filter) {
+		return function(value, precision, unit) {
 			unit = unit || '';
 			if (value !== undefined) {
 				value = $filter('number')(value, precision) + unit;
@@ -6525,8 +6557,8 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customHours', [function () {
-		return function (value) {
+	app.filter('customHours', [function() {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value);
 				var minutes = Math.floor((value - hours) * 60);
@@ -6539,11 +6571,11 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customTimer', [function () {
+	app.filter('customTimer', [function() {
 		var second = 1000;
 		var minute = second * 60;
 		var hour = minute * 60;
-		return function (value) {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
@@ -6558,11 +6590,11 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customDigitalTimer', [function () {
+	app.filter('customDigitalTimer', [function() {
 		var second = 1000;
 		var minute = second * 60;
 		var hour = minute * 60;
-		return function (value) {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
@@ -6575,11 +6607,11 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customDigitalTime', [function () {
+	app.filter('customDigitalTime', [function() {
 		var second = 1000;
 		var minute = second * 60;
 		var hour = minute * 60;
-		return function (value) {
+		return function(value) {
 			if (value !== undefined) {
 				var hours = Math.floor(value / hour);
 				var minutes = Math.floor((value - hours * hour) / minute);
@@ -6591,15 +6623,15 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customDate', ['$filter', function ($filter) {
+	app.filter('customDate', ['$filter', function($filter) {
 		var filter = $filter('date');
-		return function (value, format, timezone) {
+		return function(value, format, timezone) {
 			return value ? filter(value, format, timezone) : '-';
 		};
     }]);
 
-	app.filter('customTime', ['$filter', function ($filter) {
-		return function (value, placeholder) {
+	app.filter('customTime', ['$filter', function($filter) {
+		return function(value, placeholder) {
 			if (value) {
 				return Utils.parseTime(value);
 			} else {
@@ -6608,8 +6640,8 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customDigital', ['$filter', function ($filter) {
-		return function (value, placeholder) {
+	app.filter('customDigital', ['$filter', function($filter) {
+		return function(value, placeholder) {
 			if (value) {
 				return Utils.parseHour(value);
 			} else {
@@ -6618,24 +6650,24 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('customString', ['$filter', function ($filter) {
-		return function (value, placeholder) {
+	app.filter('customString', ['$filter', function($filter) {
+		return function(value, placeholder) {
 			return value ? value : (placeholder ? placeholder : '-');
 		};
     }]);
 
-	app.filter('customEnum', function () {
-		return function (val) {
+	app.filter('customEnum', function() {
+		return function(val) {
 			val = val + 1;
 			return val < 10 ? '0' + val : val;
 		};
 	});
 
-	app.filter('groupBy', ['$parse', 'filterWatcher', function ($parse, filterWatcher) {
+	app.filter('groupBy', ['$parse', 'filterWatcher', function($parse, filterWatcher) {
 		function _groupBy(collection, getter) {
 			var dict = {};
 			var key;
-			angular.forEach(collection, function (item) {
+			angular.forEach(collection, function(item) {
 				key = getter(item);
 				if (!dict[key]) {
 					dict[key] = [];
@@ -6644,7 +6676,7 @@ $(window).on('resize', function () {
 			});
 			return dict;
 		}
-		return function (collection, property) {
+		return function(collection, property) {
 			if (!angular.isObject(collection) || angular.isUndefined(property)) {
 				return collection;
 			}
@@ -6652,7 +6684,7 @@ $(window).on('resize', function () {
 		};
     }]);
 
-	app.filter('htmlToPlaintext', function () {
+	app.filter('htmlToPlaintext', function() {
 		function getStyle(n, p) {
 			return n.currentStyle ? n.currentStyle[p] : window.getComputedStyle(n, null).getPropertyValue(p);
 		}
@@ -6675,7 +6707,7 @@ $(window).on('resize', function () {
 			}
 			return result;
 		}
-		return function (html) {
+		return function(html) {
 			console.log(html);
 			var div = document.createElement('div');
 			div.innerHTML = html;
@@ -6685,14 +6717,15 @@ $(window).on('resize', function () {
 	});
 
 }());
+
 /* global angular, firebase */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Point', [function () {
+	app.factory('Point', [function() {
 
 		function Point(x, y) {
 			this.x = x || 0;
@@ -6782,14 +6815,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular, firebase */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Rect', [function () {
+	app.factory('Rect', [function() {
 
 		function Rect(x, y, w, h) {
 			this.x = x || 0;
@@ -7040,14 +7074,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular, firebase */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Vector', function () {
+	app.factory('Vector', function() {
 		function Vector(x, y) {
 			this.x = x || 0;
 			this.y = y || 0;
@@ -7184,14 +7219,15 @@ $(window).on('resize', function () {
 	});
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Hash', [function () {
+	app.factory('Hash', [function() {
 		var pools = {};
 
 		function Hash(key, pool) {
@@ -7365,7 +7401,7 @@ $(window).on('resize', function () {
 		function forward(key, reverse) {
 			var hash = this,
 				key = (key || this.key);
-			hash.sort(function (c, d) {
+			hash.sort(function(c, d) {
 				var a = reverse ? d : c;
 				var b = reverse ? c : d;
 				return a[key] - b[key];
@@ -7396,10 +7432,10 @@ $(window).on('resize', function () {
 			var hash = this,
 				pool = this.pool,
 				key = this.key;
-			Object.keys(pool).forEach(function (key) {
+			Object.keys(pool).forEach(function(key) {
 				delete pool[key];
 			});
-			angular.forEach(hash, function (item) {
+			angular.forEach(hash, function(item) {
 				pool[item[key]] = item;
 			});
 		}
@@ -7412,14 +7448,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('$promise', ['$q', function ($q) {
+	app.factory('$promise', ['$q', function($q) {
 
 		function $promise(callback) {
 			if (typeof callback !== 'function') {
@@ -7448,182 +7485,184 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.factory('State', ['$timeout', '$rootScope', function($timeout, $rootScope) {
+	app.factory('State', ['$timeout', '$rootScope', function($timeout, $rootScope) {
 
-        function State() {
-            this.idle();
-        }
+		function State() {
+			this.idle();
+		}
 
-        var DELAY = 2000;
+		var DELAY = 2000;
 
-        var statics = {};
+		var statics = {};
 
-        var publics = {
-            busy: busy,
-            classes: classes,
-            enabled: enabled,
-            error: error,
-            errorMessage: errorMessage,
-            errors: [],
-            idle: idle,
-            labels: labels,
-            ready: ready,
-            submitClass: submitClass,
-            success: success,
-        };
+		var publics = {
+			busy: busy,
+			classes: classes,
+			enabled: enabled,
+			error: error,
+			errorMessage: errorMessage,
+			errors: [],
+			idle: idle,
+			labels: labels,
+			ready: ready,
+			submitClass: submitClass,
+			success: success,
+		};
 
-        angular.extend(State, statics);
-        angular.extend(State.prototype, publics);
+		angular.extend(State, statics);
+		angular.extend(State.prototype, publics);
 
-        return State;
+		return State;
 
-        // static methods
+		// static methods
 
-        // publics methods
+		// publics methods
 
-        function busy() {
-            var state = this;
-            if (!state.isBusy) {
-                state.isBusy = true;
-                state.isError = false;
-                state.isErroring = false;
-                state.isSuccess = false;
-                state.isSuccessing = false;
-                state.errors = [];
-                return true;
-            } else {
-                return false;
-            }
-        }
+		function busy() {
+			var state = this;
+			if (!state.isBusy) {
+				state.isBusy = true;
+				state.isError = false;
+				state.isErroring = false;
+				state.isSuccess = false;
+				state.isSuccessing = false;
+				state.errors = [];
+				return true;
+			} else {
+				return false;
+			}
+		}
 
-        function classes(addons) {
-            var state = this,
-                classes = null;
-            classes = {
-                ready: state.isReady,
-                busy: state.isBusy,
-                successing: state.isSuccessing,
-                success: state.isSuccess,
-                errorring: state.isErroring,
-                error: state.isError,
-            };
-            if (addons) {
-                angular.forEach(addons, function(value, key) {
-                    classes[value] = classes[key];
-                });
-            }
-            return classes;
-        }
+		function classes(addons) {
+			var state = this,
+				classes = null;
+			classes = {
+				ready: state.isReady,
+				busy: state.isBusy,
+				successing: state.isSuccessing,
+				success: state.isSuccess,
+				errorring: state.isErroring,
+				error: state.isError,
+			};
+			if (addons) {
+				angular.forEach(addons, function(value, key) {
+					classes[value] = classes[key];
+				});
+			}
+			return classes;
+		}
 
-        function enabled() {
-            var state = this;
-            return !state.isBusy && !state.isErroring && !state.isSuccessing;
-        }
+		function enabled() {
+			var state = this;
+			return !state.isBusy && !state.isErroring && !state.isSuccessing;
+		}
 
-        function error(error) {
-            console.log('State.error', error);
-            var state = this;
-            state.isBusy = false;
-            state.isError = true;
-            state.isErroring = true;
-            state.isSuccess = false;
-            state.isSuccessing = false;
-            state.errors.push(error);
-            $timeout(function() {
-                state.isErroring = false;
-            }, DELAY);
-        }
+		function error(error) {
+			console.log('State.error', error);
+			var state = this;
+			state.isBusy = false;
+			state.isError = true;
+			state.isErroring = true;
+			state.isSuccess = false;
+			state.isSuccessing = false;
+			state.errors.push(error);
+			$timeout(function() {
+				state.isErroring = false;
+			}, DELAY);
+		}
 
-        function errorMessage() {
-            var state = this;
-            return state.isError ? state.errors[state.errors.length - 1] : null;
-        }
+		function errorMessage() {
+			var state = this;
+			return state.isError ? state.errors[state.errors.length - 1] : null;
+		}
 
-        function idle() {
-            var state = this;
-            state.isBusy = false;
-            state.isError = false;
-            state.isErroring = false;
-            state.isSuccess = false;
-            state.isSuccessing = false;
-            state.button = null;
-            state.errors = [];
-        }
+		function idle() {
+			var state = this;
+			state.isBusy = false;
+			state.isError = false;
+			state.isErroring = false;
+			state.isSuccess = false;
+			state.isSuccessing = false;
+			state.button = null;
+			state.errors = [];
+		}
 
-        function labels(addons) {
-            var state = this;
-            var defaults = {
-                ready: 'submit',
-                busy: 'sending',
-                error: 'error',
-                success: 'success',
-            };
-            if (addons) {
-                angular.extend(defaults, addons);
-            }
-            var label = defaults.ready;
-            if (state.isBusy) {
-                label = defaults.busy;
-            } else if (state.isSuccess) {
-                label = defaults.success;
-            } else if (state.isError) {
-                label = defaults.error;
-            }
-            return label;
-        }
+		function labels(addons) {
+			var state = this;
+			var defaults = {
+				ready: 'submit',
+				busy: 'sending',
+				error: 'error',
+				success: 'success',
+			};
+			if (addons) {
+				angular.extend(defaults, addons);
+			}
+			var label = defaults.ready;
+			if (state.isBusy) {
+				label = defaults.busy;
+			} else if (state.isSuccess) {
+				label = defaults.success;
+			} else if (state.isError) {
+				label = defaults.error;
+			}
+			return label;
+		}
 
-        function ready() {
-            var state = this;
-            state.idle();
-            state.isReady = true;
-            $rootScope.$broadcast('$stateReady', state);
-        }
+		function ready() {
+			var state = this;
+			state.idle();
+			state.isReady = true;
+			$rootScope.$broadcast('$stateReady', state);
+		}
 
-        function submitClass() {
-            var state = this;
-            return {
-                busy: state.isBusy,
-                ready: state.isReady,
-                successing: state.isSuccessing,
-                success: state.isSuccess,
-                errorring: state.isErroring,
-                error: state.isError,
-            };
-        }
+		function submitClass() {
+			var state = this;
+			return {
+				busy: state.isBusy,
+				ready: state.isReady,
+				successing: state.isSuccessing,
+				success: state.isSuccess,
+				errorring: state.isErroring,
+				error: state.isError,
+			};
+		}
 
-        function success() {
-            var state = this;
-            state.isBusy = false;
-            state.isError = false;
-            state.isErroring = false;
-            state.isSuccess = true;
-            state.isSuccessing = true;
-            state.errors = [];
-            $timeout(function() {
-                state.isSuccessing = false;
-            }, DELAY);
-        }
+		function success() {
+			var state = this;
+			state.isBusy = false;
+			state.isError = false;
+			state.isErroring = false;
+			state.isSuccess = true;
+			state.isSuccessing = true;
+			state.errors = [];
+			$timeout(function() {
+				state.isSuccessing = false;
+			}, DELAY);
+		}
 
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var transformProperty = detectTransformProperty();
 
 	var app = angular.module('artisan');
 
-	app.factory('Style', [function () {
+	app.factory('Style', [function() {
 
 		function Style() {
 			this.props = {
@@ -7676,7 +7715,7 @@ $(window).on('resize', function () {
 			safariPropertyHack = 'webkitTransform';
 		var div = document.createElement("DIV");
 		if (typeof div.style[transformProperty] !== 'undefined') {
-            ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
+            ['webkit', 'moz', 'o', 'ms'].every(function(prefix) {
 				var e = '-' + prefix + '-transform';
 				if (typeof div.style[e] !== 'undefined') {
 					transformProperty = e;
@@ -7693,14 +7732,15 @@ $(window).on('resize', function () {
 	}
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Utils', ['$compile', '$controller', 'Vector', function ($compile, $controller, Vector) {
+	app.service('Utils', ['$compile', '$controller', 'Vector', function($compile, $controller, Vector) {
 
 		var service = this;
 
@@ -7721,7 +7761,7 @@ $(window).on('resize', function () {
 
 		angular.extend(service, statics);
 
-		var getNow = Date.now || function () {
+		var getNow = Date.now || function() {
 			return new Date().getTime();
 		};
 
@@ -7755,7 +7795,7 @@ $(window).on('resize', function () {
 			var splitted = string.split(',');
 			if (splitted.length > 1) {
 				var formatted = splitted.shift();
-				angular.forEach(splitted, function (value, index) {
+				angular.forEach(splitted, function(value, index) {
 					if (expression) {
 						formatted = formatted.split('{' + index + '}').join('\' + ' + prepend + value + ' + \'');
 					} else {
@@ -7839,7 +7879,7 @@ $(window).on('resize', function () {
 		}
 
 		function reverseSortOn(key) {
-			return function (a, b) {
+			return function(a, b) {
 				if (a[key] < b[key]) {
 					return 1;
 				}
@@ -7861,13 +7901,13 @@ $(window).on('resize', function () {
 			var timeout = null;
 			var previous = 0;
 			if (!options) options = {};
-			var later = function () {
+			var later = function() {
 				previous = options.leading === false ? 0 : getNow();
 				timeout = null;
 				result = func.apply(context, args);
 				if (!timeout) context = args = null;
 			};
-			return function () {
+			return function() {
 				var now = getNow();
 				if (!previous && options.leading === false) previous = now;
 				var remaining = wait - (now - previous);
@@ -7895,9 +7935,9 @@ $(window).on('resize', function () {
 		function where(array, query) {
 			var found = null;
 			if (array) {
-				angular.forEach(array, function (item) {
+				angular.forEach(array, function(item) {
 					var has = true;
-					angular.forEach(query, function (value, key) {
+					angular.forEach(query, function(value, key) {
 						has = has && item[key] === value;
 					});
 					if (has) {
@@ -7910,14 +7950,14 @@ $(window).on('resize', function () {
 
     }]);
 
-	(function () {
+	(function() {
 		// POLYFILL Array.prototype.reduce
 		// Production steps of ECMA-262, Edition 5, 15.4.4.21
 		// Reference: http://es5.github.io/#x15.4.4.21
 		// https://tc39.github.io/ecma262/#sec-array.prototype.reduce
 		if (typeof Array.prototype.reduce !== 'function') {
 			Object.defineProperty(Array.prototype, 'reduce', {
-				value: function (callback) { // , initialvalue
+				value: function(callback) { // , initialvalue
 					if (this === null) {
 						throw new TypeError('Array.prototype.reduce called on null or undefined');
 					}
@@ -7951,11 +7991,11 @@ $(window).on('resize', function () {
 		}
 	}());
 
-	(function () {
+	(function() {
 		// POLYFILL Object.values
 		if (typeof Object.values !== 'function') {
 			Object.defineProperty(Object, 'values', {
-				value: function (obj) {
+				value: function(obj) {
 					var vals = [];
 					for (var key in obj) {
 						if (has(obj, key) && isEnumerable(obj, key)) {
@@ -7969,155 +8009,157 @@ $(window).on('resize', function () {
 	}());
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.provider('environment', ['$locationProvider', '$httpProvider', function($locationProvider, $httpProvider) {
-
-        var provider = this;
-
-        var statics = {
-            add: EnvironmentAdd,
-            use: EnvironmentUse,
-        };
-
-        angular.extend(provider, statics);
-
-        var defaults = {
-            plugins: {
-                facebook: {
-                    fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
-                    scope: 'public_profile, email', // publish_stream
-                    version: 'v2.10',
-                },
-                google: {},
-                googlemaps: {
-                    clusterer: true,
-                    styles: '/googlemaps/applemapesque.json',
-                    options: {
-                        center: {
-                            lat: 43.9023386,
-                            lng: 12.8505094
-                        },
-                        disableDefaultUI: true,
-                        mapTypeId: 'roadmap', // "hybrid", "roadmap", "satellite", "terrain"
-                        scrollwheel: true,
-                        // tilt: 0, // 45
-                        zoom: 4.0,
-                    },
-                },
-                mapbox: {
-                    clusterer: true,
-                    options: {
-                        bearing: 0.0,
-                        center: [
-                            12.8505094,
-                            43.9023386
-                        ],
-                        curve: 1,
-                        pitch: 0.0,
-                        speed: 1.5,
-                        zoom: 4.0,
-                    },
-                    version: 'v0.42.0',
-                }
-            },
-            http: {
-                interceptors: [], // ['AuthService'],
-                withCredentials: false,
-            },
-            language: {
-                code: 'en',
-                culture: 'en_US',
-                iso: 'ENU',
-                name: 'English',
-            },
-            location: {
-                hash: '!',
-                html5: false,
-            },
-            paths: {},
-        };
-
-        var global = {};
-
-        if (window.environment) {
-            angular.merge(global, window.environment);
-        }
-
-        var config = {};
-
-        var environment = angular.copy(defaults);
-        angular.merge(environment, global);
-
-        function EnvironmentSetHttp() {
-            $httpProvider.defaults.headers.common["Accept-Language"] = environment.language.code;
-            $httpProvider.defaults.withCredentials = environment.http.withCredentials;
-            $httpProvider.interceptors.push.apply($httpProvider.interceptors, environment.http.interceptors);
-        }
-
-        function EnvironmentSetLocation() {
-            $locationProvider.html5Mode(environment.location.html5);
-            $locationProvider.hashPrefix(environment.location.hash);
-        }
-
-        function EnvironmentAdd(key, data) {
-            config[key] = config[key] ? angular.merge(config[key], data) : data;
-            EnvironmentSet();
-        }
-
-        function EnvironmentSet() {
-            environment = angular.copy(defaults);
-            if (config.environment) {
-                angular.merge(environment, config.environment);
-            }
-            var value = EnvironmentGet();
-            if (value) {
-                angular.merge(environment, value);
-            }
-            angular.merge(environment, global);
-            EnvironmentSetHttp();
-            EnvironmentSetLocation();
-        }
-
-        function EnvironmentUse(key) {
-            if (config[key]) {
-                environment = angular.copy(defaults);
-                angular.merge(environment, config[key]);
-                angular.merge(environment, global);
-                EnvironmentSetHttp();
-                EnvironmentSetLocation();
-            }
-        }
-
-        function EnvironmentGet() {
-            for (var key in config) {
-                var value = config[key];
-                if (value.paths && window.location.href.indexOf(value.paths.app) !== -1) {
-                    return value;
-                }
-            }
-        }
-
-        provider.$get = function() {
-            return environment;
-        };
-
-    }]);
-
-}());
-/* global angular */
-
-(function () {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Doc', ['Api', '$promise', function (Api, $promise) {
+	app.provider('environment', ['$locationProvider', '$httpProvider', function($locationProvider, $httpProvider) {
+
+		var provider = this;
+
+		var statics = {
+			add: EnvironmentAdd,
+			use: EnvironmentUse,
+		};
+
+		angular.extend(provider, statics);
+
+		var defaults = {
+			plugins: {
+				facebook: {
+					fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
+					scope: 'public_profile, email', // publish_stream
+					version: 'v2.10',
+				},
+				google: {},
+				googlemaps: {
+					clusterer: true,
+					styles: '/googlemaps/applemapesque.json',
+					options: {
+						center: {
+							lat: 43.9023386,
+							lng: 12.8505094
+						},
+						disableDefaultUI: true,
+						mapTypeId: 'roadmap', // "hybrid", "roadmap", "satellite", "terrain"
+						scrollwheel: true,
+						// tilt: 0, // 45
+						zoom: 4.0,
+					},
+				},
+				mapbox: {
+					clusterer: true,
+					options: {
+						bearing: 0.0,
+						center: [
+                            12.8505094,
+                            43.9023386
+                        ],
+						curve: 1,
+						pitch: 0.0,
+						speed: 1.5,
+						zoom: 4.0,
+					},
+					version: 'v0.42.0',
+				}
+			},
+			http: {
+				interceptors: [], // ['AuthService'],
+				withCredentials: false,
+			},
+			language: {
+				code: 'en',
+				culture: 'en_US',
+				iso: 'ENU',
+				name: 'English',
+			},
+			location: {
+				hash: '!',
+				html5: false,
+			},
+			paths: {},
+		};
+
+		var global = {};
+
+		if (window.environment) {
+			angular.merge(global, window.environment);
+		}
+
+		var config = {};
+
+		var environment = angular.copy(defaults);
+		angular.merge(environment, global);
+
+		function EnvironmentSetHttp() {
+			$httpProvider.defaults.headers.common["Accept-Language"] = environment.language.code;
+			$httpProvider.defaults.withCredentials = environment.http.withCredentials;
+			$httpProvider.interceptors.push.apply($httpProvider.interceptors, environment.http.interceptors);
+		}
+
+		function EnvironmentSetLocation() {
+			$locationProvider.html5Mode(environment.location.html5);
+			$locationProvider.hashPrefix(environment.location.hash);
+		}
+
+		function EnvironmentAdd(key, data) {
+			config[key] = config[key] ? angular.merge(config[key], data) : data;
+			EnvironmentSet();
+		}
+
+		function EnvironmentSet() {
+			environment = angular.copy(defaults);
+			if (config.environment) {
+				angular.merge(environment, config.environment);
+			}
+			var value = EnvironmentGet();
+			if (value) {
+				angular.merge(environment, value);
+			}
+			angular.merge(environment, global);
+			EnvironmentSetHttp();
+			EnvironmentSetLocation();
+		}
+
+		function EnvironmentUse(key) {
+			if (config[key]) {
+				environment = angular.copy(defaults);
+				angular.merge(environment, config[key]);
+				angular.merge(environment, global);
+				EnvironmentSetHttp();
+				EnvironmentSetLocation();
+			}
+		}
+
+		function EnvironmentGet() {
+			for (var key in config) {
+				var value = config[key];
+				if (value.paths && window.location.href.indexOf(value.paths.app) !== -1) {
+					return value;
+				}
+			}
+		}
+
+		provider.$get = function() {
+			return environment;
+		};
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.factory('Doc', ['Api', '$promise', function(Api, $promise) {
 
 		function Doc(item) {
 			if (item) {
@@ -8141,14 +8183,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function ($promise, $location, $route, $routeParams, Router) {
+	app.factory('Route', ['$promise', '$location', '$route', '$routeParams', 'Router', function($promise, $location, $route, $routeParams, Router) {
 
 		function Route(current) {
 
@@ -8185,226 +8228,229 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.factory('View', ['Api', '$promise', 'environment', 'Doc', 'Route', function(Api, $promise, environment, Doc, Route) {
-
-        function View(doc, route) {
-            var view = {
-                doc: doc,
-                environment: environment,
-                route: route,
-            };
-            angular.extend(this, view);
-        }
-
-        var statics = {
-            current: ViewCurrent, // ViewCurrentSimple
-        };
-
-        var publics = {};
-
-        angular.extend(View, statics);
-        angular.extend(View.prototype, publics);
-
-        return View;
-
-        // static methods
-
-        function ViewCurrent() {
-            return $promise(function(promise) {
-                var route = Route.current();
-                var path = route.path;
-                console.log('ViewCurrent', path);
-                Api.docs.path(path).then(function(response) {
-                    var doc = new Doc(response);
-                    var view = new View(doc, route);
-                    promise.resolve(view);
-
-                }, function(error) {
-                    promise.reject(error);
-
-                });
-            });
-        }
-
-        function ViewCurrentSimple() {
-            return $promise(function(promise) {
-                console.log('ViewCurrentSimple');
-                var route = Route.current();
-                var path = route.path;
-                Api.navs.main().then(function(items) {
-                    var doc = null,
-                        view = null,
-                        path = path,
-                        pool = ViewPool(items);
-                    var item = pool[path];
-                    if (item) {
-                        doc = new Doc(item);
-                        view = new View(doc, route);
-                    }
-                    promise.resolve(view);
-
-                }, function(error) {
-                    promise.reject(error);
-
-                });
-            });
-        }
-
-        function ViewPool(items) {
-            var pool = {};
-
-            function _getPool(items) {
-                if (items) {
-                    angular.forEach(items, function(item) {
-                        pool[item.path] = item;
-                        _getPool(item.items);
-                    });
-                }
-            }
-            _getPool(items);
-            return pool;
-        }
-
-        // prototype methods
-
-    }]);
-
-}());
-/* global angular */
-
-(function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    // todo
-
-    app.service('AuthService', ['$q', '$rootScope', '$location', 'LocalStorage', 'environment', function($q, $rootScope, $location, LocalStorage, environment) {
-
-        var service = this;
-
-        var statics = {
-            isAuthorizedOrGoTo: isAuthorizedOrGoTo,
-            isAuthorized: isAuthorized,
-            request: request,
-            response: response,
-            responseError: responseError,
-            signOut: signOut,
-        };
-
-        angular.extend(service, statics);
-
-        /* * * * * * * * * * * * * * * * *
-         *  detect current auth storage  *
-         * * * * * * * * * * * * * * * * */
-
-        console.log(environment.plugins);
-
-        // statics methods
-
-        function isAuthorizedOrGoTo(redirect) {
-            var deferred = $q.defer();
-            var auth = LocalStorage.get('authorization');
-            if (auth && auth.created_at + auth.expires_in < new Date().getTime()) {
-                deferred.resolve(auth);
-            } else {
-                deferred.reject({
-                    status: 'unauthorized'
-                });
-                $location.path(redirect);
-            }
-            return deferred.promise;
-        }
-
-        function isAuthorized() {
-            var auth = LocalStorage.get('authorization');
-            return (auth && auth.created_at + auth.expires_in < new Date().getTime());
-        }
-
-        function request(config) {
-            var auth = LocalStorage.get('authorization');
-            if (auth && auth.created_at + auth.expires_in < new Date().getTime()) {
-                config.headers = config.headers || {};
-                config.headers.Authorization = 'Bearer ' + auth.access_token; // add your token from your service or whatever
-            }
-            return config;
-        }
-
-        function response(response) {
-            return response || $q.when(response);
-        }
-
-        function responseError(error) {
-            console.log('AuthService.responseError', error);
-            // your error handler
-            switch (error.status) {
-                case 400:
-                    var errors = [];
-                    if (error.data) {
-                        errors.push(error.data.Message);
-                        for (var key in error.data.ModelState) {
-                            for (var i = 0; i < error.data.ModelState[key].length; i++) {
-                                errors.push(error.data.ModelState[key][i]);
-                            }
-                        }
-                    } else {
-                        errors.push('Server error');
-                    }
-                    error.Message = errors.join(' ');
-                    // warning !!
-                    $rootScope.httpError = error;
-                    $rootScope.$broadcast('onHttpInterceptorError', error);
-                    break;
-                case 404:
-                    error.Message = "Not found";
-                    $rootScope.httpError = error;
-                    $rootScope.$broadcast('onHttpInterceptorError', error);
-                    break;
-                case 500:
-                    // console.log('500',error);
-                    $rootScope.httpError = error;
-                    $rootScope.$broadcast('onHttpInterceptorError', error);
-                    break;
-                case 401:
-                    LocalStorage.delete('authorization');
-                    LocalStorage.delete('user');
-                    $location.path('/signin');
-                    break;
-                case -1:
-                    window.open(error.config.path, '_blank');
-                    // status == 0 you lost connection
-            }
-            return $q.reject(error);
-        }
-
-        function signOut() {
-            LocalStorage.delete('authorization');
-            LocalStorage.delete('user');
-            LocalStorage.delete('CampagnoloToken');
-            LocalStorage.delete('GoogleToken');
-            LocalStorage.delete('StravaToken');
-            LocalStorage.delete('FacebookToken');
-            LocalStorage.delete('GarminToken');
-        }
-
-    }]);
-
-}());
-/* global angular */
-
-(function () {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Bearer', ['$http', '$promise', 'SessionStorage', 'LocalStorage', 'environment', function ($http, $promise, SessionStorage, LocalStorage, environment) {
+	app.factory('View', ['Api', '$promise', 'environment', 'Doc', 'Route', function(Api, $promise, environment, Doc, Route) {
+
+		function View(doc, route) {
+			var view = {
+				doc: doc,
+				environment: environment,
+				route: route,
+			};
+			angular.extend(this, view);
+		}
+
+		var statics = {
+			current: ViewCurrent, // ViewCurrentSimple
+		};
+
+		var publics = {};
+
+		angular.extend(View, statics);
+		angular.extend(View.prototype, publics);
+
+		return View;
+
+		// static methods
+
+		function ViewCurrent() {
+			return $promise(function(promise) {
+				var route = Route.current();
+				var path = route.path;
+				console.log('ViewCurrent', path);
+				Api.docs.path(path).then(function(response) {
+					var doc = new Doc(response);
+					var view = new View(doc, route);
+					promise.resolve(view);
+
+				}, function(error) {
+					promise.reject(error);
+
+				});
+			});
+		}
+
+		function ViewCurrentSimple() {
+			return $promise(function(promise) {
+				console.log('ViewCurrentSimple');
+				var route = Route.current();
+				var path = route.path;
+				Api.navs.main().then(function(items) {
+					var doc = null,
+						view = null,
+						path = path,
+						pool = ViewPool(items);
+					var item = pool[path];
+					if (item) {
+						doc = new Doc(item);
+						view = new View(doc, route);
+					}
+					promise.resolve(view);
+
+				}, function(error) {
+					promise.reject(error);
+
+				});
+			});
+		}
+
+		function ViewPool(items) {
+			var pool = {};
+
+			function _getPool(items) {
+				if (items) {
+					angular.forEach(items, function(item) {
+						pool[item.path] = item;
+						_getPool(item.items);
+					});
+				}
+			}
+			_getPool(items);
+			return pool;
+		}
+
+		// prototype methods
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	// todo
+
+	app.service('AuthService', ['$q', '$rootScope', '$location', 'LocalStorage', 'environment', function($q, $rootScope, $location, LocalStorage, environment) {
+
+		var service = this;
+
+		var statics = {
+			isAuthorizedOrGoTo: isAuthorizedOrGoTo,
+			isAuthorized: isAuthorized,
+			request: request,
+			response: response,
+			responseError: responseError,
+			signOut: signOut,
+		};
+
+		angular.extend(service, statics);
+
+		/* * * * * * * * * * * * * * * * *
+		 *  detect current auth storage  *
+		 * * * * * * * * * * * * * * * * */
+
+		console.log(environment.plugins);
+
+		// statics methods
+
+		function isAuthorizedOrGoTo(redirect) {
+			var deferred = $q.defer();
+			var auth = LocalStorage.get('authorization');
+			if (auth && auth.created_at + auth.expires_in < new Date().getTime()) {
+				deferred.resolve(auth);
+			} else {
+				deferred.reject({
+					status: 'unauthorized'
+				});
+				$location.path(redirect);
+			}
+			return deferred.promise;
+		}
+
+		function isAuthorized() {
+			var auth = LocalStorage.get('authorization');
+			return (auth && auth.created_at + auth.expires_in < new Date().getTime());
+		}
+
+		function request(config) {
+			var auth = LocalStorage.get('authorization');
+			if (auth && auth.created_at + auth.expires_in < new Date().getTime()) {
+				config.headers = config.headers || {};
+				config.headers.Authorization = 'Bearer ' + auth.access_token; // add your token from your service or whatever
+			}
+			return config;
+		}
+
+		function response(response) {
+			return response || $q.when(response);
+		}
+
+		function responseError(error) {
+			console.log('AuthService.responseError', error);
+			// your error handler
+			switch (error.status) {
+				case 400:
+					var errors = [];
+					if (error.data) {
+						errors.push(error.data.Message);
+						for (var key in error.data.ModelState) {
+							for (var i = 0; i < error.data.ModelState[key].length; i++) {
+								errors.push(error.data.ModelState[key][i]);
+							}
+						}
+					} else {
+						errors.push('Server error');
+					}
+					error.Message = errors.join(' ');
+					// warning !!
+					$rootScope.httpError = error;
+					$rootScope.$broadcast('onHttpInterceptorError', error);
+					break;
+				case 404:
+					error.Message = "Not found";
+					$rootScope.httpError = error;
+					$rootScope.$broadcast('onHttpInterceptorError', error);
+					break;
+				case 500:
+					// console.log('500',error);
+					$rootScope.httpError = error;
+					$rootScope.$broadcast('onHttpInterceptorError', error);
+					break;
+				case 401:
+					LocalStorage.delete('authorization');
+					LocalStorage.delete('user');
+					$location.path('/signin');
+					break;
+				case -1:
+					window.open(error.config.path, '_blank');
+					// status == 0 you lost connection
+			}
+			return $q.reject(error);
+		}
+
+		function signOut() {
+			LocalStorage.delete('authorization');
+			LocalStorage.delete('user');
+			LocalStorage.delete('CampagnoloToken');
+			LocalStorage.delete('GoogleToken');
+			LocalStorage.delete('StravaToken');
+			LocalStorage.delete('FacebookToken');
+			LocalStorage.delete('GarminToken');
+		}
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.service('Bearer', ['$http', '$promise', 'SessionStorage', 'LocalStorage', 'environment', function($http, $promise, SessionStorage, LocalStorage, environment) {
 
 		var service = this;
 
@@ -8455,14 +8501,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function ($http, $promise, $timeout, environment) {
+	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function($http, $promise, $timeout, environment) {
 
 		var service = this;
 
@@ -8485,11 +8532,11 @@ $(window).on('resize', function () {
 		}
 
 		function HttpPromise(method, path, data) {
-			return $promise(function (promise) {
-				$http[method](path, data).then(function (response) {
+			return $promise(function(promise) {
+				$http[method](path, data).then(function(response) {
 					promise.resolve(response.data);
 
-				}, function (e, status) {
+				}, function(e, status) {
 					var error = (e && e.data) ? e.data : {};
 					error.status = e.status;
 					promise.reject(error);
@@ -8524,8 +8571,8 @@ $(window).on('resize', function () {
 
 		function HttpFake(data, msec) {
 			msec = msec || 1000;
-			return $promise(function (promise) {
-				$timeout(function () {
+			return $promise(function(promise) {
+				$timeout(function() {
 					promise.resolve({
 						data: data
 					});
@@ -8536,14 +8583,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Preload', ['$promise', function ($promise) {
+	app.factory('Preload', ['$promise', function($promise) {
 
 		function Preload(path) {
 			var preload = this;
@@ -8570,8 +8618,8 @@ $(window).on('resize', function () {
 		// statics methods
 
 		function PreloadAll(paths, callback) {
-			return $promise(function (promise) {
-				var preloads = paths.map(function (path) {
+			return $promise(function(promise) {
+				var preloads = paths.map(function(path) {
 					return new Preload(path);
 				});
 				var progress = {
@@ -8582,15 +8630,15 @@ $(window).on('resize', function () {
 				};
 				var i = setInterval(update, 1000 / 10);
 				$promise.all(
-					preloads.map(function (preload) {
+					preloads.map(function(preload) {
 						return preload.start();
 					})
-				).then(function () {
+				).then(function() {
 					clearInterval(i);
 					update();
 					promise.resolve(preloads.slice());
 					// destroy();
-				}, function (error) {
+				}, function(error) {
 					promise.reject(error);
 					// destroy();
 				});
@@ -8598,7 +8646,7 @@ $(window).on('resize', function () {
 				function update() {
 					progress.loaded = 0;
 					progress.total = 0;
-					angular.forEach(preloads, function (preload) {
+					angular.forEach(preloads, function(preload) {
 						progress.loaded += preload.loaded;
 						progress.total += preload.total;
 					});
@@ -8612,7 +8660,7 @@ $(window).on('resize', function () {
 				}
 
 				function destroy() {
-					angular.forEach(preloads, function (preload) {
+					angular.forEach(preloads, function(preload) {
 						preload.buffer = null;
 						preload.xhr = null;
 					});
@@ -8624,31 +8672,31 @@ $(window).on('resize', function () {
 
 		function PreloadStart() {
 			var preload = this;
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var xhr = new XMLHttpRequest();
 				xhr.open("GET", preload.path, true);
 				xhr.responseType = "arraybuffer"; // should be after open for ie11
-				xhr.onloadstart = function (e) {
+				xhr.onloadstart = function(e) {
 					/*
 					preload.loaded = 0;
 					preload.total = 1;
 					preload.progress = 0;
 					*/
 				};
-				xhr.onprogress = function (e) {
+				xhr.onprogress = function(e) {
 					preload.loaded = e.loaded;
 					preload.total = e.total;
 					preload.progress = e.total ? e.loaded / e.total : 0;
 				};
-				xhr.onloadend = function (e) {
+				xhr.onloadend = function(e) {
 					preload.loaded = preload.total;
 					preload.progress = 1;
 				};
-				xhr.onload = function () {
+				xhr.onload = function() {
 					preload.buffer = xhr.response;
 					promise.resolve(preload);
 				};
-				xhr.onerror = function (error) {
+				xhr.onerror = function(error) {
 					console.log('Preload.xhr.onerror', error);
 					preload.loaded = preload.total;
 					preload.progress = 1;
@@ -8670,249 +8718,252 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.service('$once', ['$promise', function($promise) {
-
-        var service = this;
-
-        var statics = {
-            load: OnceLoad,
-            script: OnceScript,
-            link: OnceLink,
-        };
-
-        angular.extend(service, statics);
-
-        var paths = {},
-            uid = 0;
-
-        function OnceLoad(path, callback) {
-            if (path.indexOf('.js')) {
-                return OnceScript(path, callback);
-
-            } else if (path.indexOf('.css')) {
-                return OnceLink(path);
-
-            }
-        }
-
-        function OnceScript(path, callback) {
-            return $promise(function(promise) {
-                try {
-                    var id = (paths[path] = paths[path] || ++uid);
-                    id = 'OnceScript' + id;
-                    if (document.getElementById(id)) {
-                        promise.reject();
-                    } else {
-                        var scripts = document.getElementsByTagName('script');
-                        var script = scripts[scripts.length - 1];
-                        var node = document.createElement('script');
-                        node.id = id;
-                        if (callback) {
-                            if (callback === true) {
-                                callback = id;
-                                path = path.split('{{callback}}').join(callback);
-                            }
-                            window[callback] = function(data) {
-                                promise.resolve(data);
-                            };
-                        } else {
-                            node.addEventListener('load', promise.resolve);
-                        }
-                        node.addEventListener('error', promise.reject);
-                        node.src = path;
-                        script.parentNode.insertBefore(node, script.nextSibling);
-                    }
-                } catch (error) {
-                    promise.reject(error);
-                }
-            });
-        }
-
-        function OnceLink(path) {
-            return $promise(function(promise) {
-                try {
-                    var id = (paths[path] = paths[path] || ++uid);
-                    id = 'OnceStyle' + id;
-                    if (document.getElementById(id)) {
-                        promise.resolve();
-                    } else {
-                        var links = document.getElementsByTagName('link');
-                        var link = links[links.length - 1];
-                        var node = document.createElement('link');
-                        node.id = id;
-                        node.rel = 'stylesheet';
-                        node.href = path;
-                        node.addEventListener('load', promise.resolve);
-                        node.addEventListener('error', promise.reject);
-                        link.parentNode.insertBefore(node, link.nextSibling);
-                    }
-                } catch (error) {
-                    promise.reject(error);
-                }
-            });
-        }
-
-    }]);
-
-}());
-/* global angular */
-
-(function() {
-    "use strict";
-
-    var app = angular.module('artisan');
-
-    app.service('Router', ['$rootScope', '$location', '$route', '$timeout', function($rootScope, $location, $route, $timeout) {
-
-        var service = this;
-
-        var statics = {
-            isController: RouterIsController,
-            redirect: RouterRedirect,
-            path: RouterPath,
-            apply: RouterApply,
-        };
-
-        angular.extend(service, statics);
-
-        $rootScope.$on('$routeChangeStart', RouterOnChangeStart);
-        $rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
-        $rootScope.$on('$routeChangeError', RouterOnChangeError);
-        $rootScope.$on('$routeUpdate', RouterOnUpdate);
-        $rootScope.$on('$stateReady', RouterOnStateReady);
-
-        var $previous, $current, $next;
-        var $previousController, $currentController, $nextController;
-
-        function RouterSetControllers() {
-            $previousController = $previous ? $previous.controller : null;
-            $currentController = $current ? $current.controller : null;
-            $nextController = $next ? $next.controller : null;
-        }
-
-        /*
-        $routeChangeStart
-        Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
-        The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
-        */
-        function RouterOnChangeStart(event, next, current) {
-            $previous = null;
-            $current = current ? current.$$route : null;
-            $next = next ? next.$$route : null;
-            RouterSetControllers();
-            // console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
-            service.loading = true;
-        }
-
-        /*
-        $routeChangeSuccess
-        Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
-        */
-        function RouterOnChangeSuccess(event, current, previous) {
-            $previous = previous ? previous.$$route : null;
-            $current = current ? current.$$route : null;
-            $next = null;
-            RouterSetControllers();
-            // console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
-        }
-
-        /*
-        $routeChangeError
-        Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
-        */
-        function RouterOnChangeError(event, current, previous, rejection) {
-            $previous = null;
-            $current = previous.$$route || null;
-            $next = null;
-            RouterSetControllers();
-            // console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
-        }
-
-        /*
-        $routeUpdate
-        The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
-        */
-        function RouterOnUpdate(event, current) {
-            $previous = current ? current.$$route : null;
-            $current = current ? current.$$route : null;
-            $next = null;
-            RouterSetControllers();
-            // console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
-        }
-
-        function RouterOnStateReady(scope, state) {
-            $timeout(function() {
-                service.loading = false;
-            }, 1000);
-        }
-
-        function RouterIsController(controller) {
-            return $currentController === controller;
-        }
-
-        // navigation
-
-        function RouterRedirectTo(path) {
-            $location.$$lastRequestedPath = $location.path();
-            $location.path(path);
-        }
-
-        function RouterRetryLastRequestedPath(path) {
-            path = $location.$$lastRequestedPath || path;
-            $location.$$lastRequestedPath = null;
-            $location.path(path);
-        }
-
-        function RouterRedirect(path, msecs) {
-            if (msecs) {
-                $timeout(function() {
-                    RouterRedirectTo(path);
-                }, msecs);
-            } else {
-                RouterRedirectTo(path);
-            }
-        }
-
-        function RouterPath(path, msecs) {
-            if (msecs) {
-                $timeout(function() {
-                    RouterRetryLastRequestedPath(path);
-                }, msecs);
-            } else {
-                RouterRetryLastRequestedPath(path);
-            }
-        }
-
-        function RouterApply(path, msecs) {
-            if (msecs) {
-                $timeout(function() {
-                    $location.path(path);
-                }, msecs);
-            } else {
-                $timeout(function() {
-                    $location.path(path);
-                });
-            }
-        }
-
-    }]);
-
-}());
-/* global angular */
-
-(function () {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Silent', ['$rootScope', '$location', function ($rootScope, $location) {
+	app.service('$once', ['$promise', function($promise) {
+
+		var service = this;
+
+		var statics = {
+			load: OnceLoad,
+			script: OnceScript,
+			link: OnceLink,
+		};
+
+		angular.extend(service, statics);
+
+		var paths = {},
+			uid = 0;
+
+		function OnceLoad(path, callback) {
+			if (path.indexOf('.js')) {
+				return OnceScript(path, callback);
+
+			} else if (path.indexOf('.css')) {
+				return OnceLink(path);
+
+			}
+		}
+
+		function OnceScript(path, callback) {
+			return $promise(function(promise) {
+				try {
+					var id = (paths[path] = paths[path] || ++uid);
+					id = 'OnceScript' + id;
+					if (document.getElementById(id)) {
+						promise.reject();
+					} else {
+						var scripts = document.getElementsByTagName('script');
+						var script = scripts[scripts.length - 1];
+						var node = document.createElement('script');
+						node.id = id;
+						if (callback) {
+							if (callback === true) {
+								callback = id;
+								path = path.split('{{callback}}').join(callback);
+							}
+							window[callback] = function(data) {
+								promise.resolve(data);
+							};
+						} else {
+							node.addEventListener('load', promise.resolve);
+						}
+						node.addEventListener('error', promise.reject);
+						node.src = path;
+						script.parentNode.insertBefore(node, script.nextSibling);
+					}
+				} catch (error) {
+					promise.reject(error);
+				}
+			});
+		}
+
+		function OnceLink(path) {
+			return $promise(function(promise) {
+				try {
+					var id = (paths[path] = paths[path] || ++uid);
+					id = 'OnceStyle' + id;
+					if (document.getElementById(id)) {
+						promise.resolve();
+					} else {
+						var links = document.getElementsByTagName('link');
+						var link = links[links.length - 1];
+						var node = document.createElement('link');
+						node.id = id;
+						node.rel = 'stylesheet';
+						node.href = path;
+						node.addEventListener('load', promise.resolve);
+						node.addEventListener('error', promise.reject);
+						link.parentNode.insertBefore(node, link.nextSibling);
+					}
+				} catch (error) {
+					promise.reject(error);
+				}
+			});
+		}
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.service('Router', ['$rootScope', '$location', '$route', '$timeout', function($rootScope, $location, $route, $timeout) {
+
+		var service = this;
+
+		var statics = {
+			isController: RouterIsController,
+			redirect: RouterRedirect,
+			path: RouterPath,
+			apply: RouterApply,
+		};
+
+		angular.extend(service, statics);
+
+		$rootScope.$on('$routeChangeStart', RouterOnChangeStart);
+		$rootScope.$on('$routeChangeSuccess', RouterOnChangeSuccess);
+		$rootScope.$on('$routeChangeError', RouterOnChangeError);
+		$rootScope.$on('$routeUpdate', RouterOnUpdate);
+		$rootScope.$on('$stateReady', RouterOnStateReady);
+
+		var $previous, $current, $next;
+		var $previousController, $currentController, $nextController;
+
+		function RouterSetControllers() {
+			$previousController = $previous ? $previous.controller : null;
+			$currentController = $current ? $current.controller : null;
+			$nextController = $next ? $next.controller : null;
+		}
+
+		/*
+		$routeChangeStart
+		Broadcasted before a route change. At this point the route services starts resolving all of the dependencies needed for the route change to occur. Typically this involves fetching the view template as well as any dependencies defined in resolve route property. Once all of the dependencies are resolved $routeChangeSuccess is fired.
+		The route change (and the $location change that triggered it) can be prevented by calling preventDefault method of the event. See $rootScope.Scope for more details about event object.
+		*/
+		function RouterOnChangeStart(event, next, current) {
+			$previous = null;
+			$current = current ? current.$$route : null;
+			$next = next ? next.$$route : null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnChangeStart', '$previous', $previous, '$current', $current, '$next', $next);
+			service.loading = true;
+		}
+
+		/*
+		$routeChangeSuccess
+		Broadcasted after a route change has happened successfully. The resolve dependencies are now available in the current.locals property.
+		*/
+		function RouterOnChangeSuccess(event, current, previous) {
+			$previous = previous ? previous.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnChangeSuccess', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeChangeError
+		Broadcasted if a redirection function fails or any redirection or resolve promises are rejected.
+		*/
+		function RouterOnChangeError(event, current, previous, rejection) {
+			$previous = null;
+			$current = previous.$$route || null;
+			$next = null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnChangeError', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		/*
+		$routeUpdate
+		The reloadOnSearch property has been set to false, and we are reusing the same instance of the Controller.
+		*/
+		function RouterOnUpdate(event, current) {
+			$previous = current ? current.$$route : null;
+			$current = current ? current.$$route : null;
+			$next = null;
+			RouterSetControllers();
+			// console.log('Router.RouterOnUpdate', '$previous', $previous, '$current', $current, '$next', $next);
+		}
+
+		function RouterOnStateReady(scope, state) {
+			$timeout(function() {
+				service.loading = false;
+			}, 1000);
+		}
+
+		function RouterIsController(controller) {
+			return $currentController === controller;
+		}
+
+		// navigation
+
+		function RouterRedirectTo(path) {
+			$location.$$lastRequestedPath = $location.path();
+			$location.path(path);
+		}
+
+		function RouterRetryLastRequestedPath(path) {
+			path = $location.$$lastRequestedPath || path;
+			$location.$$lastRequestedPath = null;
+			$location.path(path);
+		}
+
+		function RouterRedirect(path, msecs) {
+			if (msecs) {
+				$timeout(function() {
+					RouterRedirectTo(path);
+				}, msecs);
+			} else {
+				RouterRedirectTo(path);
+			}
+		}
+
+		function RouterPath(path, msecs) {
+			if (msecs) {
+				$timeout(function() {
+					RouterRetryLastRequestedPath(path);
+				}, msecs);
+			} else {
+				RouterRetryLastRequestedPath(path);
+			}
+		}
+
+		function RouterApply(path, msecs) {
+			if (msecs) {
+				$timeout(function() {
+					$location.path(path);
+				}, msecs);
+			} else {
+				$timeout(function() {
+					$location.path(path);
+				});
+			}
+		}
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('artisan');
+
+	app.service('Silent', ['$rootScope', '$location', function($rootScope, $location) {
 
 		var service = this;
 
@@ -8939,7 +8990,7 @@ $(window).on('resize', function () {
 
 		function SilentUnlink() {
 			var listeners = $rootScope.$$listeners.$locationChangeSuccess;
-			angular.forEach(listeners, function (value, name) {
+			angular.forEach(listeners, function(value, name) {
 				if (value === listener) {
 					return;
 				}
@@ -8975,16 +9026,17 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
 	var TIMEOUT = 5 * 60 * 1000; // five minutes
 
-	app.service('Cookie', ['$promise', function ($promise) {
+	app.service('Cookie', ['$promise', function($promise) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -9028,7 +9080,7 @@ $(window).on('resize', function () {
 		}
 
 		function CookieOn(name) {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var i, interval = 1000,
 					elapsed = 0,
 					timeout = Cookie.TIMEOUT;
@@ -9053,7 +9105,7 @@ $(window).on('resize', function () {
 		function CookieSet(name, value, days) {
 			try {
 				var cache = [];
-				var json = JSON.stringify(value, function (key, value) {
+				var json = JSON.stringify(value, function(key, value) {
 					if (key === 'pool') {
 						return;
 					}
@@ -9087,7 +9139,7 @@ $(window).on('resize', function () {
 
     }]);
 
-	app.service('LocalStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
+	app.service('LocalStorage', ['$promise', 'Cookie', function($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -9143,7 +9195,7 @@ $(window).on('resize', function () {
 		function LocalSet(name, value) {
 			try {
 				var cache = [];
-				var json = JSON.stringify(value, function (key, value) {
+				var json = JSON.stringify(value, function(key, value) {
 					if (key === 'pool') {
 						return;
 					}
@@ -9168,7 +9220,7 @@ $(window).on('resize', function () {
 		}
 
 		function LocalOn(name) {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var i, timeout = Cookie.TIMEOUT;
 
 				function storageEvent(e) {
@@ -9187,7 +9239,7 @@ $(window).on('resize', function () {
 					}
 				}
 				angular.element(window).on('storage', storageEvent);
-				i = setTimeout(function () {
+				i = setTimeout(function() {
 					promise.reject('timeout');
 				}, timeout);
 			});
@@ -9195,7 +9247,7 @@ $(window).on('resize', function () {
 
     }]);
 
-	app.service('SessionStorage', ['$promise', 'Cookie', function ($promise, Cookie) {
+	app.service('SessionStorage', ['$promise', 'Cookie', function($promise, Cookie) {
 
 		var service = {
 			TIMEOUT: TIMEOUT,
@@ -9251,7 +9303,7 @@ $(window).on('resize', function () {
 		function SessionSet(name, value) {
 			try {
 				var cache = [];
-				var json = JSON.stringify(value, function (key, value) {
+				var json = JSON.stringify(value, function(key, value) {
 					if (key === 'pool') {
 						return;
 					}
@@ -9276,7 +9328,7 @@ $(window).on('resize', function () {
 		}
 
 		function SessionOn(name) {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				var i, timeout = Cookie.TIMEOUT;
 
 				function storageEvent(e) {
@@ -9295,7 +9347,7 @@ $(window).on('resize', function () {
 					}
 				}
 				angular.element(window).on('storage', storageEvent);
-				i = setTimeout(function () {
+				i = setTimeout(function() {
 					promise.reject('timeout');
 				}, timeout);
 			});
@@ -9304,14 +9356,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Trust', ['$sce', function ($sce) {
+	app.service('Trust', ['$sce', function($sce) {
 
 		var service = this;
 
@@ -9352,19 +9405,19 @@ $(window).on('resize', function () {
 		}
 
 		function TrustHtml(value) {
-			return TrustGetOrSet(value, function () {
+			return TrustGetOrSet(value, function() {
 				return $sce.trustAsHtml(value);
 			});
 		}
 
 		function TrustResource(value) {
-			return TrustGetOrSet(value, function () {
+			return TrustGetOrSet(value, function() {
 				return $sce.trustAsResourceUrl(value);
 			});
 		}
 
 		function TrustUrl(value) {
-			return TrustGetOrSet(value, function () {
+			return TrustGetOrSet(value, function() {
 				return 'url(\'' + value + '\')';
 			});
 		}
@@ -9372,14 +9425,15 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function ($promise, $once, storage, environment) {
+	app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function($promise, $once, storage, environment) {
 
 		var service = this;
 
@@ -9424,13 +9478,13 @@ $(window).on('resize', function () {
 		}
 
 		function Facebook() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				if (window.FB !== undefined) {
 					promise.resolve(window.FB);
 				} else {
-					FacebookOnce().then(function (success) {
+					FacebookOnce().then(function(success) {
 						promise.resolve(window.FB);
-					}, function (error) {
+					}, function(error) {
 						promise.reject(error);
 					});
 				}
@@ -9438,8 +9492,8 @@ $(window).on('resize', function () {
 		}
 
 		function FacebookOnce() {
-			return $promise(function (promise) {
-				$once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function () {
+			return $promise(function(promise) {
+				$once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
 					// console.log('FacebookOnce.fbAsyncInit', window.FB);
 					window.FB.init({
 						appId: config.appId,
@@ -9450,7 +9504,7 @@ $(window).on('resize', function () {
 					});
 					promise.resolve(window.FB);
 					// window.fbAsyncInit = null;
-				}, function (error) {
+				}, function(error) {
 					promise.reject(error);
 				});
 			});
@@ -9476,11 +9530,11 @@ $(window).on('resize', function () {
 
 		function FacebookGetMe(fields) {
 			fields = fields || config.fields;
-			return $promise(function (promise) {
-				FacebookLogin().then(function (response) {
+			return $promise(function(promise) {
+				FacebookLogin().then(function(response) {
 					window.FB.api('/me', {
 						fields: fields
-					}, function (response) {
+					}, function(response) {
 						if (!response || response.error) {
 							var error = response ? response.error : 'error';
 							console.log('FacebookGetMe.error', error);
@@ -9498,13 +9552,13 @@ $(window).on('resize', function () {
 
 		function FacebookGetMyPicture(size) {
 			size = size || 300;
-			return $promise(function (promise) {
-				FacebookLogin().then(function (facebook) {
+			return $promise(function(promise) {
+				FacebookLogin().then(function(facebook) {
 					window.FB.api('/me/picture', {
 						width: size,
 						height: size,
 						type: 'square'
-					}, function (response) {
+					}, function(response) {
 						if (!response || response.error) {
 							var error = response ? response.error : 'error';
 							console.log('FacebookGetMyPicture.error', error);
@@ -9521,10 +9575,10 @@ $(window).on('resize', function () {
 		}
 
 		function FacebookLogin() {
-			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
+			return $promise(function(promise) {
+				Facebook().then(function(facebook) {
 					console.log('FacebookLogin', facebook);
-					facebook.login(function (response) {
+					facebook.login(function(response) {
 						FacebookStatus(response, promise);
 					}, {
 						scope: config.scope
@@ -9534,9 +9588,9 @@ $(window).on('resize', function () {
 		}
 
 		function FacebookLogout() {
-			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
-					facebook.logout(function (response) {
+			return $promise(function(promise) {
+				Facebook().then(function(facebook) {
+					facebook.logout(function(response) {
 						promise.resolve(response);
 					});
 				});
@@ -9546,16 +9600,17 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
 	// todo !!!
 
-	app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function ($timeout, $promise, $once, storage, environment) {
+	app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function($timeout, $promise, $once, storage, environment) {
 
 		var service = this;
 
@@ -9612,13 +9667,13 @@ $(window).on('resize', function () {
 		}
 
 		function Google() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				if (window.gapi !== undefined) {
 					promise.resolve(window.gapi);
 				} else {
-					GoogleOnce().then(function (response) {
+					GoogleOnce().then(function(response) {
 						promise.resolve(window.gapi);
-					}, function (error) {
+					}, function(error) {
 						promise.reject(error);
 					});
 				}
@@ -9626,22 +9681,22 @@ $(window).on('resize', function () {
 		}
 
 		function GoogleOnce() {
-			return $promise(function (promise) {
-				$once.script('https://apis.google.com/js/api:client.js?onload={{callback}}', true).then(function (data) {
+			return $promise(function(promise) {
+				$once.script('https://apis.google.com/js/api:client.js?onload={{callback}}', true).then(function(data) {
 					promise.resolve(data);
-				}, function (error) {
+				}, function(error) {
 					promise.reject(error);
 				});
 			});
 		}
 
 		function Auth2Init() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 
 				if (auth2) {
 					promise.resolve(auth2);
 				} else {
-					Google().then(function () {
+					Google().then(function() {
 						function onLoaded() {
 							var result = window.gapi.auth2.init({
 								client_id: environment.plugins.google.clientId,
@@ -9650,12 +9705,12 @@ $(window).on('resize', function () {
 								fetch_basic_profile: true,
 								ux_mode: 'popup',
 
-							}).then(function () {
+							}).then(function() {
 								auth2 = window.gapi.auth2;
 								console.log('Auth2Init.success', auth2);
 								promise.resolve(auth2);
 
-							}, function (error) {
+							}, function(error) {
 								console.log('Auth2Init.error', error);
 								promise.reject(error);
 
@@ -9664,13 +9719,13 @@ $(window).on('resize', function () {
 						if (window.gapi.auth2) {
 							onLoaded();
 						} else {
-							window.gapi.load('auth2', function () {
-								$timeout(function () {
+							window.gapi.load('auth2', function() {
+								$timeout(function() {
 									onLoaded();
 								}, 200);
 							});
 						}
-					}, function (error) {
+					}, function(error) {
 						console.log('Auth2Init.error', error);
 						promise.reject(error);
 
@@ -9680,16 +9735,16 @@ $(window).on('resize', function () {
 		}
 
 		function Auth2Instance() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				if (instance) {
 					promise.resolve();
 				} else {
-					Auth2Init().then(function (auth2) {
+					Auth2Init().then(function(auth2) {
 						instance = auth2.getAuthInstance();
 						console.log('GoogleService.Auth2Instance.success', instance);
 						promise.resolve();
 
-					}, function (error) {
+					}, function(error) {
 						console.log('GoogleService.Auth2Instance.error', error);
 						promise.reject(error);
 					});
@@ -9698,8 +9753,8 @@ $(window).on('resize', function () {
 		}
 
 		function GoogleGetMe() {
-			return $promise(function (promise) {
-				GoogleLogin().then(function (response) {
+			return $promise(function(promise) {
+				GoogleLogin().then(function(response) {
 					var profile = instance.currentUser.get().getBasicProfile();
 					var user = {
 						id: profile.getId(),
@@ -9712,7 +9767,7 @@ $(window).on('resize', function () {
 					console.log('GoogleGetMe.success', user);
 					promise.resolve(user);
 
-				}, function (error) {
+				}, function(error) {
 					console.log('GoogleGetMe.error', error);
 					promise.reject(error);
 
@@ -9721,8 +9776,8 @@ $(window).on('resize', function () {
 		}
 
 		function GoogleLogin() {
-			return $promise(function (promise) {
-				Auth2Instance().then(function () {
+			return $promise(function(promise) {
+				Auth2Instance().then(function() {
 					if (instance.isSignedIn && instance.isSignedIn.get()) {
 						// Auth2Instance.isSignedIn.listen(onStatus);
 						readAccessToken();
@@ -9732,10 +9787,10 @@ $(window).on('resize', function () {
 						instance.signIn({
 							scope: 'profile email',
 
-						}).then(function (signed) {
+						}).then(function(signed) {
 							readAccessToken();
 
-						}, function (error) {
+						}, function(error) {
 							console.log('GoogleLogin.error', error);
 							storage.delete('google');
 							promise.reject(error);
@@ -9765,7 +9820,7 @@ $(window).on('resize', function () {
 							readAccessToken();
 						}
 					}
-				}, function (error) {
+				}, function(error) {
 					console.log('GoogleLogin.error', error);
 					// promise.reject(error);
 
@@ -9774,14 +9829,14 @@ $(window).on('resize', function () {
 		}
 
 		function GoogleLogout() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 
-				Auth2Instance().then(function () {
+				Auth2Instance().then(function() {
 					if (instance.isSignedIn && instance.isSignedIn.get()) {
-						instance.signOut().then(function (signed) {
+						instance.signOut().then(function(signed) {
 							promise.resolve();
 
-						}, function (error) {
+						}, function(error) {
 							console.log('GoogleService.signOut.error', error);
 							promise.reject(error);
 
@@ -9790,7 +9845,7 @@ $(window).on('resize', function () {
 						promise.resolve();
 					}
 
-				}, function (error) {
+				}, function(error) {
 					console.log('GoogleService.signOut.error', error);
 					promise.reject(error);
 
@@ -9801,6 +9856,7 @@ $(window).on('resize', function () {
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
@@ -10042,504 +10098,505 @@ $(window).on('resize', function () {
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('GoogleMaps', ['$promise', '$once', 'environment', function($promise, $once, environment) {
+	app.service('GoogleMaps', ['$promise', '$once', 'environment', function($promise, $once, environment) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            maps: GoogleMaps,
-            geocoder: GoogleMapsGeocoder,
-            parse: GoogleMapsParse,
-        };
+		var statics = {
+			maps: GoogleMaps,
+			geocoder: GoogleMapsGeocoder,
+			parse: GoogleMapsParse,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        if (!environment.plugins.googlemaps) {
-            trhow('GoogleMaps.error missing config object in environment.plugins.googlemaps');
-        }
+		if (!environment.plugins.googlemaps) {
+			trhow('GoogleMaps.error missing config object in environment.plugins.googlemaps');
+		}
 
-        function GoogleMaps() {
-            return $promise(function(promise) {
-                var apiKey = environment.plugins.googlemaps.apiKey;
-                $once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
-                    promise.resolve(window.google.maps);
-                }, function(error) {
-                    promise.reject(error);
-                });
-            });
-        }
+		function GoogleMaps() {
+			return $promise(function(promise) {
+				var apiKey = environment.plugins.googlemaps.apiKey;
+				$once.script('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback={{callback}}', true).then(function(data) {
+					promise.resolve(window.google.maps);
+				}, function(error) {
+					promise.reject(error);
+				});
+			});
+		}
 
-        function GoogleMapsGeocoder() {
-            var service = this;
-            return $promise(function(promise) {
-                GoogleMaps().then(function(maps) {
-                    var geocoder = new maps.Geocoder();
-                    promise.resolve(geocoder);
+		function GoogleMapsGeocoder() {
+			var service = this;
+			return $promise(function(promise) {
+				GoogleMaps().then(function(maps) {
+					var geocoder = new maps.Geocoder();
+					promise.resolve(geocoder);
 
-                }, function(error) {
-                    promise.reject(error);
+				}, function(error) {
+					promise.reject(error);
 
-                });
-            });
-        }
+				});
+			});
+		}
 
-        function GoogleMapsType(type, item) {
-            var types = {
-                street: 'route',
-                number: 'street_number',
-                locality: 'locality',
-                postalCode: 'postal_code',
-                city: 'administrative_area_level_3',
-                province: 'administrative_area_level_2',
-                region: 'administrative_area_level_1',
-                country: 'country',
-            };
-            var label = null;
-            angular.forEach(item.address_components, function(c) {
-                angular.forEach(c.types, function(t) {
-                    if (t === types[type]) {
-                        label = c.long_name;
-                    }
-                });
-            });
-            // console.log('GoogleMapsType', type, item, label);
-            return label;
-        }
+		function GoogleMapsType(type, item) {
+			var types = {
+				street: 'route',
+				number: 'street_number',
+				locality: 'locality',
+				postalCode: 'postal_code',
+				city: 'administrative_area_level_3',
+				province: 'administrative_area_level_2',
+				region: 'administrative_area_level_1',
+				country: 'country',
+			};
+			var label = null;
+			angular.forEach(item.address_components, function(c) {
+				angular.forEach(c.types, function(t) {
+					if (t === types[type]) {
+						label = c.long_name;
+					}
+				});
+			});
+			// console.log('GoogleMapsType', type, item, label);
+			return label;
+		}
 
-        function GoogleMapsParse(results) {
-            var items = null;
-            if (results.length) {
-                items = results.filter(function(item) {
-                    return true; // item.geometry.location_type === 'ROOFTOP' ||
-                    // item.geometry.location_type === 'RANGE_INTERPOLATED' ||
-                    // item.geometry.location_type === 'GEOMETRIC_CENTER';
-                }).map(function(item) {
-                    return {
-                        name: item.formatted_address,
-                        street: GoogleMapsType('street', item),
-                        number: GoogleMapsType('number', item),
-                        locality: GoogleMapsType('locality', item),
-                        postalCode: GoogleMapsType('postalCode', item),
-                        city: GoogleMapsType('city', item),
-                        province: GoogleMapsType('province', item),
-                        region: GoogleMapsType('region', item),
-                        country: GoogleMapsType('country', item),
-                        position: {
-                            lng: item.geometry.location.lng(),
-                            lat: item.geometry.location.lat(),
-                        }
-                    };
-                });
-                /*
-                var first = response.data.results[0];
-                scope.model.position = first.geometry.location;
-                console.log(scope.model);
-                setLocation();
-                */
-            }
-            console.log('GoogleMapsParse', results, items);
-            return items;
-        }
+		function GoogleMapsParse(results) {
+			var items = null;
+			if (results.length) {
+				items = results.filter(function(item) {
+					return true; // item.geometry.location_type === 'ROOFTOP' ||
+					// item.geometry.location_type === 'RANGE_INTERPOLATED' ||
+					// item.geometry.location_type === 'GEOMETRIC_CENTER';
+				}).map(function(item) {
+					return {
+						name: item.formatted_address,
+						street: GoogleMapsType('street', item),
+						number: GoogleMapsType('number', item),
+						locality: GoogleMapsType('locality', item),
+						postalCode: GoogleMapsType('postalCode', item),
+						city: GoogleMapsType('city', item),
+						province: GoogleMapsType('province', item),
+						region: GoogleMapsType('region', item),
+						country: GoogleMapsType('country', item),
+						position: {
+							lng: item.geometry.location.lng(),
+							lat: item.geometry.location.lat(),
+						}
+					};
+				});
+				/*
+				var first = response.data.results[0];
+				scope.model.position = first.geometry.location;
+				console.log(scope.model);
+				setLocation();
+				*/
+			}
+			console.log('GoogleMapsParse', results, items);
+			return items;
+		}
 
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.directive('mapbox', ['$http', '$timeout', '$compile', '$promise', 'MapBox', 'environment', function($http, $timeout, $compile, $promise, MapBox, environment) {
+	app.directive('mapbox', ['$http', '$timeout', '$compile', '$promise', 'MapBox', 'environment', function($http, $timeout, $compile, $promise, MapBox, environment) {
 
-        var directive = {
-            restrict: 'A',
-            scope: {
-                connector: '=mapbox',
-            },
-            link: MapboxLink,
-        };
+		var directive = {
+			restrict: 'A',
+			scope: {
+				connector: '=mapbox',
+			},
+			link: MapboxLink,
+		};
 
-        if (!environment.plugins.mapbox) {
-            trhow('mapbox.error missing config object in environment.plugins.mapbox');
-        }
+		if (!environment.plugins.mapbox) {
+			trhow('mapbox.error missing config object in environment.plugins.mapbox');
+		}
 
-        var config = environment.plugins.mapbox;
+		var config = environment.plugins.mapbox;
 
-        return directive;
+		return directive;
 
-        function MapboxLink(scope, element, attributes, model) {
-            var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
+		function MapboxLink(scope, element, attributes, model) {
+			var map, markers, marker, geocoder, bounds, canvas, dragging, overing;
 
-            var publics = {
-                // methods available for controllers
-                fly: MapboxFly,
-                flyPosition: MapboxFlyPosition,
-                jump: MapboxJump,
-                jumpPosition: MapboxJumpPosition,
-                setMarkers: MapboxMarkersSet,
-                fitBounds: MapboxBoundsFit,
-            };
+			var publics = {
+				// methods available for controllers
+				fly: MapboxFly,
+				flyPosition: MapboxFlyPosition,
+				jump: MapboxJump,
+				jumpPosition: MapboxJumpPosition,
+				setMarkers: MapboxMarkersSet,
+				fitBounds: MapboxBoundsFit,
+			};
 
-            if (scope.connector) {
-                angular.extend(scope.connector, publics);
-            }
+			if (scope.connector) {
+				angular.extend(scope.connector, publics);
+			}
 
-            function MapboxMap() {
-                return $promise(function(promise) {
+			function MapboxMap() {
+				return $promise(function(promise) {
 
-                    MapBox.get().then(function(mapboxgl) {
-                        map = new mapboxgl.Map({
-                            container: element[0],
-                            style: config.style,
-                            interactive: true,
-                            logoPosition: 'bottom-right',
-                            // center: config.options.center,
-                            // zoom: config.options.zoom,
-                        });
-                        canvas = map.getCanvasContainer();
-                        /*
-                        scope.map.setAddress = function (item) {
-                        	// console.log('setAddress', item);
-                        	scope.map.results = null;
-                        	flyTo(item.position);
-                        };
-                        scope.map.search = function () {
-                        	// console.log('address', scope.map.address);
-                        	scope.map.results = null;
-                        	geocodeAddress(scope.map.address);
-                        	return true;
-                        };
-                        scope.map.styles = {
-                        	FICO: 1,
-                        	SATELLITE: 2,
-                        };
-                        scope.map.style = scope.map.styles.FICO;
-                        scope.map.styleToggle = function () {
-                        	if (scope.map.style === scope.map.styles.FICO) {
-                        		scope.map.style = scope.map.styles.SATELLITE;
-                        		map.setStyle('mapbox://styles/mapbox/satellite-v9');
-                        	} else {
-                        		scope.map.style = scope.map.styles.FICO;
-                        		map.setStyle('mapbox://styles/mapbox/streets-v9');
-                        	}
-                        };
-                        scope.map.setStyle = function (style) {
-                        	scope.map.style = style;
-                        	if (scope.map.style === scope.map.styles.FICO) {
-                        		map.setStyle('mapbox://styles/mapbox/streets-v9');
-                        	} else {
-                        		map.setStyle('mapbox://styles/mapbox/satellite-v9');
-                        	}
-                        };                
-                        */
-                        if (config.options) {
-                            map.jumpTo(config.options);
-                        }
-                        promise.resolve(map);
-                    });
-                });
-            }
+					MapBox.get().then(function(mapboxgl) {
+						map = new mapboxgl.Map({
+							container: element[0],
+							style: config.style,
+							interactive: true,
+							logoPosition: 'bottom-right',
+							// center: config.options.center,
+							// zoom: config.options.zoom,
+						});
+						canvas = map.getCanvasContainer();
+						/*
+						scope.map.setAddress = function (item) {
+							// console.log('setAddress', item);
+							scope.map.results = null;
+							flyTo(item.position);
+						};
+						scope.map.search = function () {
+							// console.log('address', scope.map.address);
+							scope.map.results = null;
+							geocodeAddress(scope.map.address);
+							return true;
+						};
+						scope.map.styles = {
+							FICO: 1,
+							SATELLITE: 2,
+						};
+						scope.map.style = scope.map.styles.FICO;
+						scope.map.styleToggle = function () {
+							if (scope.map.style === scope.map.styles.FICO) {
+								scope.map.style = scope.map.styles.SATELLITE;
+								map.setStyle('mapbox://styles/mapbox/satellite-v9');
+							} else {
+								scope.map.style = scope.map.styles.FICO;
+								map.setStyle('mapbox://styles/mapbox/streets-v9');
+							}
+						};
+						scope.map.setStyle = function (style) {
+							scope.map.style = style;
+							if (scope.map.style === scope.map.styles.FICO) {
+								map.setStyle('mapbox://styles/mapbox/streets-v9');
+							} else {
+								map.setStyle('mapbox://styles/mapbox/satellite-v9');
+							}
+						};
+						*/
+						if (config.options) {
+							map.jumpTo(config.options);
+						}
+						promise.resolve(map);
+					});
+				});
+			}
 
-            function MapboxFly(options) {
-                map.flyTo(options);
-            }
+			function MapboxFly(options) {
+				map.flyTo(options);
+			}
 
-            function MapboxFlyPosition(position) {
-                var options = getOptions({
-                    center: [position.lng, position.lat],
-                    zoom: 20,
-                });
-                MapboxFly(options);
-            }
+			function MapboxFlyPosition(position) {
+				var options = getOptions({
+					center: [position.lng, position.lat],
+					zoom: 20,
+				});
+				MapboxFly(options);
+			}
 
-            function MapboxJump(options) {
-                map.jumpTo(options);
-            }
+			function MapboxJump(options) {
+				map.jumpTo(options);
+			}
 
-            function MapboxJumpPosition(position) {
-                var options = getOptions({
-                    center: [position.lng, position.lat],
-                    zoom: 20,
-                });
-                map.MapboxJump(options);
-            }
+			function MapboxJumpPosition(position) {
+				var options = getOptions({
+					center: [position.lng, position.lat],
+					zoom: 20,
+				});
+				map.MapboxJump(options);
+			}
 
-            /*
-            googleMaps.geocoder().then(function (response) {
-                geocoder = response;
-                init();
-            });
-            */
+			/*
+			googleMaps.geocoder().then(function (response) {
+			    geocoder = response;
+			    init();
+			});
+			*/
 
-            function getOptions(options) {
-                return angular.extend(angular.copy(config.options), options);
-            }
+			function getOptions(options) {
+				return angular.extend(angular.copy(config.options), options);
+			}
 
-            function MapboxMarkersRemove() {
-                if (markers) {
-                    angular.forEach(markers, function(item) {
-                        item.remove();
-                    });
-                }
-            }
+			function MapboxMarkersRemove() {
+				if (markers) {
+					angular.forEach(markers, function(item) {
+						item.remove();
+					});
+				}
+			}
 
-            function MapboxMarkersSet(items) {
-                MapboxMap().then(function() {
-                    MapboxMarkersRemove();
-                    markers = [];
-                    if (config.clusterer) {
-                        MapboxClusterer(items);
+			function MapboxMarkersSet(items) {
+				MapboxMap().then(function() {
+					MapboxMarkersRemove();
+					markers = [];
+					if (config.clusterer) {
+						MapboxClusterer(items);
 
-                    } else {
-                        if (items) {
-                            angular.forEach(items, function(item) {
-                                var marker = MapboxMarkerAdd(item);
-                                markers.push(marker);
-                            });
-                        }
-                    }
-                });
-            }
+					} else {
+						if (items) {
+							angular.forEach(items, function(item) {
+								var marker = MapboxMarkerAdd(item);
+								markers.push(marker);
+							});
+						}
+					}
+				});
+			}
 
-            function MapboxMarkerAdd(item) {
-                var $scope = scope.$new(true);
-                $scope.item = item;
-                var node = document.createElement('div');
-                node.id = 'point';
-                node.className = 'marker ' + item.area.code;
-                node.className += item.type;
-                node.setAttribute('marker', 'item');
-                var marker = new mapboxgl.Marker(node, {
-                        offset: [-10, -10]
-                    })
-                    .setLngLat([item.position.lng, item.position.lat])
-                    .addTo(map);
-                var markerElement = angular.element(node);
-                markerElement.on('click', function(e) {
-                    // console.log('marker.click', item);
-                    scope.$emit('onMarkerClicked', item);
-                });
-                $compile(markerElement)($scope); // Compiling marker
-                return marker;
-            }
+			function MapboxMarkerAdd(item) {
+				var $scope = scope.$new(true);
+				$scope.item = item;
+				var node = document.createElement('div');
+				node.id = 'point';
+				node.className = 'marker ' + item.area.code;
+				node.className += item.type;
+				node.setAttribute('marker', 'item');
+				var marker = new mapboxgl.Marker(node, {
+						offset: [-10, -10]
+					})
+					.setLngLat([item.position.lng, item.position.lat])
+					.addTo(map);
+				var markerElement = angular.element(node);
+				markerElement.on('click', function(e) {
+					// console.log('marker.click', item);
+					scope.$emit('onMarkerClicked', item);
+				});
+				$compile(markerElement)($scope); // Compiling marker
+				return marker;
+			}
 
-            function MapboxCoordinatesGet(item) {
-                var coordinates = null;
-                if (item.position) {
-                    coordinates = [
+			function MapboxCoordinatesGet(item) {
+				var coordinates = null;
+				if (item.position) {
+					coordinates = [
                         item.position.longitude,
                         item.position.latitude,
                         item.position.altitude || 0.0,
                     ];
-                }
-                // [0, 1, 2]; longitude, latitude, altitude
-                return coordinates;
-            }
+				}
+				// [0, 1, 2]; longitude, latitude, altitude
+				return coordinates;
+			}
 
-            function MapboxFeaturesGet(items) {
-                var collection = null;
-                if (items) {
-                    var features = items.map(function(item) {
-                        return {
-                            type: 'Feature',
-                            properties: angular.extend({}, item),
-                            geometry: {
-                                type: 'Point',
-                                coordinates: MapboxCoordinatesGet(item),
-                            }
-                        };
-                    });
-                    collection = {
-                        type: 'FeatureCollection',
-                        crs: {
-                            type: 'name',
-                            properties: {
-                                name: 'urn:ogc:def:crs:OGC:1.3:CRS84'
-                            }
-                        },
-                        features: features,
-                    };
-                }
-                return collection;
-            }
+			function MapboxFeaturesGet(items) {
+				var collection = null;
+				if (items) {
+					var features = items.map(function(item) {
+						return {
+							type: 'Feature',
+							properties: angular.extend({}, item),
+							geometry: {
+								type: 'Point',
+								coordinates: MapboxCoordinatesGet(item),
+							}
+						};
+					});
+					collection = {
+						type: 'FeatureCollection',
+						crs: {
+							type: 'name',
+							properties: {
+								name: 'urn:ogc:def:crs:OGC:1.3:CRS84'
+							}
+						},
+						features: features,
+					};
+				}
+				return collection;
+			}
 
-            function MapboxClusterer(items) {
+			function MapboxClusterer(items) {
 
-                var collection = MapboxFeaturesGet(items);
+				var collection = MapboxFeaturesGet(items);
 
-                map.on('load', function() {
-                    // Add a new source from our GeoJSON data and set the
-                    // 'cluster' option to true. GL-JS will add the point_count property to your source data.
-                    map.addSource('earthquakes', {
-                        type: 'geojson',
-                        // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-                        // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-                        // data: '/api/mapbox/earthquakes.geo.json',
-                        data: collection,
-                        cluster: true,
-                        clusterMaxZoom: 14, // Max zoom to cluster points on
-                        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
-                    });
+				map.on('load', function() {
+					// Add a new source from our GeoJSON data and set the
+					// 'cluster' option to true. GL-JS will add the point_count property to your source data.
+					map.addSource('earthquakes', {
+						type: 'geojson',
+						// Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+						// from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+						// data: '/api/mapbox/earthquakes.geo.json',
+						data: collection,
+						cluster: true,
+						clusterMaxZoom: 14, // Max zoom to cluster points on
+						clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+					});
 
-                    map.addLayer({
-                        id: 'clusters',
-                        type: 'circle',
-                        source: 'earthquakes',
-                        filter: ['has', 'point_count'],
-                        paint: {
-                            'circle-color': {
-                                property: 'point_count',
-                                type: 'interval',
-                                stops: [
+					map.addLayer({
+						id: 'clusters',
+						type: 'circle',
+						source: 'earthquakes',
+						filter: ['has', 'point_count'],
+						paint: {
+							'circle-color': {
+								property: 'point_count',
+								type: 'interval',
+								stops: [
                                     [0, '#51bbd6'],
                                     [100, '#f1f075'],
                                     [750, '#f28cb1'],
                                 ]
-                            },
-                            'circle-radius': {
-                                property: 'point_count',
-                                type: 'interval',
-                                stops: [
+							},
+							'circle-radius': {
+								property: 'point_count',
+								type: 'interval',
+								stops: [
                                     [0, 20],
                                     [100, 30],
                                     [750, 40]
                                 ]
-                            }
-                        }
-                    });
+							}
+						}
+					});
 
-                    map.addLayer({
-                        id: 'cluster-count',
-                        type: 'symbol',
-                        source: 'earthquakes',
-                        filter: ['has', 'point_count'],
-                        layout: {
-                            'text-field': '{point_count_abbreviated}',
-                            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                            'text-size': 12
-                        }
-                    });
+					map.addLayer({
+						id: 'cluster-count',
+						type: 'symbol',
+						source: 'earthquakes',
+						filter: ['has', 'point_count'],
+						layout: {
+							'text-field': '{point_count_abbreviated}',
+							'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+							'text-size': 12
+						}
+					});
 
-                    map.addLayer({
-                        id: 'unclustered-point',
-                        type: 'circle',
-                        source: 'earthquakes',
-                        filter: ['!has', 'point_count'],
-                        paint: {
-                            'circle-color': '#11b4da',
-                            'circle-radius': 4,
-                            'circle-stroke-width': 1,
-                            'circle-stroke-color': '#fff'
-                        }
-                    });
-                });
-            }
+					map.addLayer({
+						id: 'unclustered-point',
+						type: 'circle',
+						source: 'earthquakes',
+						filter: ['!has', 'point_count'],
+						paint: {
+							'circle-color': '#11b4da',
+							'circle-radius': 4,
+							'circle-stroke-width': 1,
+							'circle-stroke-color': '#fff'
+						}
+					});
+				});
+			}
 
-            function MapboxBoundsFit() {
-                if (bounds) {
-                    map.fitBounds(bounds, {
-                        speed: 1.5,
-                        curve: 1,
-                        padding: 30,
-                        linear: false,
-                        maxZoom: 8,
-                    });
-                }
-            }
+			function MapboxBoundsFit() {
+				if (bounds) {
+					map.fitBounds(bounds, {
+						speed: 1.5,
+						curve: 1,
+						padding: 30,
+						linear: false,
+						maxZoom: 8,
+					});
+				}
+			}
 
-            function geocodeAddress(address) {
-                geocoder.geocode({
-                    'address': address
-                }, function(results, status) {
-                    $timeout(function() {
-                        if (status === 'OK') {
-                            connector.results = googleMaps.parse(results);
-                        } else {
-                            alert('Geocode was not successful for the following reason: ' + status);
-                        }
-                    });
-                });
-            }
+			function geocodeAddress(address) {
+				geocoder.geocode({
+					'address': address
+				}, function(results, status) {
+					$timeout(function() {
+						if (status === 'OK') {
+							connector.results = googleMaps.parse(results);
+						} else {
+							alert('Geocode was not successful for the following reason: ' + status);
+						}
+					});
+				});
+			}
 
-            function reverseGeocode(position) {
-                // console.log('reverseGeocode', position);
-                geocoder.geocode({
-                    'location': position
-                }, function(results, status) {
-                    $timeout(function() {
-                        if (status === 'OK') {
-                            connector.results = googleMaps.parse(results);
-                        } else {
-                            console.log('Geocoder failed due to: ' + status);
-                        }
-                    });
-                });
-            }
+			function reverseGeocode(position) {
+				// console.log('reverseGeocode', position);
+				geocoder.geocode({
+					'location': position
+				}, function(results, status) {
+					$timeout(function() {
+						if (status === 'OK') {
+							connector.results = googleMaps.parse(results);
+						} else {
+							console.log('Geocoder failed due to: ' + status);
+						}
+					});
+				});
+			}
 
-            function geolocalize() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(p) {
-                        $timeout(function() {
-                            var position = {
-                                lat: p.coords.latitude,
-                                lng: p.coords.longitude
-                            };
-                            flyTo(position);
-                            reverseGeocode(position);
-                        });
-                    }, function(e) {
-                        console.log('error', e);
-                    });
-                } else {
-                    console.log('error', 'Browser doesn\'t support Geolocation');
-                }
-            }
+			function geolocalize() {
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(function(p) {
+						$timeout(function() {
+							var position = {
+								lat: p.coords.latitude,
+								lng: p.coords.longitude
+							};
+							flyTo(position);
+							reverseGeocode(position);
+						});
+					}, function(e) {
+						console.log('error', e);
+					});
+				} else {
+					console.log('error', 'Browser doesn\'t support Geolocation');
+				}
+			}
 
-            /*
-            function flyTo(position) {
-                map.flyTo({
-                    center: [
-                        parseFloat(position.lng),
-                        parseFloat(position.lat)
-                    ],
-                    zoom: 15,
-                    speed: 1.5,
-                    curve: 1,
-                });
-            }
-            */
+			/*
+			function flyTo(position) {
+			    map.flyTo({
+			        center: [
+			            parseFloat(position.lng),
+			            parseFloat(position.lat)
+			        ],
+			        zoom: 15,
+			        speed: 1.5,
+			        curve: 1,
+			    });
+			}
+			*/
 
-        }
+		}
     }]);
 
-    app.directive('marker', ['$http', '$timeout', function($http, $timeout) {
-        return {
-            restrict: 'A',
-            scope: {
-                item: '=marker',
-            },
-            template: '<div class="inner">' +
-                '   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
-                '       <path d="M12 0c-5.522 0-10 4.395-10 9.815 0 5.505 4.375 9.268 10 14.185 5.625-4.917 10-8.68 10-14.185 0-5.42-4.478-9.815-10-9.815zm0 18c-4.419 0-8-3.582-8-8s3.581-8 8-8 8 3.582 8 8-3.581 8-8 8z"/>' +
-                '   </svg>' +
-                '   <span ng-bind="item.code"></span>' +
-                '</div>',
-            link: link,
-        };
+	app.directive('marker', ['$http', '$timeout', function($http, $timeout) {
+		return {
+			restrict: 'A',
+			scope: {
+				item: '=marker',
+			},
+			template: '<div class="inner">' +
+				'   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">' +
+				'       <path d="M12 0c-5.522 0-10 4.395-10 9.815 0 5.505 4.375 9.268 10 14.185 5.625-4.917 10-8.68 10-14.185 0-5.42-4.478-9.815-10-9.815zm0 18c-4.419 0-8-3.582-8-8s3.581-8 8-8 8 3.582 8 8-3.581 8-8 8z"/>' +
+				'   </svg>' +
+				'   <span ng-bind="item.code"></span>' +
+				'</div>',
+			link: link,
+		};
 
-        function link(scope, element, attributes, model) {
-            // console.log('marker', scope.item);
-        }
+		function link(scope, element, attributes, model) {
+			// console.log('marker', scope.item);
+		}
 
     }]);
 
-    /*
+	/*
 	app.service('GoogleMaps', ['$q', '$http', function ($q, $http) {
 		var _key = 'AIzaSyAYuhIEO-41YT_GdYU6c1N7DyylT_OcMSY';
 		var _init = false;
@@ -10635,46 +10692,47 @@ $(window).on('resize', function () {
     */
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan');
+	var app = angular.module('artisan');
 
-    app.service('MapBox', ['$q', '$http', '$promise', '$once', 'environment', function($q, $http, $promise, $once, environment) {
+	app.service('MapBox', ['$q', '$http', '$promise', '$once', 'environment', function($q, $http, $promise, $once, environment) {
 
-        var service = this;
+		var service = this;
 
-        var statics = {
-            get: MapBoxGet,
-        };
+		var statics = {
+			get: MapBoxGet,
+		};
 
-        angular.extend(service, statics);
+		angular.extend(service, statics);
 
-        if (!environment.plugins.mapbox) {
-            trhow('MapBox.error missing config object in environment.plugins.mapbox');
-        }
+		if (!environment.plugins.mapbox) {
+			trhow('MapBox.error missing config object in environment.plugins.mapbox');
+		}
 
-        var config = environment.plugins.mapbox;
+		var config = environment.plugins.mapbox;
 
-        function MapBoxGet() {
-            return $promise(function(promise) {
-                if (window.mapboxgl) {
-                    promise.resolve(window.mapboxgl);
-                } else {
-                    $promise.all([
+		function MapBoxGet() {
+			return $promise(function(promise) {
+				if (window.mapboxgl) {
+					promise.resolve(window.mapboxgl);
+				} else {
+					$promise.all([
                         $once.script('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.js'),
                         $once.link('//api.tiles.mapbox.com/mapbox-gl-js/' + config.version + '/mapbox-gl.css'),
                     ]).then(function() {
-                        window.mapboxgl.accessToken = config.accessToken;
-                        promise.resolve(window.mapboxgl);
-                    }, function(error) {
-                        promise.reject(error);
-                    });
-                }
-            });
-        }
+						window.mapboxgl.accessToken = config.accessToken;
+						promise.resolve(window.mapboxgl);
+					}, function(error) {
+						promise.reject(error);
+					});
+				}
+			});
+		}
 
     }]);
 

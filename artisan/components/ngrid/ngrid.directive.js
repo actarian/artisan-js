@@ -1,9 +1,9 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
-	app.directive('ngrid', ['$window', '$templateCache', '$templateRequest', '$interpolate', '$compile', '$filter', '$timeout', 'Gesture', 'Keys', 'Utils', function ($window, $templateCache, $templateRequest, $interpolate, $compile, $filter, $timeout, Gesture, Keys, Utils) {
+	app.directive('ngrid', ['$window', '$templateCache', '$templateRequest', '$interpolate', '$compile', '$filter', '$timeout', 'Gesture', 'Keys', 'Utils', function($window, $templateCache, $templateRequest, $interpolate, $compile, $filter, $timeout, Gesture, Keys, Utils) {
 		// polyfill for trim >= IE9
 		function trimWhiteSpace(string) {
 			return string.replace(/^\s+|\s+$/gm, '');
@@ -18,13 +18,13 @@
 			*/
 			templateUrl: 'ngrid/partials/ngrid',
 			transclude: true,
-			controller: ['$transclude', '$attrs', function ($transclude, $attrs) {
+			controller: ['$transclude', '$attrs', function($transclude, $attrs) {
 				if ($attrs.ngridTemplate === undefined) {
-					$transclude(function (clone, scope) {
-						var html = Array.prototype.slice.call(clone).filter(function (node) {
+					$transclude(function(clone, scope) {
+						var html = Array.prototype.slice.call(clone).filter(function(node) {
 							// remove empty text nodes
 							return (node.nodeType !== 3 || /\S/.test(node.nodeValue));
-						}).map(function (node) {
+						}).map(function(node) {
 							return trimWhiteSpace(node.outerHTML);
 						});
 						html = html.join('');
@@ -32,7 +32,7 @@
 					});
 				}
             }],
-			link: function (scope, element, attributes, model, transclude) {
+			link: function(scope, element, attributes, model, transclude) {
 				// console.log(attributes);
 				var template;
 				if (attributes.ngridTemplate !== undefined) {
@@ -96,13 +96,13 @@
 							height: attributes.dayHeight !== undefined ? parseInt(attributes.dayHeight) : 40,
 						},
 						draw: {
-							start: function (data) {
+							start: function(data) {
 								console.log('ngrid.draw.start', data.row, data.col, data.count);
 							},
-							progress: function (data) {
+							progress: function(data) {
 								console.log('ngrid.draw.progress', data.row, data.col, data.count);
 							},
-							end: function (data) {
+							end: function(data) {
 								console.log('ngrid.draw.end', data.row, data.col, data.count);
 							},
 						},
@@ -182,7 +182,7 @@
 						visibles = layout.visibles,
 						targetElement = tableElement;
 					if (layout.rows.dirty || layout.cols.dirty || layout.dirty) {
-						angular.forEach(visibles, function (item, i) {
+						angular.forEach(visibles, function(item, i) {
 							if (i < count) {
 								var $scope = getCell(i, item);
 							}
@@ -190,7 +190,7 @@
 					}
 					while (visibles.length < count) {
 						var $scope = getCell(visibles.length);
-						var compiled = template($scope, function (cloned) {
+						var compiled = template($scope, function(cloned) {
 							compiled = cloned;
 						});
 						var $element = angular.element(compiled);
@@ -232,7 +232,7 @@
 				function render() {
 					var count = layout.rows.count * layout.cols.count,
 						visibles = layout.visibles;
-					angular.forEach(visibles, function (item, i) {
+					angular.forEach(visibles, function(item, i) {
 						var node = item.element[0];
 						if (i < count) {
 							node.style.width = (cols ? layout.cell.width : layout.table.width) + 'px';
@@ -366,7 +366,7 @@
 					layout.grid.height = layout.table.height = Math.min(nodeTable.offsetHeight, WH);
 					// console.log('ngrid.resize', layout.grid.width, layout.grid.height, nodeTable.parentElement.offsetWidth, WW, nodeTable, nodeTable.parentElement);
 				}
-				// resize fires on window resize and on scope update    
+				// resize fires on window resize and on scope update
 
 				function onResize() {
 					resize();
@@ -390,7 +390,7 @@
 				onResize();
 
 				// WATCH OPTIONS
-				scope.$watch(attributes.ngrid, function (value) {
+				scope.$watch(attributes.ngrid, function(value) {
 					if (angular.isObject(value)) {
 						console.log('attributes.ngrid', value);
 						// ok but add a schema (keys)
@@ -399,14 +399,14 @@
 						layout.scrollToY = scrollToY;
 						layout.refresh = refresh;
 						var keys = ['onScroll', 'draw', 'scrollTo', 'scrollToX', 'scrollToY', 'refresh'];
-						angular.forEach(keys, function (key) {
+						angular.forEach(keys, function(key) {
 							layout[key] = value[key] || layout[key];
 							value[key] = value[key] || layout[key];
 						});
-						value.getRow = function (row) {
+						value.getRow = function(row) {
 							return rows ? rows[row] : null;
 						};
-						value.getCol = function (col) {
+						value.getCol = function(col) {
 							return cols ? cols[col] : null;
 						};
 						// angular.extend(layout, value);
@@ -416,7 +416,7 @@
 				});
 
 				// WATCH ROWS
-				scope.$watchCollection(attributes.ngridRows, function (value, oldValue) {
+				scope.$watchCollection(attributes.ngridRows, function(value, oldValue) {
 					if (value) {
 						rows = value;
 						onRows();
@@ -426,7 +426,7 @@
 				});
 
 				// WATCH COLS
-				scope.$watchCollection(attributes.ngridCols, function (value) {
+				scope.$watchCollection(attributes.ngridCols, function(value) {
 					if (value) {
 						cols = value;
 						onCols();
@@ -435,7 +435,7 @@
 					}
 				});
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					removeListeners();
 				});
 

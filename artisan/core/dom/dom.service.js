@@ -12,12 +12,12 @@ $(window).on('resize', function () {
 
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Dom', ['Point', 'Rect', function (Point, Rect) {
+	app.service('Dom', ['Point', 'Rect', function(Point, Rect) {
 
 		var service = this;
 
@@ -54,7 +54,7 @@ $(window).on('resize', function () {
 		// return closest parent node that match a selector
 		function getClosest(node, selector) {
 			var matchesFn, parent;
-            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function (fn) {
+            ['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'].some(function(fn) {
 				if (typeof document.body[fn] == 'function') {
 					matchesFn = fn;
 					return true;
@@ -158,8 +158,8 @@ $(window).on('resize', function () {
 				}
 				parents.push(topParentNode); // push that topParentNode you wanted to stop at
 			}
-			parents.each = function (callback) {
-				this.filter(function (node) {
+			parents.each = function(callback) {
+				this.filter(function(node) {
 					if (callback) {
 						callback(angular.element(node), node);
 					}
@@ -224,7 +224,7 @@ $(window).on('resize', function () {
 				mobile: mobile,
 				mac: mac,
 			};
-			angular.forEach(ua, function (value, key) {
+			angular.forEach(ua, function(value, key) {
 				if (value) {
 					angular.element(document.getElementsByTagName('body')).addClass(key);
 				}
@@ -280,7 +280,7 @@ $(window).on('resize', function () {
 			});
 			var reader = new window.FileReader();
 			reader.readAsDataURL(blob);
-			reader.onloadend = function () {
+			reader.onloadend = function() {
 				base64 = reader.result;
 				download();
 			};

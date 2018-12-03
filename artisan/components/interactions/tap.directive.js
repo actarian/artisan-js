@@ -1,5 +1,5 @@
 /* global angular */
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -33,9 +33,9 @@
 				// node.style.animationPlayState = "paused";
 				node.style.left = e.relative.x + 'px';
 				node.style.top = e.relative.y + 'px';
-				setTimeout(function () {
+				setTimeout(function() {
 					element.addClass('interaction-animate');
-					setTimeout(function () {
+					setTimeout(function() {
 						element.removeClass('interaction-animate');
 					}, 1000);
 				}, 10);

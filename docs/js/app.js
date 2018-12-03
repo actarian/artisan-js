@@ -1,19 +1,20 @@
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app', ['ngSanitize', 'artisan', 'jsonFormatter']);
+	var app = angular.module('app', ['ngSanitize', 'artisan', 'jsonFormatter']);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.service('Api', ['Http', 'Bearer', function (Http, Bearer) {
+	app.service('Api', ['Http', 'Bearer', function(Http, Bearer) {
 
 		var api = {
 			/*
@@ -29,21 +30,21 @@
 			},
 			*/
 			navs: {
-				main: function () {
+				main: function() {
 					return Http.get('/navs/main.json');
 				},
 			},
 			docs: {
-				id: function (id) {
+				id: function(id) {
 					return Http.get('/docs/' + id + '.json');
 				},
-				path: function (path) {
+				path: function(path) {
 					path = path.split('/').join('-');
 					return Http.get('/docs/' + path + '.json');
 				},
 			},
 			maps: {
-				markers: function () {
+				markers: function() {
 					return Http.get('/maps/markers.json');
 				},
 			},
@@ -54,88 +55,90 @@
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
-
-    var app = angular.module('app');
-
-    app.config(['$routeProvider', function($routeProvider) {
-
-        $routeProvider.when('/', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'HomeCtrl',
-
-        }).when('/test', {
-            templateUrl: function() {
-                return 'views/test.html';
-            },
-            controller: 'TestCtrl',
-            // resolve: {
-            //    user: ['Users', function(Users) {
-            //        return Users.isAuthorizedOrGoTo('/home');
-            //    }]
-            // },
-
-        }).when('/contact-us', {
-            templateUrl: function() {
-                return 'views/contact-us.html';
-            },
-            controller: 'ContactUsCtrl',
-            // resolve: {
-            //    user: ['Users', function(Users) {
-            //        return Users.isAuthorizedOrGoTo('/home');
-            //    }]
-            // },
-
-        }).when('/works/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
-
-        }).when('/works/visuals/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
-
-        }).when('/works/production/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
-
-        }).when('/experiences/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
-
-        }).when('/:slug', {
-            templateUrl: function() {
-                return 'views/slug.html';
-            },
-            controller: 'SlugCtrl',
-
-        });
-
-        $routeProvider.otherwise('/');
-
-    }]);
-
-}());
-/* global angular */
-
-(function () {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.run(['$rootScope', 'Router', 'Trust', 'Bearer', 'FacebookService', 'GoogleService', function ($rootScope, Router, Trust, Bearer, FacebookService, GoogleService) {
+	app.config(['$routeProvider', function($routeProvider) {
+
+		$routeProvider.when('/', {
+			templateUrl: function() {
+				return 'views/slug.html';
+			},
+			controller: 'HomeCtrl',
+
+		}).when('/test', {
+			templateUrl: function() {
+				return 'views/test.html';
+			},
+			controller: 'TestCtrl',
+			// resolve: {
+			//    user: ['Users', function(Users) {
+			//        return Users.isAuthorizedOrGoTo('/home');
+			//    }]
+			// },
+
+		}).when('/contact-us', {
+			templateUrl: function() {
+				return 'views/contact-us.html';
+			},
+			controller: 'ContactUsCtrl',
+			// resolve: {
+			//    user: ['Users', function(Users) {
+			//        return Users.isAuthorizedOrGoTo('/home');
+			//    }]
+			// },
+
+		}).when('/works/:slug', {
+			templateUrl: function() {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
+
+		}).when('/works/visuals/:slug', {
+			templateUrl: function() {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
+
+		}).when('/works/production/:slug', {
+			templateUrl: function() {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
+
+		}).when('/experiences/:slug', {
+			templateUrl: function() {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
+
+		}).when('/:slug', {
+			templateUrl: function() {
+				return 'views/slug.html';
+			},
+			controller: 'SlugCtrl',
+
+		});
+
+		$routeProvider.otherwise('/');
+
+    }]);
+
+}());
+
+/* global angular */
+
+(function() {
+	"use strict";
+
+	var app = angular.module('app');
+
+	app.run(['$rootScope', 'Router', 'Trust', 'Bearer', 'FacebookService', 'GoogleService', function($rootScope, Router, Trust, Bearer, FacebookService, GoogleService) {
 
 		$rootScope.router = Router;
 		$rootScope.trust = Trust;
@@ -149,16 +152,17 @@
     }]);
 
 }());
-(function () {
+
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.directive('todoItem', ['$templateCache', '$parse', '$timeout', '$filter', 'Animate', 'DateTime', 'LocalStorage', function ($templateCache, $parse, $timeout, $filter, Animate, DateTime, storage) {
+	app.directive('todoItem', ['$templateCache', '$parse', '$timeout', '$filter', 'Animate', 'DateTime', 'LocalStorage', function($templateCache, $parse, $timeout, $filter, Animate, DateTime, storage) {
 		return {
 			priority: 1001,
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				var url = attributes.template;
 				if (!url) {
 					url = 'partials/todolist';
@@ -168,7 +172,7 @@
 				}
 				return url;
 			},
-			link: function (scope, element, attributes, model, transclude) {
+			link: function(scope, element, attributes, model, transclude) {
 				// console.log('todoItem.link');
 
 				var SPEED = 1;
@@ -189,7 +193,7 @@
 				var player;
 
 				function play() {
-					$timeout(function () {
+					$timeout(function() {
 						StoragePlay();
 					});
 				}
@@ -199,7 +203,7 @@
 						return;
 					}
 					if (player.playing) {
-						$timeout(function () {
+						$timeout(function() {
 							StoragePause();
 						});
 					}
@@ -238,7 +242,7 @@
 					angular.element(target).off('click', onClick);
 				}
 				scope.$on('onTodoPlayer', onTodoPlayer);
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					removeListeners();
 				});
 				addListeners();
@@ -388,14 +392,15 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('ContactUsCtrl', ['$scope', 'State', 'View', 'Api', function ($scope, State, View, Api) {
+	app.controller('ContactUsCtrl', ['$scope', 'State', 'View', 'Api', function($scope, State, View, Api) {
 
 		var state = new State();
 		var state2 = new State();
@@ -411,16 +416,16 @@
 
 		angular.extend($scope, publics); // todo
 
-		View.current().then(function (view) {
+		View.current().then(function(view) {
 			$scope.view = view;
 			state.ready();
 
-		}, function (error) {
+		}, function(error) {
 			state.error(error);
 
 		});
 
-		Api.maps.markers().then(function (items) {
+		Api.maps.markers().then(function(items) {
 			googlemaps.setMarkers(items);
 			mapbox.setMarkers(items);
 		});
@@ -428,21 +433,22 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('HomeCtrl', ['$scope', 'State', 'View', 'Range', function ($scope, State, View, Range) {
+	app.controller('HomeCtrl', ['$scope', 'State', 'View', 'Range', function($scope, State, View, Range) {
 		var state = new State();
 
-		View.current().then(function (view) {
+		View.current().then(function(view) {
 			$scope.view = view;
 			state.ready();
 
-		}, function (error) {
+		}, function(error) {
 			state.error(error);
 
 		});
@@ -475,24 +481,25 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function ($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
+	app.controller('RootCtrl', ['$scope', '$timeout', '$promise', 'Nav', 'Api', 'Range', 'Scrollable', 'AuthService', 'FacebookService', 'GoogleService', function($scope, $timeout, $promise, Nav, Api, Range, Scrollable, AuthService, FacebookService, GoogleService) {
 
 		var nav = new Nav({
 			onPath: onPath,
 			onNav: onNav,
 		});
 
-		Api.navs.main().then(function (items) {
+		Api.navs.main().then(function(items) {
 			nav.setItems(items);
 
-		}, function (error) {
+		}, function(error) {
 			console.log('RootCtrl.error', error);
 
 		});
@@ -511,9 +518,9 @@
 
 		function onNavPromise(item) {
 			$scope.selected = item;
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				// console.log('RootCtrl.onNavPromise', item.$nav.level, item.$nav.path);
-				$timeout(function () {
+				$timeout(function() {
 					if (item.items) {
 						item.$nav.addItems({
 							name: "Item",
@@ -528,15 +535,15 @@
 
 		////////////
 
-		var items = new Array(20).fill(null).map(function (value, index) {
+		var items = new Array(20).fill(null).map(function(value, index) {
 			return {
 				id: index + 1,
 				name: 'Item',
-				items: new Array(3).fill(null).map(function (value, index) {
+				items: new Array(3).fill(null).map(function(value, index) {
 					return {
 						id: index + 1,
 						name: 'Item',
-						items: new Array(2).fill(null).map(function (value, index) {
+						items: new Array(2).fill(null).map(function(value, index) {
 							return {
 								id: index + 1,
 								name: 'Item',
@@ -556,17 +563,17 @@
 		//////////////
 
 		function getFacebookMe() {
-			FacebookService.getMe().then(function (user) {
+			FacebookService.getMe().then(function(user) {
 				console.log('FacebookService.getMe', user);
-			}, function (error) {
+			}, function(error) {
 				console.log('FacebookService.getMe.error', error);
 			});
 		}
 
 		function getGoogleMe() {
-			GoogleService.getMe().then(function (user) {
+			GoogleService.getMe().then(function(user) {
 				console.log('GoogleService.getMe', user);
-			}, function (error) {
+			}, function(error) {
 				console.log('GoogleService.getMe.error', error);
 			});
 		}
@@ -603,21 +610,22 @@
     }]);
 
 }());
+
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('SlugCtrl', ['$scope', 'State', 'View', function ($scope, State, View) {
+	app.controller('SlugCtrl', ['$scope', 'State', 'View', function($scope, State, View) {
 		var state = new State();
 
-		View.current().then(function (view) {
+		View.current().then(function(view) {
 			$scope.view = view;
 			state.ready();
 
-		}, function (error) {
+		}, function(error) {
 			state.error(error);
 
 		});
@@ -629,12 +637,12 @@
 
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('TestCtrl', ['$scope', '$filter', '$http', 'State', 'Hash', 'DateTime', 'Range', 'LocalStorage', function ($scope, $filter, $http, State, Hash, DateTime, Range, storage) {
+	app.controller('TestCtrl', ['$scope', '$filter', '$http', 'State', 'Hash', 'DateTime', 'Range', 'LocalStorage', function($scope, $filter, $http, State, Hash, DateTime, Range, storage) {
 
 		var state = new State();
 
@@ -647,7 +655,7 @@
 
 		angular.extend($scope, publics);
 
-		$http.get('api/test.json').then(function (response) {
+		$http.get('api/test.json').then(function(response) {
 			var slots = response.data;
 			sources.slots = slots;
 			setTodos();
@@ -657,7 +665,7 @@
 		function setTodos() {
 			var slots = sources.slots;
 			var todos = new Hash('key');
-			angular.forEach(slots, function (item) {
+			angular.forEach(slots, function(item) {
 				var day = item.day;
 				var week = $filter('isoWeek')(day.date, 1);
 				var keys = [week, day.activityId, day.taskId || 0, day.locked ? day.key : 0];
@@ -689,7 +697,7 @@
 			sources.todos = todos;
 		}
 
-		$scope.$on('onTodoPause', function (scope, item) {
+		$scope.$on('onTodoPause', function(scope, item) {
 			var accumulatedHours = DateTime.timeToQuarterHour(item.player.accumulatedTime);
 			// console.log('onTodoPause', accumulatedHours);
 			item.recordedHours += accumulatedHours;
@@ -714,7 +722,7 @@
 		console.log(range.toString());
 
 		var days = new Hash('key');
-		range.eachDay(function (day) {
+		range.eachDay(function(day) {
 			days.add(day);
 		});
 
@@ -723,130 +731,134 @@
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.config(['environmentProvider', function(environmentProvider) {
+	app.config(['environmentProvider', function(environmentProvider) {
 
-        environmentProvider.add('environment', {
-            http: {
-                interceptors: [], // ['AuthService'],
-                withCredentials: false,
-            },
-            language: {
-                code: 'en',
-                culture: 'en_US',
-                iso: 'ENU',
-                name: 'English',
-            },
-            location: {
-                hash: '!',
-                html5: false,
-            },
-            plugins: {
-                facebook: {
-                    appId: 340008479796111,
-                    fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
-                    scope: 'public_profile, email', // publish_stream
-                    version: 'v2.10',
-                },
-                google: {
-                    apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
-                    clientId: '1063539520533-7308vqmt92em6dv1v5q52fq2or36jk95.apps.googleusercontent.com',
-                },
-                googlemaps: {
-                    apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
-                    styles: '/googlemaps/applemapesque.json',
-                    options: {
-                        center: {
-                            lat: 43.9023386, // latitude
-                            lng: 12.8505094, // longitude
-                        },
-                        zoom: 4.0,
-                    }
-                },
-                mapbox: {
-                    accessToken: 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ',
-                    options: {
-                        center: [
+		environmentProvider.add('environment', {
+			http: {
+				interceptors: [], // ['AuthService'],
+				withCredentials: false,
+			},
+			language: {
+				code: 'en',
+				culture: 'en_US',
+				iso: 'ENU',
+				name: 'English',
+			},
+			location: {
+				hash: '!',
+				html5: false,
+			},
+			plugins: {
+				facebook: {
+					appId: 340008479796111,
+					fields: 'id,name,first_name,last_name,email,gender,picture,cover,link',
+					scope: 'public_profile, email', // publish_stream
+					version: 'v2.10',
+				},
+				google: {
+					apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
+					clientId: '1063539520533-7308vqmt92em6dv1v5q52fq2or36jk95.apps.googleusercontent.com',
+				},
+				googlemaps: {
+					apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
+					styles: '/googlemaps/applemapesque.json',
+					options: {
+						center: {
+							lat: 43.9023386, // latitude
+							lng: 12.8505094, // longitude
+						},
+						zoom: 4.0,
+					}
+				},
+				mapbox: {
+					accessToken: 'pk.eyJ1IjoiYWN0YXJpYW4iLCJhIjoiY2lqNWU3MnBzMDAyZndnbTM1cjMyd2N2MiJ9.CbuEGSvOAfIYggQv854pRQ',
+					options: {
+						center: [
                             12.8505094, // longitude
                             43.9023386, // latitude
                         ],
-                        zoom: 4.0,
-                    },
-                    style: 'mapbox://styles/actarian/cja82nadj07sn2rmty6n1n5pk',
-                    version: 'v0.42.0',
-                },
-            },
-        });
+						zoom: 4.0,
+					},
+					style: 'mapbox://styles/actarian/cja82nadj07sn2rmty6n1n5pk',
+					version: 'v0.42.0',
+				},
+			},
+		});
 
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.config(['environmentProvider', function(environmentProvider) {
+	app.config(['environmentProvider', function(environmentProvider) {
 
-        environmentProvider.add('local', {
-            paths: {
-                api: 'http://localhost:6001/api',
-                app: 'http://localhost:6001',
-            },
-            plugins: {
-                facebook: {
-                    appId: 340008479796111,
-                }
-            },
-        });
+		environmentProvider.add('local', {
+			paths: {
+				api: 'http://localhost:6001/api',
+				app: 'http://localhost:6001',
+			},
+			plugins: {
+				facebook: {
+					appId: 340008479796111,
+				}
+			},
+		});
 
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.config(['environmentProvider', function(environmentProvider) {
+	app.config(['environmentProvider', function(environmentProvider) {
 
-        environmentProvider.add('production', {
-            paths: {
-                api: 'https://actarian.github.io/artisan/api',
-                app: 'https://actarian.github.io/artisan',
-            },
-            plugins: {
-                facebook: {
-                    appId: 156171878319496,
-                }
-            },
-        });
+		environmentProvider.add('production', {
+			paths: {
+				api: 'https://actarian.github.io/artisan/api',
+				app: 'https://actarian.github.io/artisan',
+			},
+			plugins: {
+				facebook: {
+					appId: 156171878319496,
+				}
+			},
+		});
 
     }]);
 
 }());
+
 /* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('app');
+	var app = angular.module('app');
 
-    app.config(['environmentProvider', function(environmentProvider) {
+	app.config(['environmentProvider', function(environmentProvider) {
 
-        environmentProvider.add('stage', {
-            //
-        });
+		environmentProvider.add('stage', {
+			//
+		});
 
     }]);
 

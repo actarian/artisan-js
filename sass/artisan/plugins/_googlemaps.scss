@@ -1,6 +1,8 @@
-@import '../../colors';
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
 @import '../../variables';
 @import '../../mixins';
+
 [googlemaps] {
 	width: 100%;
 	height: 100%;

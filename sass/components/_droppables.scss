@@ -1,85 +1,85 @@
-﻿
-@import "./bower_components/bootstrap/scss/mixins";
-@import "./bower_components/bootstrap/scss/variables";
+﻿@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/variables";
 @import "mixins";
 
 [draggable-item] {
-    position: relative;
+	position: relative;
 
-    &:not([disabled]) {
-        cursor: move;
+	&:not([disabled]) {
+		cursor: move;
 
-        input, select {
-            cursor: pointer;
-        }
-    }
+		input,
+		select {
+			cursor: pointer;
+		}
+	}
 
-    @include user-select();
+	@include user-select();
 
-    &.dragging {
-        z-index: 10000;
+	&.dragging {
+		z-index: 10000;
 
-        > * {
-            pointer-events: none;
-        }
-    }
+		>* {
+			pointer-events: none;
+		}
+	}
 }
 
 [droppable-item] {
-    position: relative;
-    box-sizing: border-box;
-    border: 1px solid #ddd;
-    padding: 4px;
-    display: inline-block;
-    line-height: 0;
+	position: relative;
+	box-sizing: border-box;
+	border: 1px solid #ddd;
+	padding: 4px;
+	display: inline-block;
+	line-height: 0;
 
-    // @include transition();
+	// @include transition();
 
-    &:not([disabled]) {
-        &.over {
-            border-color: #ccc;
-        }
+	&:not([disabled]) {
+		&.over {
+			border-color: #ccc;
+		}
 
-        &.dropping {
-            border-color: #f2838a;
-        }
-    }
+		&.dropping {
+			border-color: #f2838a;
+		}
+	}
 }
 
-[droppable-item] + [droppable-item] {
-    // border-left: none;
-    // margin-left: -2px;
+[droppable-item]+[droppable-item] {
+	// border-left: none;
+	// margin-left: -2px;
 }
 
 th {
-    &[draggable-item] {
-        height: 44px;
+	&[draggable-item] {
+		height: 44px;
 
-        &:not([disabled]) {
-            &:hover {
-                background-color: #f0f0f0;
-            }
+		&:not([disabled]) {
+			&:hover {
+				background-color: #f0f0f0;
+			}
 
-            &.dragging {
-                background-color: #fff;
-            }
-        }
-    }
+			&.dragging {
+				background-color: #fff;
+			}
+		}
+	}
 
-    &[droppable-item] {
+	&[droppable-item] {
 
-        &:not([disabled]) {
-            &.dropping {
-                background-color: #f8f8f8;
-            }
-        }
-    }
+		&:not([disabled]) {
+			&.dropping {
+				background-color: #f8f8f8;
+			}
+		}
+	}
 }
 
 .atable-dynamic {
-    th[draggable-item] {
-        &:not([disabled]) {
-            @include transition();
-        }
-    }
+	th[draggable-item] {
+		&:not([disabled]) {
+			@include transition();
+		}
+	}
 }

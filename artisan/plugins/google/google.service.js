@@ -1,13 +1,13 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
 	// todo !!!
 
-	app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function ($timeout, $promise, $once, storage, environment) {
+	app.service('GoogleService', ['$timeout', '$promise', '$once', 'LocalStorage', 'environment', function($timeout, $promise, $once, storage, environment) {
 
 		var service = this;
 
@@ -64,13 +64,13 @@
 		}
 
 		function Google() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				if (window.gapi !== undefined) {
 					promise.resolve(window.gapi);
 				} else {
-					GoogleOnce().then(function (response) {
+					GoogleOnce().then(function(response) {
 						promise.resolve(window.gapi);
-					}, function (error) {
+					}, function(error) {
 						promise.reject(error);
 					});
 				}
@@ -78,22 +78,22 @@
 		}
 
 		function GoogleOnce() {
-			return $promise(function (promise) {
-				$once.script('https://apis.google.com/js/api:client.js?onload={{callback}}', true).then(function (data) {
+			return $promise(function(promise) {
+				$once.script('https://apis.google.com/js/api:client.js?onload={{callback}}', true).then(function(data) {
 					promise.resolve(data);
-				}, function (error) {
+				}, function(error) {
 					promise.reject(error);
 				});
 			});
 		}
 
 		function Auth2Init() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 
 				if (auth2) {
 					promise.resolve(auth2);
 				} else {
-					Google().then(function () {
+					Google().then(function() {
 						function onLoaded() {
 							var result = window.gapi.auth2.init({
 								client_id: environment.plugins.google.clientId,
@@ -102,12 +102,12 @@
 								fetch_basic_profile: true,
 								ux_mode: 'popup',
 
-							}).then(function () {
+							}).then(function() {
 								auth2 = window.gapi.auth2;
 								console.log('Auth2Init.success', auth2);
 								promise.resolve(auth2);
 
-							}, function (error) {
+							}, function(error) {
 								console.log('Auth2Init.error', error);
 								promise.reject(error);
 
@@ -116,13 +116,13 @@
 						if (window.gapi.auth2) {
 							onLoaded();
 						} else {
-							window.gapi.load('auth2', function () {
-								$timeout(function () {
+							window.gapi.load('auth2', function() {
+								$timeout(function() {
 									onLoaded();
 								}, 200);
 							});
 						}
-					}, function (error) {
+					}, function(error) {
 						console.log('Auth2Init.error', error);
 						promise.reject(error);
 
@@ -132,16 +132,16 @@
 		}
 
 		function Auth2Instance() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				if (instance) {
 					promise.resolve();
 				} else {
-					Auth2Init().then(function (auth2) {
+					Auth2Init().then(function(auth2) {
 						instance = auth2.getAuthInstance();
 						console.log('GoogleService.Auth2Instance.success', instance);
 						promise.resolve();
 
-					}, function (error) {
+					}, function(error) {
 						console.log('GoogleService.Auth2Instance.error', error);
 						promise.reject(error);
 					});
@@ -150,8 +150,8 @@
 		}
 
 		function GoogleGetMe() {
-			return $promise(function (promise) {
-				GoogleLogin().then(function (response) {
+			return $promise(function(promise) {
+				GoogleLogin().then(function(response) {
 					var profile = instance.currentUser.get().getBasicProfile();
 					var user = {
 						id: profile.getId(),
@@ -164,7 +164,7 @@
 					console.log('GoogleGetMe.success', user);
 					promise.resolve(user);
 
-				}, function (error) {
+				}, function(error) {
 					console.log('GoogleGetMe.error', error);
 					promise.reject(error);
 
@@ -173,8 +173,8 @@
 		}
 
 		function GoogleLogin() {
-			return $promise(function (promise) {
-				Auth2Instance().then(function () {
+			return $promise(function(promise) {
+				Auth2Instance().then(function() {
 					if (instance.isSignedIn && instance.isSignedIn.get()) {
 						// Auth2Instance.isSignedIn.listen(onStatus);
 						readAccessToken();
@@ -184,10 +184,10 @@
 						instance.signIn({
 							scope: 'profile email',
 
-						}).then(function (signed) {
+						}).then(function(signed) {
 							readAccessToken();
 
-						}, function (error) {
+						}, function(error) {
 							console.log('GoogleLogin.error', error);
 							storage.delete('google');
 							promise.reject(error);
@@ -217,7 +217,7 @@
 							readAccessToken();
 						}
 					}
-				}, function (error) {
+				}, function(error) {
 					console.log('GoogleLogin.error', error);
 					// promise.reject(error);
 
@@ -226,14 +226,14 @@
 		}
 
 		function GoogleLogout() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 
-				Auth2Instance().then(function () {
+				Auth2Instance().then(function() {
 					if (instance.isSignedIn && instance.isSignedIn.get()) {
-						instance.signOut().then(function (signed) {
+						instance.signOut().then(function(signed) {
 							promise.resolve();
 
-						}, function (error) {
+						}, function(error) {
 							console.log('GoogleService.signOut.error', error);
 							promise.reject(error);
 
@@ -242,7 +242,7 @@
 						promise.resolve();
 					}
 
-				}, function (error) {
+				}, function(error) {
 					console.log('GoogleService.signOut.error', error);
 					promise.reject(error);
 

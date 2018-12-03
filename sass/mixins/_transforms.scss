@@ -1,32 +1,33 @@
-﻿
-@import "./bower_components/bootstrap/scss/variables";
+﻿@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
+@import "variables";
 
 @mixin transform($properties) {
-    -moz-transform: $properties;
-    -ms-transform: $properties;
-    -o-transform: $properties;
-    -webkit-transform: $properties;
-    transform: $properties;
+	-moz-transform: $properties;
+	-ms-transform: $properties;
+	-o-transform: $properties;
+	-webkit-transform: $properties;
+	transform: $properties;
 }
 
 @mixin transform-origin($properties) {
-    -moz-transform-origin: $properties;
-    -ms-transform-origin: $properties;
-    -o-transform-origin: $properties;
-    -webkit-transform-origin: $properties;
-    transform-origin: $properties;
+	-moz-transform-origin: $properties;
+	-ms-transform-origin: $properties;
+	-o-transform-origin: $properties;
+	-webkit-transform-origin: $properties;
+	transform-origin: $properties;
 }
 
 @mixin perspective($properties) {
-    -moz-perspective: $properties;
-    -ms-perspective: $properties;
-    -webkit-perspective: $properties;
-    perspective: $properties;
+	-moz-perspective: $properties;
+	-ms-perspective: $properties;
+	-webkit-perspective: $properties;
+	perspective: $properties;
 }
 
 @mixin perspective-origin($properties) {
-    -moz-perspective-origin: $properties;
-    -ms-perspective-origin: $properties;
-    -webkit-perspective-origin: $properties;
-    perspective-origin: $properties;
+	-moz-perspective-origin: $properties;
+	-ms-perspective-origin: $properties;
+	-webkit-perspective-origin: $properties;
+	perspective-origin: $properties;
 }

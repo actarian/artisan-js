@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function ($promise, $once, storage, environment) {
+	app.service('FacebookService', ['$promise', '$once', 'LocalStorage', 'environment', function($promise, $once, storage, environment) {
 
 		var service = this;
 
@@ -50,13 +50,13 @@
 		}
 
 		function Facebook() {
-			return $promise(function (promise) {
+			return $promise(function(promise) {
 				if (window.FB !== undefined) {
 					promise.resolve(window.FB);
 				} else {
-					FacebookOnce().then(function (success) {
+					FacebookOnce().then(function(success) {
 						promise.resolve(window.FB);
-					}, function (error) {
+					}, function(error) {
 						promise.reject(error);
 					});
 				}
@@ -64,8 +64,8 @@
 		}
 
 		function FacebookOnce() {
-			return $promise(function (promise) {
-				$once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function () {
+			return $promise(function(promise) {
+				$once.script('//connect.facebook.net/' + environment.language.culture + '/sdk.js', 'fbAsyncInit').then(function() {
 					// console.log('FacebookOnce.fbAsyncInit', window.FB);
 					window.FB.init({
 						appId: config.appId,
@@ -76,7 +76,7 @@
 					});
 					promise.resolve(window.FB);
 					// window.fbAsyncInit = null;
-				}, function (error) {
+				}, function(error) {
 					promise.reject(error);
 				});
 			});
@@ -102,11 +102,11 @@
 
 		function FacebookGetMe(fields) {
 			fields = fields || config.fields;
-			return $promise(function (promise) {
-				FacebookLogin().then(function (response) {
+			return $promise(function(promise) {
+				FacebookLogin().then(function(response) {
 					window.FB.api('/me', {
 						fields: fields
-					}, function (response) {
+					}, function(response) {
 						if (!response || response.error) {
 							var error = response ? response.error : 'error';
 							console.log('FacebookGetMe.error', error);
@@ -124,13 +124,13 @@
 
 		function FacebookGetMyPicture(size) {
 			size = size || 300;
-			return $promise(function (promise) {
-				FacebookLogin().then(function (facebook) {
+			return $promise(function(promise) {
+				FacebookLogin().then(function(facebook) {
 					window.FB.api('/me/picture', {
 						width: size,
 						height: size,
 						type: 'square'
-					}, function (response) {
+					}, function(response) {
 						if (!response || response.error) {
 							var error = response ? response.error : 'error';
 							console.log('FacebookGetMyPicture.error', error);
@@ -147,10 +147,10 @@
 		}
 
 		function FacebookLogin() {
-			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
+			return $promise(function(promise) {
+				Facebook().then(function(facebook) {
 					console.log('FacebookLogin', facebook);
-					facebook.login(function (response) {
+					facebook.login(function(response) {
 						FacebookStatus(response, promise);
 					}, {
 						scope: config.scope
@@ -160,9 +160,9 @@
 		}
 
 		function FacebookLogout() {
-			return $promise(function (promise) {
-				Facebook().then(function (facebook) {
-					facebook.logout(function (response) {
+			return $promise(function(promise) {
+				Facebook().then(function(facebook) {
+					facebook.logout(function(response) {
 						promise.resolve(response);
 					});
 				});

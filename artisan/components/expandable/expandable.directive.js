@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('expandable', ['$parse', 'State', 'Dom', function ($parse, State, Dom) {
+	app.directive('expandable', ['$parse', 'State', 'Dom', function($parse, State, Dom) {
 
 		var directive = {
 			restrict: 'A',
@@ -66,7 +66,7 @@
 
 			function getTextStyle(style) {
 				var text = '';
-				angular.forEach(style, function (value, key) {
+				angular.forEach(style, function(value, key) {
 					text += key + ': ' + value + '; ';
 				});
 				return text;
@@ -82,7 +82,7 @@
 				target.parentNode.insertBefore(placeholder, target);
 				originalCssText = target.style.cssText;
 				targetElement.addClass('expandable-expanding');
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.addClass('expandable-parent');
 				});
 			}
@@ -91,7 +91,7 @@
 				target.style.cssText = originalCssText;
 				targetElement.removeClass('expandable-expanding');
 				placeholder.parentNode.removeChild(placeholder);
-				Dom.getParents(target).each(function (element, node) {
+				Dom.getParents(target).each(function(element, node) {
 					element.removeClass('expandable-parent');
 				});
 			}
@@ -143,11 +143,11 @@
 					}, {
 						type: dynamics.easeInOut,
 						duration: 350,
-						complete: function () {
+						complete: function() {
 							expanded = true;
 							state.idle();
 						},
-						change: function () {
+						change: function() {
 							update();
 						}
 					});
@@ -163,12 +163,12 @@
 					}, {
 						type: dynamics.easeInOut,
 						duration: 350,
-						complete: function () {
+						complete: function() {
 							expanded = false;
 							remove();
 							state.idle();
 						},
-						change: function () {
+						change: function() {
 							update();
 						}
 					});
@@ -266,7 +266,7 @@
 					.off('resize', onResize);
 			}
 
-			scope.$on('$destroy', function () {
+			scope.$on('$destroy', function() {
 				removeListeners();
 			});
 

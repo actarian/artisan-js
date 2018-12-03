@@ -1,11 +1,11 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.config(['$modalProvider', function ($modalProvider) {
+	app.config(['$modalProvider', function($modalProvider) {
 
 		$modalProvider.when('authModal', {
 			title: 'Authenticate',

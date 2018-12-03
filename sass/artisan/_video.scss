@@ -1,5 +1,6 @@
-@import "../../bower_components/bootstrap/scss/mixins";
-@import "../colors";
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
+@import "../variables";
 
 $zBackground: 0;
 $zBackgroundOverlay: 1;

@@ -1,11 +1,11 @@
 /* global angular, firebase */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.factory('Rect', [function () {
+	app.factory('Rect', [function() {
 
 		function Rect(x, y, w, h) {
 			this.x = x || 0;

@@ -1,11 +1,11 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('TestCtrl', ['$scope', '$filter', '$http', 'State', 'Hash', 'DateTime', 'Range', 'LocalStorage', function ($scope, $filter, $http, State, Hash, DateTime, Range, storage) {
+	app.controller('TestCtrl', ['$scope', '$filter', '$http', 'State', 'Hash', 'DateTime', 'Range', 'LocalStorage', function($scope, $filter, $http, State, Hash, DateTime, Range, storage) {
 
 		var state = new State();
 
@@ -18,7 +18,7 @@
 
 		angular.extend($scope, publics);
 
-		$http.get('api/test.json').then(function (response) {
+		$http.get('api/test.json').then(function(response) {
 			var slots = response.data;
 			sources.slots = slots;
 			setTodos();
@@ -28,7 +28,7 @@
 		function setTodos() {
 			var slots = sources.slots;
 			var todos = new Hash('key');
-			angular.forEach(slots, function (item) {
+			angular.forEach(slots, function(item) {
 				var day = item.day;
 				var week = $filter('isoWeek')(day.date, 1);
 				var keys = [week, day.activityId, day.taskId || 0, day.locked ? day.key : 0];
@@ -60,7 +60,7 @@
 			sources.todos = todos;
 		}
 
-		$scope.$on('onTodoPause', function (scope, item) {
+		$scope.$on('onTodoPause', function(scope, item) {
 			var accumulatedHours = DateTime.timeToQuarterHour(item.player.accumulatedTime);
 			// console.log('onTodoPause', accumulatedHours);
 			item.recordedHours += accumulatedHours;
@@ -85,7 +85,7 @@
 		console.log(range.toString());
 
 		var days = new Hash('key');
-		range.eachDay(function (day) {
+		range.eachDay(function(day) {
 			days.add(day);
 		});
 

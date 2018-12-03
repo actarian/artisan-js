@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('DateTime', [function () {
+	app.service('DateTime', [function() {
 
 		var service = this;
 
@@ -339,8 +339,8 @@
 
     }]);
 
-	app.filter('isoWeek', ['DateTime', function (DateTime) {
-		return function (value, offsetDays) {
+	app.filter('isoWeek', ['DateTime', function(DateTime) {
+		return function(value, offsetDays) {
 			if (value) {
 				var week = DateTime.getWeek(value, offsetDays);
 				return week < 10 ? '0' + week : week; // padded

@@ -1,39 +1,43 @@
-@import "../../bower_components/bootstrap/scss/mixins";
-@import "../colors";
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/mixins";
+@import "variables";
+
 .card-items {
-    width: 100%;
-    height: 330px;
+	width: 100%;
+	height: 330px;
 }
 
 .card-column {
-    display: inline-table;
-    width: 300px;
-    height: 300px;
-    &>.inner {
-        width: 300px;
-        height: 300px;
-    }
+	display: inline-table;
+	width: 300px;
+	height: 300px;
+
+	&>.inner {
+		width: 300px;
+		height: 300px;
+	}
 }
 
 .card-column+.card-column {
-    padding-left: 30px;
+	padding-left: 30px;
 }
 
 .card-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 300px;
-    height: 300px;
-    border: 1px solid $blue;
-    border-radius: 12px;
-    // box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
-    .title {
-        font-size: 110px;
-        margin-top: -40px;
-    }
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 300px;
+	height: 300px;
+	border: 1px solid $blue;
+	border-radius: 12px;
+
+	// box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+	.title {
+		font-size: 110px;
+		margin-top: -40px;
+	}
 }
 
 .card-item+.card-item {
-    margin-top: 30px;
+	margin-top: 30px;
 }

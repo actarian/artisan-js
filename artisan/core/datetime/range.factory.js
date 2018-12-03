@@ -1,6 +1,6 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
@@ -66,7 +66,7 @@
 		DAY: 17,
 	});
 
-	app.factory('Range', ['$filter', 'DateTime', 'RangeTypes', function ($filter, DateTime, RangeTypes) {
+	app.factory('Range', ['$filter', 'DateTime', 'RangeTypes', function($filter, DateTime, RangeTypes) {
 
 		function Range(options) {
 			var range = this;
@@ -121,7 +121,7 @@
 			getMonth: RangeGetMonth,
 			addYear: RangeAddYear,
 			types: RangeTypes,
-			// 
+			//
 			Year: RangeYear,
 			Semester: RangeSemester,
 			Trimester: RangeTrimester,
@@ -400,7 +400,7 @@
 				'] \'' + range.getName() + '\'';
 		}
 
-		// static methods        
+		// static methods
 		function RangeCopy($range) {
 			var range = new Range($range);
 			range.from = new Date($range.from);
@@ -478,7 +478,7 @@
 
 		function RangeFormat(range, format) {
 			var name = format;
-			name = name.replace(/{(.*?)}/g, function (replaced, token) {
+			name = name.replace(/{(.*?)}/g, function(replaced, token) {
 				var a = token.split('|');
 				var p = a.shift();
 				var f = a.join(''),
@@ -501,11 +501,11 @@
 
     }]);
 
-	(function () {
+	(function() {
 		// POLYFILL Object.values
 		if (typeof Object.values !== 'function') {
 			Object.defineProperty(Object, 'values', {
-				value: function (obj) {
+				value: function(obj) {
 					var vals = [];
 					for (var key in obj) {
 						if (has(obj, key) && isEnumerable(obj, key)) {

@@ -1,11 +1,11 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function ($http, $promise, $timeout, environment) {
+	app.service('Http', ['$http', '$promise', '$timeout', 'environment', function($http, $promise, $timeout, environment) {
 
 		var service = this;
 
@@ -28,11 +28,11 @@
 		}
 
 		function HttpPromise(method, path, data) {
-			return $promise(function (promise) {
-				$http[method](path, data).then(function (response) {
+			return $promise(function(promise) {
+				$http[method](path, data).then(function(response) {
 					promise.resolve(response.data);
 
-				}, function (e, status) {
+				}, function(e, status) {
 					var error = (e && e.data) ? e.data : {};
 					error.status = e.status;
 					promise.reject(error);
@@ -67,8 +67,8 @@
 
 		function HttpFake(data, msec) {
 			msec = msec || 1000;
-			return $promise(function (promise) {
-				$timeout(function () {
+			return $promise(function(promise) {
+				$timeout(function() {
 					promise.resolve({
 						data: data
 					});

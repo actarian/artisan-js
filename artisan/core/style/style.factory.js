@@ -1,13 +1,13 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var transformProperty = detectTransformProperty();
 
 	var app = angular.module('artisan');
 
-	app.factory('Style', [function () {
+	app.factory('Style', [function() {
 
 		function Style() {
 			this.props = {
@@ -60,7 +60,7 @@
 			safariPropertyHack = 'webkitTransform';
 		var div = document.createElement("DIV");
 		if (typeof div.style[transformProperty] !== 'undefined') {
-            ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
+            ['webkit', 'moz', 'o', 'ms'].every(function(prefix) {
 				var e = '-' + prefix + '-transform';
 				if (typeof div.style[e] !== 'undefined') {
 					transformProperty = e;

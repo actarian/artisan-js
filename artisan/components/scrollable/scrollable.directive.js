@@ -1,20 +1,20 @@
 /* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
-	window.ondragstart = function () {
+	window.ondragstart = function() {
 		return false;
 	};
 
 	var app = angular.module('artisan');
 
-	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+	app.directive('scrollableX', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
 		return {
 			restrict: 'A',
 			template: '<div class="scrollable-content" ng-transclude></div>',
 			transclude: true,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 
 				var onLeft, onRight, showIndicatorFor, scrollableWhen;
 				if (attributes.onLeft) {
@@ -45,21 +45,21 @@
 
 				function link(scrollable) {
 					scrollable.link({
-						getItems: function () {
+						getItems: function() {
 							if (attributes.scrollableItem) {
 								var items = containerNode.querySelectorAll(attributes.scrollableItem);
 								return items;
 							}
 						},
-						prev: function () {
+						prev: function() {
 							scrollable.scrollPrev();
 							animate.play();
 						},
-						next: function () {
+						next: function() {
 							scrollable.scrollNext();
 							animate.play();
 						},
-						reset: function () {
+						reset: function() {
 							scrollable.doReset();
 							animate.play();
 						},
@@ -191,9 +191,9 @@
 					render();
 				}
 
-				scope.$watch(function () {
+				scope.$watch(function() {
 					return contentNode.offsetWidth;
-				}, function (newValue, oldValue) {
+				}, function(newValue, oldValue) {
 					onResize();
 				});
 
@@ -220,7 +220,7 @@
 					});
 				}
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					animate.pause();
 				});
 
@@ -228,12 +228,12 @@
 		};
     }]);
 
-	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function ($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
+	app.directive('scrollableY', ['$parse', '$compile', '$timeout', 'Scrollable', 'Animate', 'Style', 'Events', 'Utils', function($parse, $compile, $timeout, Scrollable, Animate, Style, Events, Utils) {
 		return {
 			restrict: 'A',
 			template: '<div class="scrollable-content" ng-transclude></div>',
 			transclude: true,
-			link: function (scope, element, attributes, model) {
+			link: function(scope, element, attributes, model) {
 
 				var onTop, onBottom, showIndicatorFor, scrollableWhen;
 				if (attributes.onTop) {
@@ -263,21 +263,21 @@
 
 				function link(scrollable) {
 					scrollable.link({
-						getItems: function () {
+						getItems: function() {
 							if (attributes.scrollableItem) {
 								var items = containerNode.querySelectorAll(attributes.scrollableItem);
 								return items;
 							}
 						},
-						prev: function () {
+						prev: function() {
 							scrollable.scrollPrev();
 							animate.play();
 						},
-						next: function () {
+						next: function() {
 							scrollable.scrollNext();
 							animate.play();
 						},
-						reset: function () {
+						reset: function() {
 							scrollable.doReset();
 							animate.play();
 						},
@@ -368,9 +368,9 @@
 					render();
 				}
 
-				scope.$watch(function () {
+				scope.$watch(function() {
 					return contentNode.offsetHeight;
-				}, function (newValue, oldValue) {
+				}, function(newValue, oldValue) {
 					onResize();
 				});
 
@@ -397,7 +397,7 @@
 					});
 				}
 
-				scope.$on('$destroy', function () {
+				scope.$on('$destroy', function() {
 					animate.pause();
 				});
 

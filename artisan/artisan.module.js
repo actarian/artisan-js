@@ -1,8 +1,8 @@
 ﻿/* global angular */
 
 (function() {
-    "use strict";
+	"use strict";
 
-    var app = angular.module('artisan', ['ng', 'ngRoute', 'ngMessages']);
+	var app = angular.module('artisan', ['ng', 'ngRoute', 'ngMessages']);
 
 }());

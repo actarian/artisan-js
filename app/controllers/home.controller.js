@@ -1,18 +1,18 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('app');
 
-	app.controller('HomeCtrl', ['$scope', 'State', 'View', 'Range', function ($scope, State, View, Range) {
+	app.controller('HomeCtrl', ['$scope', 'State', 'View', 'Range', function($scope, State, View, Range) {
 		var state = new State();
 
-		View.current().then(function (view) {
+		View.current().then(function(view) {
 			$scope.view = view;
 			state.ready();
 
-		}, function (error) {
+		}, function(error) {
 			state.error(error);
 
 		});

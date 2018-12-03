@@ -1,15 +1,15 @@
 ﻿/* global angular */
 
-(function () {
+(function() {
 	"use strict";
 
 	var app = angular.module('artisan');
 
-	app.directive('nav', ['$parse', 'Nav', function ($parse, Nav) {
+	app.directive('nav', ['$parse', 'Nav', function($parse, Nav) {
 
 		var directive = {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				return attributes.template || 'artisan/components/nav/partial/nav';
 			},
 			scope: {
@@ -21,7 +21,7 @@
 		return directive;
 
 		function NavLink(scope, element, attributes, model) {
-			scope.$watch('items', function (value) {
+			scope.$watch('items', function(value) {
 				// console.log(value instanceof Nav, value);
 				if (value) {
 					if (angular.isArray(value)) {
@@ -43,11 +43,11 @@
 
     }]);
 
-	app.directive('navItem', ['$timeout', 'Events', function ($timeout, Events) {
+	app.directive('navItem', ['$timeout', 'Events', function($timeout, Events) {
 
 		var directive = {
 			restrict: 'A',
-			templateUrl: function (element, attributes) {
+			templateUrl: function(element, attributes) {
 				return attributes.template || 'artisan/components/nav/partial/nav-item';
 			},
 			scope: {
@@ -66,11 +66,11 @@
 			function itemOpen(item, immediate) {
 				var state = item.$nav.state;
 				state.active = true;
-				$timeout(function () {
+				$timeout(function() {
 					state.immediate = immediate;
 					state.closed = state.closing = false;
 					state.opening = true;
-					$timeout(function () {
+					$timeout(function() {
 						state.opening = false;
 						state.opened = true;
 					});
@@ -80,17 +80,17 @@
 			function itemClose(item, immediate) {
 				var state = item.$nav.state;
 				state.active = false;
-				$timeout(function () {
+				$timeout(function() {
 					state.immediate = immediate;
 					state.opened = state.opening = false;
 					state.closing = true;
-					$timeout(function () {
+					$timeout(function() {
 						state.closing = false;
 						state.closed = true;
 					});
 				});
 				if (item.items) {
-					angular.forEach(item.items, function (o) {
+					angular.forEach(item.items, function(o) {
 						itemClose(o, true);
 					});
 				}
@@ -102,7 +102,7 @@
 				state.active = item.items ? !state.active : true;
 				if (state.active) {
 					if (item.$nav.parent) {
-						angular.forEach(item.$nav.parent.items, function (o) {
+						angular.forEach(item.$nav.parent.items, function(o) {
 							if (o !== item) {
 								itemClose(o, true);
 							}
@@ -125,10 +125,10 @@
 				} else if (item.$nav.onNav) {
 					var promise = item.$nav.onNav(item, item.$nav);
 					if (promise && typeof promise.then === 'function') {
-						promise.then(function (resolved) {
+						promise.then(function(resolved) {
 							// go on
 							trigger();
-						}, function (rejected) {
+						}, function(rejected) {
 							// do nothing
 						});
 						output = false;
@@ -139,7 +139,7 @@
 				}
 
 				function trigger() {
-					$timeout(function () {
+					$timeout(function() {
 						itemToggle(item);
 					});
 				}
@@ -168,7 +168,7 @@
 
     }]);
 
-	app.directive('navTo', ['$parse', '$timeout', 'Events', function ($parse, $timeout, Events) {
+	app.directive('navTo', ['$parse', '$timeout', 'Events', function($parse, $timeout, Events) {
 
 		var directive = {
 			restrict: 'A',
@@ -180,7 +180,7 @@
 		function NavToLink(scope, element, attributes) {
 			function onDown(e) {
 				console.log('navTo.onDown', attributes.navTo);
-				$timeout(function () {
+				$timeout(function() {
 					var callback = $parse(attributes.navTo);
 					callback(scope);
 				});
