@@ -30,7 +30,6 @@
 					version: 'v2.10',
 				},
 				google: {
-					apiKey: 'AIzaSyCn6O-j_8pipy-ErGxg4bM1juGesiyM28U',
 					clientId: '1063539520533-7308vqmt92em6dv1v5q52fq2or36jk95.apps.googleusercontent.com',
 				},
 				googlemaps: {
